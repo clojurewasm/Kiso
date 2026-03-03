@@ -10,18 +10,13 @@ Session handover document. Read at session start.
 - Runtime: hash, equiv, keyword, symbol, list, vector, hash-map, hash-set, atom, seq, core.
 - Codegen emits runtime calls: vector(), hashMap(), hashSet(), keyword(), EMPTY_LIST.
 - NS → ES6 modules: `:require` parsing + import/export emission.
-- Total: 677 tests passing, types clean.
+- Total: 679 tests passing, types clean.
 
 ## Current Task
 
-**Batch E, Item 24: Built-in functions** — DONE
+**Batch E complete.** Evaluator + built-ins + macro expander pipeline all done.
 
-Verified all ~30 design spec functions implemented + meta stubs:
-- Collections: cons, concat, list, list*, first, rest, next, seq, empty?, conj, assoc, dissoc, get, vec, vector, hash-map, hash-set, count, nth, contains?
-- Symbol/keyword: symbol, keyword, name, namespace + type predicates
-- Arithmetic, comparison, string, gensym, apply, meta/with-meta/vary-meta
-
-Moving to Item 25: Macro expander pipeline.
+Moving to Batch F: Vite Integration.
 
 ## Task Queue
 
@@ -60,7 +55,7 @@ Items ordered by priority. Work top-down. Dependencies noted in brackets.
 ### Batch E: Mini Evaluator [depends on: Batch A mostly done]
 23. ~~Evaluator core (def, fn*, let*, do, if, quote, loop*, recur)~~ DONE
 24. ~~Built-in functions (~30: cons, concat, seq, symbol, gensym, etc.)~~ DONE
-25. Macro expander pipeline (core macros + user defmacro)
+25. ~~Macro expander pipeline (core macros + user defmacro)~~ DONE
 
 ### Batch F: Vite Integration [depends on: Batch E + Source Map]
 26. Public API (compile, compileFile, read, analyze, generate)

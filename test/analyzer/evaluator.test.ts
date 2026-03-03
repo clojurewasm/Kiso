@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { readStr } from '../../src/reader/reader.js';
 import { prStr } from '../../src/reader/form.js';
 import { MacroEvaluator, makeEnv } from '../../src/analyzer/evaluator.js';
+import { MacroExpander } from '../../src/analyzer/macro-expander.js';
 
 const evaluator = new MacroEvaluator();
 
@@ -206,6 +207,33 @@ describe('built-in: apply', () => {
 describe('built-in: meta stubs', () => {
   it('meta returns nil', () => expect(ev('(meta 42)')).toBe('nil'));
   it('with-meta returns obj', () => expect(ev('(with-meta [1 2] {:a 1})')).toBe('[1 2]'));
+});
+
+// -- Macro expander pipeline --
+
+describe('MacroExpander: defmacro', () => {
+  it('registers and expands a user-defined macro', () => {
+    const expander = new MacroExpander();
+    // Register: (defmacro my-when [test & body] (list (quote if) test (cons (quote do) body)))
+    const defmacroForm = readStr('(defmacro my-when [test & body] (list (quote if) test (cons (quote do) body)))')!;
+    expander.processToplevel(defmacroForm);
+
+    // Now expand: (my-when true 1 2 3)
+    const form = readStr('(my-when true 1 2 3)')!;
+    const expanded = expander.expandAll(form);
+    expect(prStr(expanded)).toBe('(if true (do 1 2 3))');
+  });
+
+  it('user macro composes with core macros', () => {
+    const expander = new MacroExpander();
+    const defmacroForm = readStr('(defmacro my-unless [test & body] (list (quote when-not) test (cons (quote do) body)))')!;
+    expander.processToplevel(defmacroForm);
+
+    const form = readStr('(my-unless false 42)')!;
+    const expanded = expander.expandAll(form);
+    // my-unless → when-not → if (not ...)
+    expect(prStr(expanded)).toBe('(if (not false) (do (do 42)) nil)');
+  });
 });
 
 // -- fn* with rest params --
