@@ -6,7 +6,7 @@
 // - Multi-arity fn → switch(args.length)
 // - Name munging for special characters
 
-import type { Node, FnArity, LetBinding, CatchClause, CaseNode, DeftypeNode } from '../analyzer/node.js';
+import type { Node, FnArity, LetBinding, CatchClause, CaseNode, DeftypeNode, ExtendTypeNode } from '../analyzer/node.js';
 
 type EmitCtx = {
   loopBindings: string[] | null; // current loop/fn binding names for recur
@@ -18,7 +18,11 @@ function emitNode(node: Node, ctx: EmitCtx): string {
   switch (node.type) {
     case 'literal': return emitLiteral(node);
     case 'keyword': return emitKeyword(node);
-    case 'var-ref': return munge(node.name);
+    case 'var-ref': {
+      // js/Foo → Foo (JS global reference)
+      if (node.name.startsWith('js/')) return node.name.slice(3);
+      return munge(node.name);
+    }
     case 'vector': return `vector(${node.items.map((n) => emitNode(n, ctx)).join(', ')})`;
     case 'map': return emitMap(node, ctx);
     case 'set': return `hashSet(${node.items.map((n) => emitNode(n, ctx)).join(', ')})`;
@@ -40,6 +44,7 @@ function emitNode(node: Node, ctx: EmitCtx): string {
     case 'js-raw': return node.code;
     case 'case*': return emitCase(node, ctx);
     case 'deftype': return emitDeftype(node, ctx);
+    case 'extend-type': return emitExtendType(node, ctx);
     case 'ns': return emitNs(node);
   }
 }
@@ -209,6 +214,20 @@ function emitDeftype(node: DeftypeNode, ctx: EmitCtx): string {
   const factoryName = `__GT_${name}`;
   // Emit as class declaration + factory (used inside emitTopLevel for export)
   return `class ${name} { constructor(${ctorParams}) { ${ctorBody} }${methodStr} }\nfunction ${factoryName}(${ctorParams}) { return new ${name}(${ctorParams}); }`;
+}
+
+function emitExtendType(node: ExtendTypeNode, ctx: EmitCtx): string {
+  const target = emitNode(node.target, ctx);
+  const stmts: string[] = [];
+  for (const impl of node.protocols) {
+    const protoVar = emitNode(impl.protocol, ctx);
+    for (const m of impl.methods) {
+      const mParams = m.params.slice(1).map(munge); // skip 'this'
+      const body = emitNode(m.body, ctx);
+      stmts.push(`${target}.prototype[${protoVar}.methods.${m.name}] = function(${mParams.join(', ')}) { return ${body}; }`);
+    }
+  }
+  return `(${stmts.join(', ')})`;
 }
 
 function emitDef(node: { name: string; init: Node | null }, ctx: EmitCtx): string {
@@ -451,7 +470,8 @@ function scanNodeForRuntime(node: Node, used: Set<string>): void {
       scanNodeForRuntime(node.default, used);
       break;
     }
-    case 'deftype': {
+    case 'deftype': case 'extend-type': {
+      if ('target' in node) scanNodeForRuntime(node.target, used);
       for (const impl of node.protocols) {
         scanNodeForRuntime(impl.protocol, used);
         for (const m of impl.methods) scanNodeForRuntime(m.body, used);

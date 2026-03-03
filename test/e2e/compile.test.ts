@@ -483,6 +483,21 @@ describe('var special form', () => {
 
 // -- Protocol System --
 
+describe('extend-type', () => {
+  it('generates prototype assignment for protocol methods', () => {
+    const code = `
+      (defprotocol IFoo
+        (foo [this]))
+      (extend-type js/Array
+        IFoo
+        (foo [this] (.-length this)))
+    `;
+    const js = compileModule(code);
+    expect(js).toContain('.prototype[');
+    expect(js).toContain('.methods.foo]');
+  });
+});
+
 describe('defprotocol + protocolFn', () => {
   it('defines protocol and dispatches via symbol', () => {
     const code = `

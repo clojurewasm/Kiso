@@ -28,7 +28,8 @@ export type Node =
   | JsRawNode
   | NsNode
   | CaseNode
-  | DeftypeNode;
+  | DeftypeNode
+  | ExtendTypeNode;
 
 export type LiteralNode = {
   type: 'literal';
@@ -71,5 +72,6 @@ export type CaseNode = { type: 'case*'; test: Node; clauses: CaseClause[]; defau
 export type DeftypeNode = { type: 'deftype'; name: string; fields: string[]; protocols: ProtocolImplNode[] };
 export type ProtocolImplNode = { protocol: Node; methods: ProtocolMethodNode[] };
 export type ProtocolMethodNode = { name: string; params: string[]; body: Node };
+export type ExtendTypeNode = { type: 'extend-type'; target: Node; protocols: ProtocolImplNode[] };
 export type CaseClause = { test: Node; then: Node };
 export type NsRequire = { ns: string; alias: string | null; refers: string[] };

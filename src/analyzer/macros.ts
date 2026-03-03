@@ -606,6 +606,11 @@ defmacro('defprotocol', (items, form) => {
   return makeList([sym('do'), ...defs], ...loc(form));
 });
 
+defmacro('extend-type', (items, form) => {
+  // (extend-type Target Proto (method [this] body) ...) → (extend-type* Target Proto (method [this] body) ...)
+  return makeList([sym('extend-type*'), ...items.slice(1)], ...loc(form));
+});
+
 defmacro('deftype', (items, form) => {
   // (deftype Name [fields...] Proto (method [this args] body) ...)
   // → (deftype* Name [fields...] Proto (method [this args] body) ...)
