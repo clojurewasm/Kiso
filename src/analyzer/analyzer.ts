@@ -443,8 +443,16 @@ export class Analyzer {
           const catchScope = makeScope(scope, [binding.data.name]);
           const catchBody = item.data.items.slice(3).map((f) => this.analyzeForm(f, catchScope));
           const catchBodyNode: Node = catchBody.length === 1 ? catchBody[0]! : { type: 'do', statements: catchBody.slice(0, -1), ret: catchBody[catchBody.length - 1]! };
+          let exTypeName: string;
+          if (exType.data.type === 'symbol') {
+            exTypeName = exType.data.name;
+          } else if (exType.data.type === 'keyword' && exType.data.name === 'default') {
+            exTypeName = ':default';
+          } else {
+            exTypeName = 'Error';
+          }
           catches.push({
-            exType: exType.data.type === 'symbol' ? exType.data.name : 'Error',
+            exType: exTypeName,
             binding: binding.data.name,
             body: catchBodyNode,
           });

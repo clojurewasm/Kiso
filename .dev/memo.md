@@ -10,49 +10,49 @@ Session handover document. Read at session start.
 - Runtime: hash, equiv, keyword, symbol, list, vector, hash-map, hash-set, atom, seq, core.
 - Codegen emits runtime calls: vector(), hashMap(), hashSet(), keyword(), EMPTY_LIST.
 - NS → ES6 modules: `:require` parsing + import/export emission.
-- Total: 516 tests passing, types clean.
+- Total: 573 tests passing, types clean.
 
 ## Current Task
 
-**Batch A, Item 1: Special form `case*` + `case` macro**
+**Batch D, Item 18: catch type discrimination** — DONE
 
-case macro expands to case* special form. Needs:
-- `case` macro in macros.ts (Form→Form transform: input + pairs + default)
-- `case*` special form in analyzer (CaseNode with test constants + exprs)
-- `case*` codegen in emitter (switch statement or if-else chain)
-- Reference: CW `macro_transforms.zig` (case), `analyzer.zig` (analyzeCaseStar)
-- Reference: CLJS upstream `cljs/core.cljc` (case macro expansion)
-- Design: `.dev/design/04-analyzer-codegen.md` for special form patterns
+Implemented instanceof chain in emitter for typed catch clauses.
+- `(catch js/TypeError e ...)` → `if (catch__auto instanceof TypeError)`
+- `(catch :default e ...)` → catch-all else clause
+- Multiple catch clauses generate if/else if chain
+- Single `:default` catch keeps simple form
+
+Moving to Item 17: interop.ts (clj->js, js->clj).
 
 ## Task Queue
 
 Items ordered by priority. Work top-down. Dependencies noted in brackets.
 
 ### Batch A: Independent small items (no dependencies)
-1. Special form: case* + case macro
-2. Special form: var
-3. Macros: condp, cond->, cond->>
-4. Macros: when-first, when-some, if-some
-5. Macros: .., declare, assert, time
-6. Macros: for, doseq, dotimes (complex — :let/:when/:while modifiers)
+1. ~~Special form: case* + case macro~~ DONE
+2. ~~Special form: var~~ DONE
+3. ~~Macros: condp, cond->, cond->>~~ DONE
+4. ~~Macros: when-first, when-some, if-some~~ DONE
+5. ~~Macros: .., declare, assert, time~~ DONE
+6. ~~Macros: dotimes~~ DONE (doseq/for deferred — need seq/first/next)
 
 ### Batch B: Protocol system [design: 06-protocol-lazyseq.md]
-7. runtime/protocols.ts (defprotocol, protocolFn)
-8. defprotocol macro (→ def + runtime calls)
-9. deftype* special form + codegen (→ ES6 class)
-10. extend-type macro (→ prototype mutation)
-11. defrecord* special form + codegen (→ deftype + map extras)
-12. reify (→ object literal with Symbol methods)
-13. Retrofit ISeq/ICounted on existing types (Vector, List, etc.)
+7. ~~runtime/protocols.ts (defprotocol, protocolFn)~~ DONE
+8. ~~defprotocol macro (→ def + runtime calls)~~ DONE
+9. ~~deftype* special form + codegen (→ ES6 class)~~ DONE
+10. ~~extend-type macro (→ prototype mutation)~~ DONE
+11. defrecord* special form + codegen (→ deftype + map extras) — deferred
+12. ~~reify (→ object literal with Symbol methods)~~ DONE
+13. Retrofit ISeq/ICounted on existing types — deferred to after LazySeq
 
 ### Batch C: LazySeq [depends on: Batch B]
-14. LazySeq runtime class
-15. lazy-seq macro (+ delay macro)
+14. ~~LazySeq runtime class~~ DONE
+15. ~~lazy-seq macro~~ DONE
 
 ### Batch D: Remaining runtime + su prep
 16. ArrayMap (<=8 entries, auto-promote to HAMT)
 17. interop.ts (clj->js, js->clj) — also needed for su DOM attributes (K07)
-18. catch type discrimination (instanceof chain)
+18. ~~catch type discrimination (instanceof chain)~~ DONE
 19. Source Map V3 (VLQ encoding) — independent, any time
 20. Atom tracking hook — add `_onDeref` to atom.ts (K04, su F1)
 21. Atom addWatch return unsubscribe fn (K05, su F2)

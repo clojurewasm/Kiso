@@ -317,11 +317,28 @@ describe('try/catch compilation', () => {
   });
 
   it('try catches thrown exception', () => {
-    expect(run('(try (throw "err") (catch Error e "caught"))')).toBe('caught');
+    expect(run('(try (throw (new js/Error "err")) (catch js/Error e "caught"))')).toBe('caught');
   });
 
   it('catch binds the exception', () => {
-    expect(run('(try (throw "hello") (catch Error e e))')).toBe('hello');
+    expect(run('(try (throw (new js/Error "hello")) (catch js/Error e (.-message e)))')).toBe('hello');
+  });
+
+  it('catch :default catches non-Error values', () => {
+    expect(run('(try (throw "raw") (catch :default e e))')).toBe('raw');
+  });
+
+  it('discriminates catch by exception type', () => {
+    // (catch js/TypeError e ...) should only match TypeError
+    expect(run('(try (throw (new js/TypeError "t")) (catch js/TypeError e "type-err") (catch js/Error e "err"))')).toBe('type-err');
+  });
+
+  it('falls through to matching catch type', () => {
+    expect(run('(try (throw (new js/RangeError "r")) (catch js/TypeError e "type-err") (catch js/RangeError e "range-err"))')).toBe('range-err');
+  });
+
+  it('catch :default catches anything', () => {
+    expect(run('(try (throw "str") (catch js/TypeError e "type-err") (catch :default e "default"))')).toBe('default');
   });
 });
 

@@ -323,10 +323,26 @@ function emitTry(
   const body = emitNode(node.body, ctx);
   let catchBlock = '';
   if (node.catches.length > 0) {
-    // Use the first catch clause (simplified — no type discrimination)
-    const c = node.catches[0]!;
-    const catchBody = emitNode(c.body, ctx);
-    catchBlock = ` catch (${munge(c.binding)}) { return ${catchBody}; }`;
+    if (node.catches.length === 1 && node.catches[0]!.exType === ':default') {
+      // Single :default catch — no type check needed
+      const c = node.catches[0]!;
+      catchBlock = ` catch (${munge(c.binding)}) { return ${emitNode(c.body, ctx)}; }`;
+    } else {
+      // Multiple catches or typed catch — instanceof chain
+      const catchVar = 'catch__auto';
+      const branches = node.catches.map((c) => {
+        const bindingName = munge(c.binding);
+        const bodyExpr = emitNode(c.body, ctx);
+        if (c.exType === ':default') {
+          return `{ let ${bindingName} = ${catchVar}; return ${bodyExpr}; }`;
+        }
+        const typeName = c.exType.startsWith('js/') ? c.exType.slice(3) : munge(c.exType);
+        return `if (${catchVar} instanceof ${typeName}) { let ${bindingName} = ${catchVar}; return ${bodyExpr}; }`;
+      });
+      // Join with else
+      const chain = branches.join(' else ');
+      catchBlock = ` catch (${catchVar}) { ${chain} throw ${catchVar}; }`;
+    }
   }
   let finallyBlock = '';
   if (node.finally) {
