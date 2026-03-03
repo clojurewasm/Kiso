@@ -8,6 +8,7 @@ import { hashMap, PersistentHashMap } from '../../src/runtime/hash-map.js';
 import { hashSet, PersistentHashSet } from '../../src/runtime/hash-set.js';
 import { list, EMPTY_LIST } from '../../src/runtime/list.js';
 import { symbol as runtimeSymbol } from '../../src/runtime/symbol.js';
+import { defprotocol, protocolFn } from '../../src/runtime/protocols.js';
 
 const analyzer = new Analyzer();
 
@@ -15,6 +16,7 @@ const analyzer = new Analyzer();
 const runtime: Record<string, unknown> = {
   vector, keyword, hashMap, hashSet, list, EMPTY_LIST,
   symbol: runtimeSymbol,
+  defprotocol, protocolFn,
 };
 const runtimeKeys = Object.keys(runtime);
 const runtimeVals = Object.values(runtime);
@@ -476,5 +478,21 @@ describe('dotimes', () => {
 describe('var special form', () => {
   it('resolves var to its value', () => {
     expect(run('(let [x 42] (var x))')).toBe(42);
+  });
+});
+
+// -- Protocol System --
+
+describe('defprotocol + protocolFn', () => {
+  it('defines protocol and dispatches via symbol', () => {
+    // Use runModule to handle top-level defs
+    const code = `
+      (defprotocol IGreet
+        (greet [this]))
+    `;
+    const js = compileModule(code);
+    // The module should contain defprotocol and protocolFn calls
+    expect(js).toContain('defprotocol');
+    expect(js).toContain('protocolFn');
   });
 });

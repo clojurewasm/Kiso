@@ -576,6 +576,36 @@ defmacro('dotimes', (items, form) => {
   ], ...loc(form));
 });
 
+defmacro('defprotocol', (items, form) => {
+  // (defprotocol IFoo (foo [this]) (bar [this x]))
+  // → (do (def IFoo (defprotocol "IFoo" ["foo" "bar"]))
+  //       (def foo (protocolFn IFoo "foo"))
+  //       (def bar (protocolFn IFoo "bar")))
+  const nameSym = nth(items, 1);
+  // Guard: only expand protocol definitions (name is symbol).
+  // Runtime calls like (defprotocol "IFoo" [...]) pass through as function calls.
+  if (nameSym.data.type !== 'symbol') return form;
+  const protoName = nameSym.data.name;
+  const methodSigs = items.slice(2);
+  const methodNames: string[] = [];
+  for (const sig of methodSigs) {
+    if (sig.data.type !== 'list' || sig.data.items.length === 0) continue;
+    const mName = sig.data.items[0]!;
+    if (mName.data.type !== 'symbol') throw new Error('method name must be a symbol');
+    methodNames.push(mName.data.name);
+  }
+  const nameStrs = methodNames.map((n) => makeStr(n));
+  const defs: Form[] = [
+    makeList([sym('def'), nameSym,
+      makeList([sym('defprotocol'), makeStr(protoName), makeVector(nameStrs)])]),
+  ];
+  for (const mName of methodNames) {
+    defs.push(makeList([sym('def'), sym(mName),
+      makeList([sym('protocolFn'), nameSym, makeStr(mName)])]));
+  }
+  return makeList([sym('do'), ...defs], ...loc(form));
+});
+
 defmacro('comment', (_items, form) => {
   return makeNil(...loc(form));
 });

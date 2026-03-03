@@ -349,6 +349,11 @@ function scanNodeForRuntime(node: Node, used: Set<string>): void {
       break;
     }
     case 'invoke': {
+      // Detect runtime function calls by name
+      if (node.fn.type === 'var-ref' && !node.fn.local) {
+        const name = node.fn.name;
+        if (name === 'defprotocol' || name === 'protocolFn') used.add(name);
+      }
       scanNodeForRuntime(node.fn, used);
       for (const a of node.args) scanNodeForRuntime(a, used);
       break;

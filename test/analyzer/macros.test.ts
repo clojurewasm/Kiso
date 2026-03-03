@@ -331,6 +331,24 @@ describe('dotimes', () => {
   });
 });
 
+// -- defprotocol --
+
+describe('defprotocol', () => {
+  it('expands to do with def + runtime calls', () => {
+    const result = ex1('(defprotocol IFoo (foo [this]) (bar [this x]))');
+    expect(result).toBe(
+      '(do (def IFoo (defprotocol "IFoo" ["foo" "bar"])) (def foo (protocolFn IFoo "foo")) (def bar (protocolFn IFoo "bar")))'
+    );
+  });
+
+  it('handles single method', () => {
+    const result = ex1('(defprotocol IBar (baz [this]))');
+    expect(result).toBe(
+      '(do (def IBar (defprotocol "IBar" ["baz"])) (def baz (protocolFn IBar "baz")))'
+    );
+  });
+});
+
 // -- Non-macro forms pass through --
 
 describe('non-macro forms', () => {
