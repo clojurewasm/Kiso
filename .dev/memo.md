@@ -10,18 +10,18 @@ Session handover document. Read at session start.
 - Runtime: hash, equiv, keyword, symbol, list, vector, hash-map, hash-set, atom, seq, core.
 - Codegen emits runtime calls: vector(), hashMap(), hashSet(), keyword(), EMPTY_LIST.
 - NS → ES6 modules: `:require` parsing + import/export emission.
-- Total: 586 tests passing, types clean.
+- Total: 596 tests passing, types clean.
 
 ## Current Task
 
-**Batch D, Item 17: interop.ts** — DONE
+**Batch D, Item 19: Source Map V3** — DONE
 
-Implemented clj->js and js->clj conversion:
-- `cljToJs`: keyword→string, vector→array, list→array, map→object, set→array, recursive
-- `jsToClj`: array→vector, object→hashMap(keyword keys), recursive
-- Added `forEach` to PersistentHashMap and PersistentHashSet
+Implemented VLQ encoding + SourceMapBuilder:
+- `encodeVLQ`: Base64 VLQ integer encoding per spec
+- `SourceMapBuilder`: addMapping(genLine, genCol, srcLine, srcCol) → V3 JSON
+- Emitter integration (propagating Form locations) deferred to Batch F
 
-Moving to Item 19: Source Map V3.
+Moving to Item 20: Atom tracking hook.
 
 ## Task Queue
 
@@ -52,7 +52,7 @@ Items ordered by priority. Work top-down. Dependencies noted in brackets.
 16. ArrayMap (<=8 entries, auto-promote to HAMT)
 17. ~~interop.ts (clj->js, js->clj)~~ DONE
 18. ~~catch type discrimination (instanceof chain)~~ DONE
-19. Source Map V3 (VLQ encoding) — independent, any time
+19. ~~Source Map V3 (VLQ encoding)~~ DONE
 20. Atom tracking hook — add `_onDeref` to atom.ts (K04, su F1)
 21. Atom addWatch return unsubscribe fn (K05, su F2)
 22. Verify keyword edge cases for CSS selectors (K06, su F6)
