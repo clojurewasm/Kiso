@@ -280,6 +280,46 @@ describe('cond->>', () => {
   });
 });
 
+// -- .., declare, assert, time --
+
+describe('.. (double dot)', () => {
+  it('chains single method', () => {
+    expect(ex1('(.. x (m))')).toBe('(. x m)');
+  });
+
+  it('chains multiple methods', () => {
+    expect(ex1('(.. x (m1) (m2))')).toBe('(. (. x m1) m2)');
+  });
+
+  it('chains with arguments', () => {
+    expect(ex1('(.. x (m1 a) (m2 b))')).toBe('(. (. x m1 a) m2 b)');
+  });
+});
+
+describe('declare', () => {
+  it('expands to do with nil defs', () => {
+    expect(ex1('(declare x y)')).toBe('(do (def x) (def y))');
+  });
+});
+
+describe('assert', () => {
+  it('expands to if + throw', () => {
+    expect(ex1('(assert test)')).toBe('(if test nil (throw (new Error "Assert failed")))');
+  });
+
+  it('uses custom message', () => {
+    expect(ex1('(assert test "bad")')).toBe('(if test nil (throw (new Error "bad")))');
+  });
+});
+
+describe('time', () => {
+  it('expands to performance measurement', () => {
+    const result = ex1('(time expr)');
+    expect(result).toContain('let*');
+    expect(result).toContain('time__auto');
+  });
+});
+
 // -- Non-macro forms pass through --
 
 describe('non-macro forms', () => {

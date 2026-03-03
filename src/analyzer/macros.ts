@@ -8,6 +8,7 @@ import {
   makeNil,
   makeBool,
   makeSymbol,
+  makeStr,
   makeList,
   makeVector,
 } from '../reader/form.js';
@@ -493,6 +494,55 @@ defmacro('case', (items, form) => {
     sym('let*'),
     makeVector([autoSym, expr]),
     makeList([sym('case*'), autoSym, ...flat]),
+  ], ...loc(form));
+});
+
+defmacro('..', (items, form) => {
+  // (.. x (m1 a) (m2 b)) → (. (. x m1 a) m2 b)
+  const target = nth(items, 1);
+  const calls = items.slice(2);
+  return calls.reduce<Form>((acc, call) => {
+    if (call.data.type === 'list') {
+      return makeList([sym('.'), acc, ...call.data.items], ...loc(form));
+    }
+    return makeList([sym('.'), acc, call], ...loc(form));
+  }, target);
+});
+
+defmacro('declare', (items, form) => {
+  // (declare x y) → (do (def x) (def y))
+  const names = items.slice(1);
+  return makeList([sym('do'), ...names.map((n) => makeList([sym('def'), n]))], ...loc(form));
+});
+
+defmacro('assert', (items, form) => {
+  // (assert test msg?) → (if test nil (throw (new Error msg)))
+  const test = nth(items, 1);
+  const msg = items.length > 2 ? nth(items, 2) : makeStr('Assert failed');
+  return makeList([
+    sym('if'), test, makeNil(),
+    makeList([sym('throw'), makeList([sym('new'), sym('Error'), msg])]),
+  ], ...loc(form));
+});
+
+defmacro('time', (items, form) => {
+  // (time expr) → (let* [time__auto (js* "performance.now()") ret__auto expr time_end__auto (js* "performance.now()")] (.log console (str "Elapsed time: " ...)) ret__auto)
+  // Simplified: just wrap and return
+  const expr = nth(items, 1);
+  const timeSym = sym('time__auto');
+  const retSym = sym('ret__auto');
+  return makeList([
+    sym('let*'),
+    makeVector([
+      timeSym, makeList([sym('js*'), makeStr('performance.now()')]),
+      retSym, expr,
+    ]),
+    makeList([sym('do'),
+      makeList([sym('.'), sym('console'), sym('log'),
+        makeStr('Elapsed time:'),
+        makeList([sym('-'), makeList([sym('js*'), makeStr('performance.now()')]), timeSym]),
+        makeStr('ms')]),
+      retSym]),
   ], ...loc(form));
 });
 
