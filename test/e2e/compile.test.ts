@@ -2,8 +2,22 @@ import { describe, it, expect } from 'vitest';
 import { readStr, readAllStr } from '../../src/reader/reader.js';
 import { Analyzer } from '../../src/analyzer/analyzer.js';
 import { emit, emitModule, munge } from '../../src/codegen/emitter.js';
+import { vector, PersistentVector } from '../../src/runtime/vector.js';
+import { keyword, Keyword } from '../../src/runtime/keyword.js';
+import { hashMap, PersistentHashMap } from '../../src/runtime/hash-map.js';
+import { hashSet, PersistentHashSet } from '../../src/runtime/hash-set.js';
+import { list, EMPTY_LIST } from '../../src/runtime/list.js';
+import { symbol as runtimeSymbol } from '../../src/runtime/symbol.js';
 
 const analyzer = new Analyzer();
+
+// Runtime functions available to compiled code
+const runtime: Record<string, unknown> = {
+  vector, keyword, hashMap, hashSet, list, EMPTY_LIST,
+  symbol: runtimeSymbol,
+};
+const runtimeKeys = Object.keys(runtime);
+const runtimeVals = Object.values(runtime);
 
 /** Compile a single expression to JS. */
 function compile(source: string): string {
@@ -22,13 +36,13 @@ function compileModule(source: string): string {
 
 /**
  * Compile and evaluate a single Clojure expression.
- * This is safe because it only evaluates compiler output from our own test inputs.
- * Used exclusively for testing the compiler pipeline in a controlled environment.
+ * Runtime functions are injected as parameters.
  */
 function run(source: string): unknown {
   const js = compile(source);
   // eslint-disable-next-line no-new-func -- test-only: evaluating our own compiler output
-  return new Function(`return ${js}`)();
+  const fn = new Function(...runtimeKeys, `return ${js}`);
+  return fn(...runtimeVals);
 }
 
 // -- Literals --
@@ -59,14 +73,46 @@ describe('literal compilation', () => {
     expect(run('"hello"')).toBe('hello');
   });
 
-  it('compiles keywords as strings', () => {
-    expect(compile(':foo')).toBe('":foo"');
-    expect(run(':foo')).toBe(':foo');
+  it('compiles keywords to runtime Keyword', () => {
+    expect(compile(':foo')).toBe('keyword("foo")');
+    const k = run(':foo');
+    expect(k).toBeInstanceOf(Keyword);
+    expect((k as Keyword).name).toBe('foo');
   });
 
-  it('compiles vectors as arrays', () => {
-    expect(compile('[1 2 3]')).toBe('[1, 2, 3]');
-    expect(run('[1 2 3]')).toEqual([1, 2, 3]);
+  it('compiles namespaced keywords', () => {
+    expect(compile(':ns/foo')).toBe('keyword("foo", "ns")');
+    const k = run(':ns/foo') as Keyword;
+    expect(k.ns).toBe('ns');
+    expect(k.name).toBe('foo');
+  });
+
+  it('compiles vectors to PersistentVector', () => {
+    expect(compile('[1 2 3]')).toBe('vector(1, 2, 3)');
+    const v = run('[1 2 3]');
+    expect(v).toBeInstanceOf(PersistentVector);
+    expect((v as PersistentVector).count).toBe(3);
+    expect((v as PersistentVector).nth(0)).toBe(1);
+  });
+
+  it('compiles empty vector', () => {
+    expect(compile('[]')).toBe('vector()');
+    const v = run('[]') as PersistentVector;
+    expect(v.count).toBe(0);
+  });
+
+  it('compiles maps to PersistentHashMap', () => {
+    expect(compile('{:a 1 :b 2}')).toBe('hashMap(keyword("a"), 1, keyword("b"), 2)');
+    const m = run('{:a 1}') as PersistentHashMap;
+    expect(m).toBeInstanceOf(PersistentHashMap);
+    expect(m.count).toBe(1);
+  });
+
+  it('compiles sets to PersistentHashSet', () => {
+    expect(compile('#{1 2 3}')).toBe('hashSet(1, 2, 3)');
+    const s = run('#{1 2}') as PersistentHashSet;
+    expect(s).toBeInstanceOf(PersistentHashSet);
+    expect(s.count).toBe(2);
   });
 });
 
@@ -217,15 +263,10 @@ describe('loop/recur compilation', () => {
   });
 
   it('loop/recur counts down', () => {
-    // (loop [i 5 sum 0] (if (> i 0) (recur (- i 1) (+ sum i)) sum))
-    // sum = 5 + 4 + 3 + 2 + 1 = 15
-    const src = '(loop [i 5 sum 0] (if (.call (fn [a b] (js* "a > b")) nil i 0) (recur (.call (fn [a b] (js* "a - b")) nil i 1) (.call (fn [a b] (js* "a + b")) nil sum i)) sum))';
-    // This is too complex with js*. Let's test simpler patterns.
     expect(run('(loop [x 0] (if (js* "x < 3") (recur (js* "x + 1")) x))')).toBe(3);
   });
 
   it('recur reassigns all bindings simultaneously', () => {
-    // (loop [a 1 b 0] ...) where recur swaps: (recur b a)
     expect(run('(loop [a 1 b 2 n 0] (if (js* "n < 1") (recur b a (js* "n + 1")) a))')).toBe(2);
   });
 });
@@ -267,5 +308,17 @@ describe('E2E: compile and execute', () => {
 
   it('compiles string interop', () => {
     expect(run('(.indexOf "hello world" "world")')).toBe(6);
+  });
+
+  it('vector in let binding', () => {
+    const v = run('(let [v [1 2 3]] v)') as PersistentVector;
+    expect(v).toBeInstanceOf(PersistentVector);
+    expect(v.count).toBe(3);
+  });
+
+  it('keyword in map', () => {
+    const m = run('(let [m {:x 42}] m)') as PersistentHashMap;
+    expect(m).toBeInstanceOf(PersistentHashMap);
+    expect(m.get(keyword('x'))).toBe(42);
   });
 });

@@ -44,22 +44,32 @@ git log --oneline -3 && git status --short
 
 Read `.dev/memo.md` → `## Current Task`:
 - **Has design details** → Execute
-- **Title only or empty** → Plan (check roadmap)
+- **Title only or empty** → Plan (check roadmap + design docs)
 
-**2. Plan** — Write design in `## Current Task`. Check roadmap for context.
+**2. Plan** — Write design in `## Current Task`. Check roadmap + design docs for context.
 
 **3. Execute**
 
 - TDD cycle: Red → Green → Refactor
 - Run tests: `npm test`
 - CW knowledge reference: `~/Documents/MyProducts/ClojureWasm/` (Reader, Analyzer, HAMT, etc.)
+- **Investigation**: Check reference impls when debugging, designing, OR optimizing:
+  - CW source: `~/Documents/MyProducts/ClojureWasm/src/`
+  - CLJS upstream: `~/Documents/OSS/ClojureScript/`
+  - **Web search**: Use WebFetch/WebSearch for specs, blog posts
 
 **4. Complete** — Run Commit Gate → update memo.md → commit → loop back immediately.
 
+### No-Workaround Rule
+
+1. **Fix root causes, never work around.** Missing feature? Implement it first.
+2. **Design fidelity over expedience.** Never simplify codegen to avoid runtime gaps.
+3. **Checklist new blockers.** Add K## entry for missing features discovered mid-task.
+
 ### When to Stop
 
-Stop **only** when: user requests, ambiguous requirements, or current phase done.
-Do NOT stop for: empty queue, large context, "good stopping points".
+Stop **only** when: user requests or ambiguous requirements.
+Do NOT stop for: phase boundaries, empty queue, large context, "good stopping points", user not responding.
 When in doubt, **continue**.
 
 ### Commit Gate Checklist
@@ -75,6 +85,13 @@ npm test                    # Run all tests (vitest)
 npm run build               # Build (tsc)
 npx tsc --noEmit            # Type check only
 ```
+
+## Context Efficiency
+
+- **LSP first, Read second**: Use `xref-find-references`, `imenu-list-symbols`, or
+  `xref-find-apropos` to locate the exact line range, then Read that range only.
+- **Grep for discovery**: Grep with context (`-C`) is far cheaper than reading a whole file.
+- **Read with offset/limit**: For large files, never read the entire file blindly.
 
 ## Project Structure
 

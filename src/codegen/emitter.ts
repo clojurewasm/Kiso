@@ -19,9 +19,9 @@ function emitNode(node: Node, ctx: EmitCtx): string {
     case 'literal': return emitLiteral(node);
     case 'keyword': return emitKeyword(node);
     case 'var-ref': return munge(node.name);
-    case 'vector': return `[${node.items.map((n) => emitNode(n, ctx)).join(', ')}]`;
+    case 'vector': return `vector(${node.items.map((n) => emitNode(n, ctx)).join(', ')})`;
     case 'map': return emitMap(node, ctx);
-    case 'set': return `new Set([${node.items.map((n) => emitNode(n, ctx)).join(', ')}])`;
+    case 'set': return `hashSet(${node.items.map((n) => emitNode(n, ctx)).join(', ')})`;
     case 'invoke': return emitInvoke(node, ctx);
     case 'if': return emitIf(node, ctx);
     case 'do': return emitDo(node, ctx);
@@ -72,13 +72,19 @@ function emitLiteral(node: { value: unknown; jsType: string }): string {
 }
 
 function emitKeyword(node: { ns: string | null; name: string }): string {
-  const full = node.ns ? `${node.ns}/${node.name}` : node.name;
-  return JSON.stringify(`:${full}`);
+  if (node.ns) {
+    return `keyword(${JSON.stringify(node.name)}, ${JSON.stringify(node.ns)})`;
+  }
+  return `keyword(${JSON.stringify(node.name)})`;
 }
 
 function emitMap(node: { keys: Node[]; vals: Node[] }, ctx: EmitCtx): string {
-  const entries = node.keys.map((k, i) => `[${emitNode(k, ctx)}, ${emitNode(node.vals[i]!, ctx)}]`);
-  return `new Map([${entries.join(', ')}])`;
+  const kvs: string[] = [];
+  for (let i = 0; i < node.keys.length; i++) {
+    kvs.push(emitNode(node.keys[i]!, ctx));
+    kvs.push(emitNode(node.vals[i]!, ctx));
+  }
+  return `hashMap(${kvs.join(', ')})`;
 }
 
 function emitInvoke(node: { fn: Node; args: Node[] }, ctx: EmitCtx): string {
