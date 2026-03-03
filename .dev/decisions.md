@@ -64,3 +64,62 @@ analyzer will provide. Current `backtick` token emits `(syntax-quote x)` wrapper
 Transient collections. These will be added when needed by the compiler pipeline.
 
 **Affected**: `src/runtime/`.
+
+## D6: Language Scope — Full ClojureScript (minus Google Closure)
+
+**Date**: 2026-03-04
+
+Kiso targets full ClojureScript language compatibility. NOT a minimal subset.
+
+**In scope**:
+- Full Reader (all reader macros, syntax-quote, namespaced maps)
+- All ~40 core macros + defmacro via mini evaluator
+- All special forms (~20: def, fn*, let*, do, if, loop*, recur, try, throw, new,
+  `.`, set!, var, js*, ns, deftype*, defrecord*, letfn*, case*)
+- Full Protocol system (defprotocol, deftype, defrecord, extend-type, reify)
+- Full JS interop (.method, Ctor., .-field, js*, set!)
+- Persistent data structures (Vector, HashMap, HashSet, List, LazySeq)
+- Destructuring (sequential + associative, all modifiers)
+- Multimethods (defmulti, defmethod)
+- cljs.core as .cljs macro definitions (via mini evaluator)
+
+**Intentionally excluded**:
+- Google Closure Compiler dependency (no goog.* namespace)
+- `:advanced` optimization (delegated to Vite/esbuild/Rollup)
+- JVM Clojure host interop (ns :import of Java classes)
+- cljs.spec (may add later as optional)
+- core.async (may add later as optional)
+- Reader conditional `:clj` target (only `:cljs` and `:default`)
+
+**Rationale**: The goal is a practical ClojureScript compiler for modern web development.
+Replacing Google Closure with Vite removes the biggest pain point of upstream CLJS
+while keeping full language semantics. "Minimal subset" would limit adoption.
+
+**Affected**: All modules — this sets the scope ceiling for the entire project.
+
+## D7: Protocol Dispatch — JS Symbol Keys (Not CW-style Map Lookup)
+
+**Date**: 2026-03-04
+
+CW dispatches protocol methods via string-keyed map lookup (`valueTypeKey → impls map`).
+Kiso uses **JS Symbol-keyed methods on prototypes** instead.
+
+```typescript
+const ISeq = defprotocol('ISeq', ['first', 'rest']);
+// Dispatch: obj[ISeq.methods.first]() — native JS property lookup
+```
+
+**Rationale**:
+- Leverages JS engine's optimized property lookup (hidden classes, inline caches)
+- No need for custom inline cache or generation counter (CW complexity)
+- Symbol keys avoid name collisions without mangling
+- extend-type becomes `Proto.prototype[sym] = fn` (native JS pattern)
+- deftype/defrecord become ES6 classes with `[sym]()` methods
+- reify becomes object literal with `[sym]()` methods
+
+**Trade-off**: Primitive types (string, number, nil) cannot have Symbol methods added
+to their prototypes safely. These use a fallback path in `protocolFn`.
+
+**Design**: See `.dev/design/06-protocol-lazyseq.md` for full specification.
+
+**Affected**: `src/runtime/protocols.ts`, `src/analyzer/`, `src/codegen/emitter.ts`.

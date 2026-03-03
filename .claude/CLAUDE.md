@@ -1,13 +1,13 @@
 # Kiso
 
 ClojureScript-to-JavaScript compiler in TypeScript. Zero dependencies.
-Design: `.dev/design/`. Memo: `.dev/memo.md`. Roadmap: `.dev/roadmap.md`.
+Design: `.dev/design/`. Memo: `@./.dev/memo.md`. Roadmap: `@./.dev/roadmap.md`.
 
 ## Language Policy
 
 - **All code in English**: identifiers, comments, docstrings, commit messages, markdown
 
-## TDD
+## TDD (t-wada style)
 
 1. **Red**: Write exactly one failing test first
 2. **Green**: Write minimum code to pass
@@ -16,13 +16,6 @@ Design: `.dev/design/`. Memo: `.dev/memo.md`. Roadmap: `.dev/roadmap.md`.
 - Never write production code before a test (1 test → 1 impl → verify cycle)
 - Progress: "Fake It" → "Triangulate" → "Obvious Implementation"
 - Test runner: vitest
-
-## Implementation Quality
-
-- **Root-cause fixes only.** Never patch symptoms.
-- **Understand before changing.** Read the full call chain before modifying.
-- **Minimal, correct diffs.** Change only what's needed.
-- **No over-engineering.** Only add what's directly needed for the current task.
 
 ## Critical Rules
 
@@ -42,7 +35,7 @@ Design: `.dev/design/`. Memo: `.dev/memo.md`. Roadmap: `.dev/roadmap.md`.
 git log --oneline -3 && git status --short
 ```
 
-Read `.dev/memo.md` → `## Current Task`:
+Read `@./.dev/memo.md` → `## Current Task`:
 - **Has design details** → Execute
 - **Title only or empty** → Plan (check roadmap + design docs)
 
@@ -52,13 +45,16 @@ Read `.dev/memo.md` → `## Current Task`:
 
 - TDD cycle: Red → Green → Refactor
 - Run tests: `npm test`
-- CW knowledge reference: `~/Documents/MyProducts/ClojureWasm/` (Reader, Analyzer, HAMT, etc.)
-- **Investigation**: Check reference impls when debugging, designing, OR optimizing:
-  - CW source: `~/Documents/MyProducts/ClojureWasm/src/`
-  - CLJS upstream: `~/Documents/OSS/ClojureScript/`
-  - **Web search**: Use WebFetch/WebSearch for specs, blog posts
 
 **4. Complete** — Run Commit Gate → update memo.md → commit → loop back immediately.
+
+### Task Selection (MANDATORY)
+
+After committing, select next task automatically:
+1. Read `## Current Task` in memo.md. If done, pick next from `## Task Queue`.
+2. **Priority order**: Items in queue order (top = highest priority). Skip DONE items.
+3. **Update memo.md** immediately: move the new task into `## Current Task`.
+4. **Never stop to ask** which task is next. Pick the topmost undone item and go.
 
 ### No-Workaround Rule
 
@@ -68,12 +64,13 @@ Read `.dev/memo.md` → `## Current Task`:
 
 ### When to Stop
 
-Stop **only** when: user requests or ambiguous requirements.
-Do NOT stop for: phase boundaries, empty queue, large context, "good stopping points", user not responding.
-When in doubt, **continue**.
+Stop **only** when: user interrupts.
+Do NOT stop for: phase boundaries, task boundaries, empty queue, large context, "good stopping points", user not responding, ambiguous next task (just pick the next one in queue).
+When in doubt, **continue**. When a phase completes, start the next phase immediately.
 
 ### Commit Gate Checklist
 
+0. **TDD**: Test written/updated BEFORE production code
 1. **Tests**: `npm test` — all pass
 2. **Type check**: `npx tsc --noEmit` — no errors
 3. **decisions.md / checklist.md / memo.md**: Update as needed
@@ -110,72 +107,11 @@ test/
 └── e2e/             .cljs → .js → execution
 ```
 
-## CW Reference Rule (MANDATORY)
-
-**Always consult ClojureWasm source before implementing.** CW already solved most
-Clojure implementation problems in Zig. Read the corresponding CW code first to
-understand the algorithm, edge cases, and design decisions — then port the knowledge
-to TypeScript. This avoids reinventing wheels and missing subtle corner cases.
-
-CW repo: `~/Documents/MyProducts/ClojureWasm/`
-
-| Kiso module      | CW reference file                      | What to learn                  |
-|------------------|----------------------------------------|--------------------------------|
-| reader/tokenizer | `src/engine/reader/tokenizer.zig`      | Token kinds, number/string boundaries, `~@`/`#?@` as single tokens |
-| reader/reader    | `src/engine/reader/reader.zig`         | Reader macros, syntax-quote, namespaced maps, edge cases |
-| reader/form      | `src/engine/reader/form.zig`           | Form data model, NaN-boxing rationale |
-| analyzer/macros  | `src/engine/analyzer/macro_transforms.zig` | ~40 core macro Form→Form transforms |
-| analyzer/eval    | `src/engine/evaluator/tree_walk.zig`   | Mini evaluator design, env chain, apply |
-| analyzer/analyzer| `src/engine/analyzer/analyzer.zig`     | Special form dispatch, scope, interop rewrite, destructuring |
-| codegen/emitter  | `src/engine/compiler/compiler.zig`     | Truthiness, recur→loop, multi-arity |
-| runtime/vector   | `src/runtime/collections.zig`          | 32-way trie, tail optimization, path copy |
-| runtime/hash-map | `src/runtime/collections.zig` + `hash.zig` | HAMT bitmap+popcount, collision nodes |
-| runtime/hash     | `src/runtime/hash.zig`                 | Murmur3, mixCollHash, ordered/unordered |
-| runtime/equiv    | `src/runtime/value.zig`                | Structural equality, sequential cross-type |
-
-**Workflow**: Before writing any new module:
-1. Read the design doc: `.dev/design/0N-*.md`
-2. Read the corresponding CW source (table above)
-3. Understand the algorithm and edge cases
-4. Write tests based on CW's test cases
-5. Implement in TypeScript
-
-## ClojureScript Upstream Reference
-
-CLJS upstream: `~/Documents/OSS/ClojureScript/`
-
-**Use as a semantic reference**, not for direct porting. Kiso's goals differ from
-upstream CLJS (clean ES6 output, no Google Closure, zero goog.* dependency,
-Symbol-based protocols instead of name-mangled methods). Extract **expected behavior
-and edge cases** from upstream tests, then re-express them as vitest assertions
-that verify Kiso's own output and semantics.
-
-| Kiso area   | CLJS upstream test                          | How to use                    |
-|-------------|---------------------------------------------|-------------------------------|
-| Runtime     | `src/test/cljs/cljs/collections_test.cljs`  | Expected values for vector/map/set operations |
-| Runtime     | `src/test/cljs/cljs/hashing_test.cljs`      | Hash correctness, collision cases |
-| Runtime     | `src/test/cljs/cljs/core_test.cljs`         | Core function behavior (~2000 lines of edge cases) |
-| Destructuring | `src/test/cljs/cljs/destructuring_test.cljs` | Sequential & associative patterns |
-| Analyzer    | `src/test/clojure/cljs/analyzer_tests.clj`  | Warning cases, special form semantics |
-| Codegen     | `src/test/clojure/cljs/compiler_tests.clj`  | Input→output pairs (adapt to ES6 target) |
-
-**Caveats**:
-- CLJS compiler tests run on JVM Clojure — API shape doesn't match Kiso
-- CLJS runtime tests are `.cljs` files (chicken-and-egg: need a compiler to run them)
-- CLJS emits Google Closure-flavored JS; Kiso emits clean ES6 — expected JS output will differ
-- Protocol dispatch mechanism differs (CLJS: mangled names, Kiso: Symbols)
-- Extract the **what** (expected semantics), not the **how** (CLJS-specific implementation)
-
 ## References
 
-| Topic          | Location                      | When to read              |
-|----------------|-------------------------------|---------------------------|
-| Architecture   | `.dev/design/01-architecture.md` | Pipeline, structure, CW knowledge map |
-| Reader design  | `.dev/design/02-reader.md`    | Tokenizer, forms, edge cases |
-| Macro system   | `.dev/design/03-macros.md`    | Core macros, mini evaluator, SCI comparison |
-| Analyzer/Codegen | `.dev/design/04-analyzer-codegen.md` | Special forms, destructuring, JS emission |
-| Runtime/Dist   | `.dev/design/05-runtime-distribution.md` | HAMT, vector, npm package |
-| Roadmap        | `.dev/roadmap.md`             | Phase planning            |
-| Decisions      | `.dev/decisions.md`           | Architectural decisions   |
-| Deferred items | `.dev/checklist.md`           | Blockers to resolve       |
-| CW source      | `~/Documents/MyProducts/ClojureWasm/src/` | Algorithm reference (Zig) |
+CW reference: `.claude/references/cw-reference.md` — check before implementing new modules.
+CLJS upstream: `.claude/references/cljs-upstream.md` — semantic reference and edge cases.
+Design docs: `.dev/design/` (01-architecture through 06-protocol-lazyseq).
+Roadmap: `@./.dev/roadmap.md` (phase planning).
+Decisions: `.dev/decisions.md` (architectural decisions).
+Deferred items: `.dev/checklist.md` (blockers to resolve).

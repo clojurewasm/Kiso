@@ -5,73 +5,67 @@ Session handover document. Read at session start.
 ## Current State
 
 - Reader complete: form, tokenizer, reader.
-- Macros complete: 20 core macros.
-- Analyzer + Codegen complete: special forms, scope, interop, loop/recur, try/catch.
-- Runtime complete: hash, equiv, keyword, symbol, list, vector, hash-map, hash-set, atom, seq, core.
-- Total: 487 tests passing, types clean.
-
-## Design Gap Analysis
-
-Critical divergence from `.dev/design/`: codegen emits plain JS instead of runtime calls.
-
-| Item | Design says | Current state | Priority |
-|------|-----------|---------------|----------|
-| Collection literals | `vector()`, `hashMap()`, `hashSet()` | `[]`, `new Map()`, `new Set()` | **P0** |
-| Keywords | `keyword("foo")` | `":foo"` (string) | **P0** |
-| NS → ES6 modules | `import/export` from `:require` | `/* ns: name */` comment | **P0** |
-| Destructuring | sequential + associative | Not implemented | P1 |
-| Protocol system | Symbol-based dispatch | instanceof checks | P1 |
-| LazySeq | Lazy evaluation | Eager only | P2 |
-| Seq over map/set | iteration | Not implemented | P2 |
-| Source Map V3 | VLQ encoding | Not implemented | P2 |
-| interop.ts | clj->js, js->clj | Not implemented | P2 |
-| Missing special forms | var, ., letfn*, case* | Not in SPECIAL_FORMS | P1 |
-| Remaining ~20 macros | for, doseq, dotimes, etc. | Not implemented | P1 |
-| catch type discrimination | instanceof chain | First catch only | P2 |
+- Macros: ~22 core macros implemented.
+- Analyzer + Codegen: 16 special forms, scope, interop, loop/recur, try/catch, letfn, dot, destructuring.
+- Runtime: hash, equiv, keyword, symbol, list, vector, hash-map, hash-set, atom, seq, core.
+- Codegen emits runtime calls: vector(), hashMap(), hashSet(), keyword(), EMPTY_LIST.
+- NS → ES6 modules: `:require` parsing + import/export emission.
+- Total: 516 tests passing, types clean.
 
 ## Current Task
 
-### P0: Connect codegen to runtime
-
-Emitter must generate calls to runtime constructors instead of plain JS:
-
-1. **Vector**: `[1, 2, 3]` → `$kiso.vector(1, 2, 3)`
-2. **Map**: `{:a 1}` → `$kiso.hashMap($kiso.keyword("a"), 1)`
-3. **Set**: `#{1 2}` → `$kiso.hashSet(1, 2)`
-4. **Keyword**: `:foo` → `$kiso.keyword("foo")`, `:ns/foo` → `$kiso.keyword("foo", "ns")`
-5. **Empty list**: `()` → `$kiso.EMPTY_LIST`
-
-Approach: emitter imports runtime via a configurable prefix (default `$kiso`).
-E2E tests verify that compiled output evaluates correctly with runtime loaded.
-
-Then: NS → ES6 modules (`:require` parsing + import/export emission).
-
-## Previous Task
-
-Core functions: arithmetic, comparison, predicates, collections, HOFs. DONE.
+Work through Task Queue top-down. Mark DONE after commit.
 
 ## Task Queue
 
-1. ~~Hash + Equiv~~ DONE
-2. ~~Keyword + Symbol~~ DONE
-3. ~~PersistentList~~ DONE
-4. ~~PersistentVector (32-way trie)~~ DONE
-5. ~~PersistentHashMap (HAMT)~~ DONE
-6. ~~PersistentHashSet~~ DONE
-7. ~~Atom~~ DONE
-8. ~~loop/recur codegen~~ DONE
-9. ~~try/catch codegen~~ DONE
-10. ~~Seq abstraction~~ DONE
-11. ~~Core functions~~ DONE
-12. Connect codegen → runtime (P0)
-13. NS → ES6 modules (P0)
-14. Destructuring (P1)
-15. Missing special forms: letfn*, case*, var, dot (P1)
-16. Remaining macros: for, doseq, dotimes, etc. (P1)
-17. Protocol system (P1)
-18. LazySeq, seq over map/set (P2)
+Items ordered by priority. Work top-down. Dependencies noted in brackets.
 
-## References
+### Batch A: Independent small items (no dependencies)
+1. Special form: case* + case macro
+2. Special form: var
+3. Macros: condp, cond->, cond->>
+4. Macros: when-first, when-some, if-some
+5. Macros: .., declare, assert, time
+6. Macros: for, doseq, dotimes (complex — :let/:when/:while modifiers)
 
-- Design: `.dev/design/` (01-architecture through 05-runtime-distribution)
-- CW source: `~/Documents/MyProducts/ClojureWasm/src/` (Zig algorithm reference)
+### Batch B: Protocol system [design: 06-protocol-lazyseq.md]
+7. runtime/protocols.ts (defprotocol, protocolFn)
+8. defprotocol macro (→ def + runtime calls)
+9. deftype* special form + codegen (→ ES6 class)
+10. extend-type macro (→ prototype mutation)
+11. defrecord* special form + codegen (→ deftype + map extras)
+12. reify (→ object literal with Symbol methods)
+13. Retrofit ISeq/ICounted on existing types (Vector, List, etc.)
+
+### Batch C: LazySeq [depends on: Batch B]
+14. LazySeq runtime class
+15. lazy-seq macro (+ delay macro)
+
+### Batch D: Remaining runtime
+16. ArrayMap (<=8 entries, auto-promote to HAMT)
+17. interop.ts (clj->js, js->clj)
+18. catch type discrimination (instanceof chain)
+19. Source Map V3 (VLQ encoding) — independent, any time
+
+### Batch E: Mini Evaluator [depends on: Batch A mostly done]
+20. Evaluator core (def, fn*, let*, do, if, quote, loop*, recur)
+21. Built-in functions (~30: cons, concat, seq, symbol, gensym, etc.)
+22. Macro expander pipeline (core macros + user defmacro)
+
+### Batch F: Vite Integration [depends on: Batch E + Source Map]
+23. Public API (compile, compileFile, read, analyze, generate)
+24. Vite transform plugin
+25. HMR (hot module replacement for .cljs)
+
+### Batch G: su Framework [depends on: Batch F]
+26. defc macro
+27. defstyle macro
+28. su-runtime (reactive atoms, hiccup→DOM, CSS)
+29. Vite plugin (su-specific config + HMR)
+
+## Key Design References
+
+- Protocol + LazySeq: `.dev/design/06-protocol-lazyseq.md`
+- Mini Evaluator: `.dev/design/03-macros.md` (L150-334)
+- Scope decision: `.dev/decisions.md` D6
+- Protocol dispatch decision: `.dev/decisions.md` D7

@@ -5,97 +5,120 @@ Package: `@kiso/cljs`. Framework: `@kiso/su`.
 
 ## Phase Tracker
 
-| Phase | Name                  | Status  |
-|-------|-----------------------|---------|
-| 1     | Reader                | DONE*   |
-| 2     | Core Macros + Analyzer| DONE*   |
-| 3     | Codegen + Source Map  | DONE*   |
-| 4     | Runtime               | DONE*   |
-| 5     | Mini Evaluator        | PENDING |
-| 6     | Vite Integration      | PENDING |
-| 7     | su Framework          | PENDING |
+| Phase | Name                  | Status  | Notes |
+|-------|-----------------------|---------|-------|
+| 1     | Reader                | DONE    | ~95% — namespaced maps, ratio, tagged deferred |
+| 2     | Core Macros + Analyzer| PARTIAL | ~22/40 macros, 16/20 SFs |
+| 3     | Codegen + Source Map  | PARTIAL | Emitter done, Source Map not started |
+| 4     | Runtime               | PARTIAL | Core data structures done, Protocol/LazySeq not started |
+| 5     | Mini Evaluator        | PENDING | Design doc ready (03-macros.md) |
+| 6     | Vite Integration      | PENDING | |
+| 7     | su Framework          | PENDING | |
 
-## Phase 1: Reader
+## Critical Path & Dependencies
+
+```
+Phase 2 remaining ──┐
+  (macros, SFs)     │  No external deps, can proceed now
+                    │
+Phase 4: Protocol ──┤  Design: 06-protocol-lazyseq.md
+  (protocols.ts)    │  Blocks: deftype*, defrecord*, extend-type, reify codegen
+                    │
+Phase 4: LazySeq ───┤  Depends on: Protocol (ISeq)
+  (lazy-seq)        │  Blocks: lazy for/map/filter
+                    │
+Phase 3: SourceMap ─┤  Independent, can be done any time
+                    │
+Phase 5: Evaluator ─┤  Depends on: Phase 2 SFs mostly complete
+  (defmacro)        │  Blocks: cljs.core as .cljs, user macros
+                    │
+Phase 6: Vite ──────┤  Depends on: Phase 5 (compile API), Phase 3 (source maps)
+                    │
+Phase 7: su ────────┘  Depends on: Phase 6
+```
+
+## Phase 1: Reader — DONE
 
 Form data model, tokenizer, reader with full Clojure syntax support.
 Port CW knowledge: edge cases, number parsing, syntax-quote, namespaced maps.
 
-- 1.1 Project scaffolding (package.json, tsconfig, vitest)
-- 1.2 Form data model (form.ts)
-- 1.3 Tokenizer (tokenizer.ts)
-- 1.4 Reader core (reader.ts — literals, collections)
-- 1.5 Reader macros (quote, deref, var, discard, fn literal, set literal, regex)
-- 1.6 Syntax-quote (most complex — gensym, ns resolution, special form table)
-- 1.7 Namespaced maps (#:ns{}, #::alias{}, #::{})
-- 1.8 Reader edge cases (trailing slash, duplicate keys, nesting depth limit)
+- 1.1 ~~Project scaffolding~~ DONE
+- 1.2 ~~Form data model~~ DONE
+- 1.3 ~~Tokenizer~~ DONE
+- 1.4 ~~Reader core~~ DONE
+- 1.5 ~~Reader macros~~ DONE
+- 1.6 ~~Syntax-quote~~ DONE
+- 1.7 Namespaced maps (#:ns{}, #::alias{}, #::{}) — deferred, low usage
+- 1.8 Reader edge cases — mostly done, some deferred
 
-Estimated: ~1,000 lines + ~500 lines tests.
-
-## Phase 2: Core Macros + Analyzer
+## Phase 2: Core Macros + Analyzer — PARTIAL
 
 ~40 core macro transforms (Form → Form) + analyzer (Form → Node).
 
-- 2.1 Core macros: control flow (when, cond, if-let, case)
-- 2.2 Core macros: threading (->, ->>, some->, as->)
-- 2.3 Core macros: definition (defn, defonce, defmulti, defprotocol)
-- 2.4 Core macros: binding (let, loop, for, doseq, dotimes)
-- 2.5 Analyzer: special form dispatch
-- 2.6 Analyzer: scope tracking + symbol resolution
-- 2.7 Analyzer: destructuring (sequential + associative)
-- 2.8 Analyzer: interop rewrite (.method, Ctor., .-field)
+**Done:**
+- 2.1 ~~Core macros: control flow~~ (when, cond, if-let, and, or, not, etc.)
+- 2.2 ~~Core macros: threading~~ (->, ->>, some->, some->>, as->, doto)
+- 2.3 Core macros: definition — partial (defn, defonce done; defmulti, defprotocol, deftype, defrecord pending)
+- 2.4 Core macros: binding — partial (let, loop, letfn done; for, doseq, dotimes pending)
+- 2.5 ~~Analyzer: special form dispatch~~ DONE
+- 2.6 ~~Analyzer: scope tracking~~ DONE
+- 2.7 ~~Analyzer: destructuring~~ DONE
+- 2.8 ~~Analyzer: interop rewrite~~ DONE (.method, Ctor., .-field, `.` SF)
 
-Estimated: ~1,200 lines + ~600 lines tests.
+**Remaining:**
+- case* SF + case macro
+- var SF
+- deftype* SF (depends on Protocol design — 06-protocol-lazyseq.md)
+- defrecord* SF (depends on Protocol design)
+- Macros: for, doseq, dotimes, condp, cond->, cond->>, when-first, when-some, if-some, .., declare, assert, time, lazy-seq, delay
+- Macros: defprotocol, defmulti, defmethod, deftype, defrecord (depend on Protocol)
 
-## Phase 3: Codegen + Source Map
+## Phase 3: Codegen + Source Map — PARTIAL
 
 Node → ES6 JavaScript + Source Map V3.
 
-- 3.1 Emitter core (literals, invocations, if, do, let)
-- 3.2 Functions (fn, multi-arity → switch, recur → while)
-- 3.3 NS → ES6 modules (import/export mapping)
-- 3.4 Source Map V3 (VLQ encoding)
-- 3.5 End-to-end: .cljs → .js integration tests
+- 3.1 ~~Emitter core~~ DONE
+- 3.2 ~~Functions (fn, multi-arity, recur)~~ DONE
+- 3.3 ~~NS → ES6 modules~~ DONE
+- 3.4 Source Map V3 (VLQ encoding) — NOT STARTED
+- 3.5 ~~End-to-end integration tests~~ DONE
 
-Estimated: ~850 lines + ~400 lines tests.
-
-## Phase 4: Runtime
+## Phase 4: Runtime — PARTIAL
 
 Persistent data structures, protocols, hash, equiv. Tree-shakeable ES6 modules.
 
-- 4.1 Hash (Murmur3) + equiv (structural equality)
-- 4.2 Keyword + Symbol (interning)
-- 4.3 PersistentList (cons cell)
-- 4.4 PersistentVector (32-way trie, tail optimization)
-- 4.5 PersistentHashMap (HAMT — bitmap+popcount, collision nodes)
-- 4.6 PersistentHashSet
-- 4.7 Seq abstraction (ISeq, LazySeq)
-- 4.8 Atom
-- 4.9 Protocol system (Symbol-based dispatch)
-- 4.10 Transient collections
+- 4.1 ~~Hash (Murmur3) + equiv~~ DONE
+- 4.2 ~~Keyword + Symbol~~ DONE
+- 4.3 ~~PersistentList~~ DONE
+- 4.4 ~~PersistentVector~~ DONE
+- 4.5 ~~PersistentHashMap (HAMT)~~ DONE
+- 4.6 ~~PersistentHashSet~~ DONE
+- 4.7 ~~Seq abstraction (ISeq eager)~~ DONE
+- 4.8 ~~Atom~~ DONE
+- 4.9 Protocol system — NOT STARTED (design: 06-protocol-lazyseq.md)
+- 4.10 LazySeq — NOT STARTED (depends on 4.9)
+- 4.11 ArrayMap (<=8 entries, auto-promote) — NOT STARTED
+- 4.12 Transient collections — deferred
+- 4.13 interop.ts (clj->js, js->clj) — NOT STARTED
 
-Estimated: ~2,300 lines + ~800 lines tests.
-
-## Phase 5: Mini Evaluator
+## Phase 5: Mini Evaluator — PENDING
 
 defmacro support via minimal Clojure evaluator (CW TreeWalk knowledge).
+Design: 03-macros.md (detailed skeleton, built-in list, pipeline design).
 
 - 5.1 Evaluator core (special forms: def, fn*, let*, do, if, quote)
 - 5.2 Built-in functions (~30: cons, concat, seq, symbol, gensym, etc.)
 - 5.3 Macro expander pipeline (core macros + user defmacro)
 
-Estimated: ~800 lines + ~400 lines tests.
-
-## Phase 6: Vite Integration
+## Phase 6: Vite Integration — PENDING
 
 Vite plugin for .cljs files, HMR support.
 
-- 6.1 Vite transform plugin
-- 6.2 HMR (hot module replacement for .cljs)
-- 6.3 Public API (compile, compileFile, read, analyze, generate)
+- 6.1 Public API (compile, compileFile, read, analyze, generate)
+- 6.2 Vite transform plugin
+- 6.3 HMR (hot module replacement for .cljs)
 
-Estimated: ~180 lines + ~100 lines tests.
-
-## Phase 7: su Framework
+## Phase 7: su Framework — PENDING
 
 Web Components framework built on @kiso/cljs.
 
@@ -103,5 +126,3 @@ Web Components framework built on @kiso/cljs.
 - 7.2 defstyle macro (CSS-as-data)
 - 7.3 su-runtime (reactive atoms, hiccup→DOM, CSS)
 - 7.4 Vite plugin (su-specific config + HMR)
-
-Estimated: ~800 lines + ~400 lines tests.
