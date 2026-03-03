@@ -11,6 +11,8 @@ import {
   makeStr,
   makeList,
   makeVector,
+  makeMap,
+  makeKeyword,
 } from '../reader/form.js';
 
 type MacroFn = (items: Form[], form: Form) => Form;
@@ -627,3 +629,148 @@ defmacro('lazy-seq', (items, form) => {
 defmacro('comment', (_items, form) => {
   return makeNil(...loc(form));
 });
+
+// -- su Framework Macros --
+
+defmacro('defc', (items, form) => {
+  // (defc my-counter "doc" {:props {...}} [{:keys [a b]}] body...)
+  // (defc my-counter [{:keys [a b]}] body...)
+  // → (su.core/define-component "my-counter" {:observed-attrs [...] :prop-types {...}} (fn* [props-atom] ...))
+
+  let idx = 1;
+  const nameForm = nth(items, idx); idx++;
+  if (nameForm.data.type !== 'symbol') {
+    throw new Error('defc: name must be a symbol');
+  }
+  const name = nameForm.data.name;
+  if (!name.includes('-')) {
+    throw new Error(`defc: Custom Element names require a hyphen: "${name}"`);
+  }
+
+  // Skip optional docstring
+  if (idx < items.length && items[idx]!.data.type === 'string') {
+    idx++;
+  }
+
+  // Optional options map {:props {...}}
+  let propsMap: Map<string, string> | null = null;
+  if (idx < items.length && items[idx]!.data.type === 'map') {
+    const optsForm = items[idx]!;
+    propsMap = extractPropsFromOpts(optsForm);
+    idx++;
+  }
+
+  // Params vector
+  const paramsForm = nth(items, idx); idx++;
+  if (paramsForm.data.type !== 'vector') {
+    throw new Error('defc: params must be a vector');
+  }
+
+  // Body
+  const body = items.slice(idx);
+
+  // If no explicit props, infer from destructuring
+  let observedAttrs: string[];
+  let propTypes: Map<string, string>;
+  if (propsMap) {
+    observedAttrs = [...propsMap.keys()];
+    propTypes = propsMap;
+  } else {
+    observedAttrs = inferAttrsFromParams(paramsForm);
+    propTypes = new Map(observedAttrs.map(a => [a, 'string']));
+  }
+
+  // Build config map: {:observed-attrs ["a" "b"] :prop-types {:a "string" :b "number"}}
+  const configItems: Form[] = [];
+  configItems.push(makeKeyword(null, 'observed-attrs'));
+  configItems.push(makeVector(observedAttrs.map(a => makeStr(a))));
+  configItems.push(makeKeyword(null, 'prop-types'));
+  const ptItems: Form[] = [];
+  for (const [k, v] of propTypes) {
+    ptItems.push(makeKeyword(null, k));
+    ptItems.push(makeStr(v));
+  }
+  configItems.push(makeMap(ptItems));
+
+  // Build render fn: (fn* [props-atom] (let* [{:keys [...]} @props-atom] body...))
+  const propsAtomSym = sym('props-atom__auto');
+  const derefForm = makeList([sym('deref'), propsAtomSym]);
+  const letBody = body.length === 1 ? body[0]! : makeList([sym('do'), ...body]);
+  const renderBody = makeList([
+    sym('let*'),
+    makeVector([paramsForm.data.items[0]!, derefForm]),
+    letBody,
+  ]);
+  const renderFn = makeList([sym('fn*'), makeVector([propsAtomSym]), renderBody]);
+
+  return makeList([
+    makeSymbol('su.core', 'define-component', ...loc(form)),
+    makeStr(name),
+    makeMap(configItems),
+    renderFn,
+  ], ...loc(form));
+});
+
+function extractPropsFromOpts(optsForm: Form): Map<string, string> {
+  if (optsForm.data.type !== 'map') return new Map();
+  const items = optsForm.data.items;
+  // Find :props key
+  for (let i = 0; i < items.length - 1; i += 2) {
+    const key = items[i]!;
+    if (key.data.type === 'keyword' && key.data.name === 'props' && key.data.ns === null) {
+      const val = items[i + 1]!;
+      return extractPropTypes(val);
+    }
+  }
+  return new Map();
+}
+
+function extractPropTypes(propsVal: Form): Map<string, string> {
+  if (propsVal.data.type !== 'map') return new Map();
+  const result = new Map<string, string>();
+  const items = propsVal.data.items;
+  for (let i = 0; i < items.length - 1; i += 2) {
+    const key = items[i]!;
+    const val = items[i + 1]!;
+    if (key.data.type === 'keyword') {
+      let type = 'string';
+      if (val.data.type === 'map') {
+        const valItems = val.data.items;
+        for (let j = 0; j < valItems.length - 1; j += 2) {
+          const vk = valItems[j]!;
+          const vv = valItems[j + 1]!;
+          if (vk.data.type === 'keyword' && vk.data.name === 'type' && vv.data.type === 'keyword') {
+            type = vv.data.name;
+          }
+        }
+      }
+      result.set(key.data.name, type);
+    }
+  }
+  return result;
+}
+
+function inferAttrsFromParams(paramsForm: Form): string[] {
+  if (paramsForm.data.type !== 'vector') return [];
+  const items = paramsForm.data.items;
+  // Look for {:keys [a b c]} destructuring map
+  if (items.length >= 1 && items[0]!.data.type === 'map') {
+    return extractKeysFromDestructure(items[0]!);
+  }
+  return [];
+}
+
+function extractKeysFromDestructure(mapForm: Form): string[] {
+  if (mapForm.data.type !== 'map') return [];
+  const items = mapForm.data.items;
+  for (let i = 0; i < items.length - 1; i += 2) {
+    const key = items[i]!;
+    const val = items[i + 1]!;
+    if (key.data.type === 'keyword' && key.data.name === 'keys' && val.data.type === 'vector') {
+      return val.data.items
+        .filter(f => f.data.type === 'symbol')
+        .map(f => (f.data as { type: 'symbol'; name: string }).name);
+    }
+  }
+  return [];
+}
