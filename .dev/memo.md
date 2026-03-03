@@ -10,17 +10,18 @@ Session handover document. Read at session start.
 - Runtime: hash, equiv, keyword, symbol, list, vector, hash-map, hash-set, atom, seq, core.
 - Codegen emits runtime calls: vector(), hashMap(), hashSet(), keyword(), EMPTY_LIST.
 - NS → ES6 modules: `:require` parsing + import/export emission.
-- Total: 768 tests passing, types clean.
+- Total: 780 tests passing, types clean.
 
 ## Current Task
 
-**Batch G complete.** All items 29-36 done.
+**Batch B, Item 13: Retrofit ISeq/ICounted on existing types** — DONE
 
-Last item: Item 36 dogfooding todo-app — 11 e2e tests validating:
-- defc macro → analysis → codegen pipeline
-- defstyle macro → CSS generation pipeline
-- Realistic todo-app component + styling compilation
-- 768 tests total
+- Defined ISeq (first, rest), ICounted (count), ICollection (conj) protocols
+- installProtocols() extends prototypes: List (Cons + EmptyList), Vector, HashMap, HashSet, LazySeq
+- Protocol-based dispatch now works on all existing types
+- 12 tests, 780 total
+
+Next deferred item: Item 16 (ArrayMap) or Item 11 (defrecord*)
 
 ## Task Queue
 
@@ -41,7 +42,7 @@ Items ordered by priority. Work top-down. Dependencies noted in brackets.
 10. ~~extend-type macro (→ prototype mutation)~~ DONE
 11. defrecord* special form + codegen (→ deftype + map extras) — deferred
 12. ~~reify (→ object literal with Symbol methods)~~ DONE
-13. Retrofit ISeq/ICounted on existing types — deferred to after LazySeq
+13. ~~Retrofit ISeq/ICounted on existing types~~ DONE
 
 ### Batch C: LazySeq [depends on: Batch B]
 14. ~~LazySeq runtime class~~ DONE

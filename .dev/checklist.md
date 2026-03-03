@@ -39,4 +39,8 @@ Track blockers and deferred work items. Format: K## (Kiso item number).
 
 ## Resolved
 
-(none yet)
+- K04: DONE — Atom._globalOnDeref + _onDeref hook added (Item 20)
+- K05: DONE — addWatch returns unsubscribe fn (Item 21)
+- K06: DONE — keyword edge cases verified for CSS selectors (Item 22)
+- K07: DONE — interop.ts clj->js, js->clj implemented (Item 17)
+- K08: DONE — CE tag name validation in defc macro, hiccup ns-keyword partial (Item 33)
