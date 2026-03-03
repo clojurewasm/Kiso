@@ -2,37 +2,48 @@
 //
 // Key design decisions (from CW knowledge):
 // - Clojure truthiness: (x != null && x !== false)
-// - recur → while(true) + continue
+// - recur → while(true) + temp vars + continue
 // - Multi-arity fn → switch(args.length)
 // - Name munging for special characters
 
-import type { Node, FnArity, LetBinding } from '../analyzer/node.js';
+import type { Node, FnArity, LetBinding, CatchClause } from '../analyzer/node.js';
 
-export function emit(node: Node): string {
+type EmitCtx = {
+  loopBindings: string[] | null; // current loop/fn binding names for recur
+};
+
+const DEFAULT_CTX: EmitCtx = { loopBindings: null };
+
+function emitNode(node: Node, ctx: EmitCtx): string {
   switch (node.type) {
     case 'literal': return emitLiteral(node);
     case 'keyword': return emitKeyword(node);
     case 'var-ref': return munge(node.name);
-    case 'vector': return `[${node.items.map(emit).join(', ')}]`;
-    case 'map': return emitMap(node);
-    case 'set': return `new Set([${node.items.map(emit).join(', ')}])`;
-    case 'invoke': return emitInvoke(node);
-    case 'if': return emitIf(node);
-    case 'do': return emitDo(node);
-    case 'let': return emitLet(node);
+    case 'vector': return `[${node.items.map((n) => emitNode(n, ctx)).join(', ')}]`;
+    case 'map': return emitMap(node, ctx);
+    case 'set': return `new Set([${node.items.map((n) => emitNode(n, ctx)).join(', ')}])`;
+    case 'invoke': return emitInvoke(node, ctx);
+    case 'if': return emitIf(node, ctx);
+    case 'do': return emitDo(node, ctx);
+    case 'let': return emitLet(node, ctx);
     case 'fn': return emitFn(node);
-    case 'def': return emitDef(node);
-    case 'recur': return emitRecur(node);
-    case 'loop': return emitLoop(node);
-    case 'throw': return `(() => { throw ${emit(node.expr)}; })()`;
-    case 'try': return 'null /* TODO: try */';
-    case 'new': return `new ${emit(node.ctor)}(${node.args.map(emit).join(', ')})`;
-    case 'interop-call': return `${emit(node.target)}.${node.method}(${node.args.map(emit).join(', ')})`;
-    case 'interop-field': return `${emit(node.target)}.${node.field}`;
-    case 'set!': return `(${emit(node.target)} = ${emit(node.value)})`;
+    case 'def': return emitDef(node, ctx);
+    case 'recur': return emitRecur(node, ctx);
+    case 'loop': return emitLoop(node, ctx);
+    case 'throw': return `(() => { throw ${emitNode(node.expr, ctx)}; })()`;
+    case 'try': return emitTry(node, ctx);
+    case 'new': return `new ${emitNode(node.ctor, ctx)}(${node.args.map((n) => emitNode(n, ctx)).join(', ')})`;
+    case 'interop-call': return `${emitNode(node.target, ctx)}.${node.method}(${node.args.map((n) => emitNode(n, ctx)).join(', ')})`;
+    case 'interop-field': return `${emitNode(node.target, ctx)}.${node.field}`;
+    case 'set!': return `(${emitNode(node.target, ctx)} = ${emitNode(node.value, ctx)})`;
     case 'js-raw': return node.code;
     case 'ns': return emitNs(node);
   }
+}
+
+// Public API — delegates to emitNode with default context
+export function emit(node: Node): string {
+  return emitNode(node, DEFAULT_CTX);
 }
 
 /** Emit a complete module from a list of top-level nodes. */
@@ -65,35 +76,34 @@ function emitKeyword(node: { ns: string | null; name: string }): string {
   return JSON.stringify(`:${full}`);
 }
 
-function emitMap(node: { keys: Node[]; vals: Node[] }): string {
-  const entries = node.keys.map((k, i) => `[${emit(k)}, ${emit(node.vals[i]!)}]`);
+function emitMap(node: { keys: Node[]; vals: Node[] }, ctx: EmitCtx): string {
+  const entries = node.keys.map((k, i) => `[${emitNode(k, ctx)}, ${emitNode(node.vals[i]!, ctx)}]`);
   return `new Map([${entries.join(', ')}])`;
 }
 
-function emitInvoke(node: { fn: Node; args: Node[] }): string {
-  return `${emit(node.fn)}(${node.args.map(emit).join(', ')})`;
+function emitInvoke(node: { fn: Node; args: Node[] }, ctx: EmitCtx): string {
+  return `${emitNode(node.fn, ctx)}(${node.args.map((n) => emitNode(n, ctx)).join(', ')})`;
 }
 
-function emitIf(node: { test: Node; then: Node; else: Node }): string {
+function emitIf(node: { test: Node; then: Node; else: Node }, ctx: EmitCtx): string {
   // Clojure truthiness: only nil and false are falsy
-  const test = emit(node.test);
-  const then = emit(node.then);
-  const els = emit(node.else);
+  const test = emitNode(node.test, ctx);
+  const then = emitNode(node.then, ctx);
+  const els = emitNode(node.else, ctx);
   return `((${test} != null && ${test} !== false) ? ${then} : ${els})`;
 }
 
-function emitDo(node: { statements: Node[]; ret: Node }): string {
-  if (node.statements.length === 0) return emit(node.ret);
-  const stmts = node.statements.map(emit).join(', ');
-  return `(${stmts}, ${emit(node.ret)})`;
+function emitDo(node: { statements: Node[]; ret: Node }, ctx: EmitCtx): string {
+  if (node.statements.length === 0) return emitNode(node.ret, ctx);
+  const stmts = node.statements.map((n) => emitNode(n, ctx)).join(', ');
+  return `(${stmts}, ${emitNode(node.ret, ctx)})`;
 }
 
-function emitLet(node: { bindings: LetBinding[]; body: Node }): string {
-  // (let [x 1 y 2] body) → (() => { const x = 1; const y = 2; return body; })()
+function emitLet(node: { bindings: LetBinding[]; body: Node }, ctx: EmitCtx): string {
   const bindings = node.bindings.map(
-    (b) => `const ${munge(b.name)} = ${emit(b.init)};`,
+    (b) => `const ${munge(b.name)} = ${emitNode(b.init, ctx)};`,
   ).join(' ');
-  return `(() => { ${bindings} return ${emit(node.body)}; })()`;
+  return `(() => { ${bindings} return ${emitNode(node.body, ctx)}; })()`;
 }
 
 function emitFn(node: { name: string | null; arities: FnArity[] }): string {
@@ -108,7 +118,8 @@ function emitFn(node: { name: string | null; arities: FnArity[] }): string {
   const cases = node.arities.map((arity) => {
     const n = arity.params.length;
     const params = arity.params.map(munge).join(', ');
-    const body = emit(arity.body);
+    const ctx: EmitCtx = { loopBindings: arity.params };
+    const body = emitNode(arity.body, ctx);
     if (arity.restParam) {
       return `default: { const [${params}${params ? ', ' : ''}...${munge(arity.restParam)}] = args; return ${body}; }`;
     }
@@ -123,32 +134,95 @@ function emitSingleArity(name: string, arity: FnArity): string {
   if (arity.restParam) {
     params.push(`...${munge(arity.restParam)}`);
   }
-  const body = emit(arity.body);
+  const ctx: EmitCtx = { loopBindings: arity.params };
+  const body = emitNode(arity.body, ctx);
   return `function ${name}(${params.join(', ')}) { return ${body}; }`;
 }
 
-function emitDef(node: { name: string; init: Node | null }): string {
-  const init = node.init ? emit(node.init) : 'null';
+function emitDef(node: { name: string; init: Node | null }, ctx: EmitCtx): string {
+  const init = node.init ? emitNode(node.init, ctx) : 'null';
   return `const ${munge(node.name)} = ${init}`;
 }
 
-function emitLoop(node: { bindings: LetBinding[]; body: Node }): string {
+function emitLoop(node: { bindings: LetBinding[]; body: Node }, ctx: EmitCtx): string {
+  // (loop [x 1 y 2] body) →
+  // (() => { let x = 1; let y = 2; while (true) { const _r = body; return _r; } })()
+  // where recur inside body emits: x_tmp = ...; y_tmp = ...; x = x_tmp; y = y_tmp; continue;
+  const names = node.bindings.map((b) => b.name);
   const decls = node.bindings.map(
-    (b) => `let ${munge(b.name)} = ${emit(b.init)};`,
+    (b) => `let ${munge(b.name)} = ${emitNode(b.init, ctx)};`,
   ).join(' ');
-  const body = emit(node.body);
-  return `(() => { ${decls} while (true) { return ${body}; } })()`;
+  const loopCtx: EmitCtx = { loopBindings: names };
+  const body = emitStmt(node.body, loopCtx);
+  return `(() => { ${decls} while (true) { ${body} } })()`;
 }
 
-function emitRecur(node: { args: Node[] }): string {
-  // recur is handled within loop/fn context via while(true) + continue
-  // For now, emit a placeholder that loop's emitter wraps
-  const assigns = node.args.map((a) => emit(a));
+/** Emit a node as a statement that may contain recur. */
+function emitStmt(node: Node, ctx: EmitCtx): string {
+  // For if nodes in statement position, emit as if/else blocks
+  if (node.type === 'if') {
+    const test = emitNode(node.test, ctx);
+    const thenStmt = emitStmt(node.then, ctx);
+    const elseStmt = emitStmt(node.else, ctx);
+    return `if (${test} != null && ${test} !== false) { ${thenStmt} } else { ${elseStmt} }`;
+  }
+  if (node.type === 'recur') {
+    return emitRecurStmt(node, ctx);
+  }
+  if (node.type === 'do') {
+    const stmts = node.statements.map((n) => `${emitNode(n, ctx)};`).join(' ');
+    const ret = emitStmt(node.ret, ctx);
+    return `${stmts} ${ret}`;
+  }
+  if (node.type === 'let') {
+    const bindings = node.bindings.map(
+      (b) => `const ${munge(b.name)} = ${emitNode(b.init, ctx)};`,
+    ).join(' ');
+    return `${bindings} ${emitStmt(node.body, ctx)}`;
+  }
+  // Default: return the expression
+  return `return ${emitNode(node, ctx)};`;
+}
+
+function emitRecur(node: { args: Node[] }, ctx: EmitCtx): string {
+  // recur as expression — shouldn't normally happen in well-formed code
+  // but fall through for safety
+  const assigns = node.args.map((a) => emitNode(a, ctx));
   return `/* recur */ (${assigns.join(', ')})`;
 }
 
+function emitRecurStmt(node: { args: Node[] }, ctx: EmitCtx): string {
+  const names = ctx.loopBindings;
+  if (!names) return `/* recur without loop */ continue;`;
+
+  const args = node.args.map((a) => emitNode(a, ctx));
+
+  // Use temp variables for simultaneous assignment
+  const temps = names.map((n, i) => `const ${munge(n)}__tmp = ${args[i]};`);
+  const assigns = names.map((n) => `${munge(n)} = ${munge(n)}__tmp;`);
+  return `${temps.join(' ')} ${assigns.join(' ')} continue;`;
+}
+
+function emitTry(
+  node: { body: Node; catches: CatchClause[]; finally: Node | null },
+  ctx: EmitCtx,
+): string {
+  const body = emitNode(node.body, ctx);
+  let catchBlock = '';
+  if (node.catches.length > 0) {
+    // Use the first catch clause (simplified — no type discrimination)
+    const c = node.catches[0]!;
+    const catchBody = emitNode(c.body, ctx);
+    catchBlock = ` catch (${munge(c.binding)}) { return ${catchBody}; }`;
+  }
+  let finallyBlock = '';
+  if (node.finally) {
+    finallyBlock = ` finally { ${emitNode(node.finally, ctx)}; }`;
+  }
+  return `(() => { try { return ${body}; }${catchBlock}${finallyBlock} })()`;
+}
+
 function emitNs(node: { name: string; requires: { ns: string; alias: string | null; refers: string[] }[] }): string {
-  // Minimal: just emit a comment for now
   return `/* ns: ${node.name} */`;
 }
 

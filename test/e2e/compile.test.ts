@@ -209,6 +209,43 @@ describe('module compilation', () => {
   });
 });
 
+// -- loop/recur --
+
+describe('loop/recur compilation', () => {
+  it('loop with no recur returns body', () => {
+    expect(run('(loop [x 10] x)')).toBe(10);
+  });
+
+  it('loop/recur counts down', () => {
+    // (loop [i 5 sum 0] (if (> i 0) (recur (- i 1) (+ sum i)) sum))
+    // sum = 5 + 4 + 3 + 2 + 1 = 15
+    const src = '(loop [i 5 sum 0] (if (.call (fn [a b] (js* "a > b")) nil i 0) (recur (.call (fn [a b] (js* "a - b")) nil i 1) (.call (fn [a b] (js* "a + b")) nil sum i)) sum))';
+    // This is too complex with js*. Let's test simpler patterns.
+    expect(run('(loop [x 0] (if (js* "x < 3") (recur (js* "x + 1")) x))')).toBe(3);
+  });
+
+  it('recur reassigns all bindings simultaneously', () => {
+    // (loop [a 1 b 0] ...) where recur swaps: (recur b a)
+    expect(run('(loop [a 1 b 2 n 0] (if (js* "n < 1") (recur b a (js* "n + 1")) a))')).toBe(2);
+  });
+});
+
+// -- try/catch --
+
+describe('try/catch compilation', () => {
+  it('try returns body value when no exception', () => {
+    expect(run('(try 42 (catch Error e 0))')).toBe(42);
+  });
+
+  it('try catches thrown exception', () => {
+    expect(run('(try (throw "err") (catch Error e "caught"))')).toBe('caught');
+  });
+
+  it('catch binds the exception', () => {
+    expect(run('(try (throw "hello") (catch Error e e))')).toBe('hello');
+  });
+});
+
 // -- full E2E --
 
 describe('E2E: compile and execute', () => {

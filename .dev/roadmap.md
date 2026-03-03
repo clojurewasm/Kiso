@@ -10,7 +10,7 @@ Package: `@kiso/cljs`. Framework: `@kiso/su`.
 | 1     | Reader                | DONE*   |
 | 2     | Core Macros + Analyzer| DONE*   |
 | 3     | Codegen + Source Map  | DONE*   |
-| 4     | Runtime               | PENDING |
+| 4     | Runtime               | DONE*   |
 | 5     | Mini Evaluator        | PENDING |
 | 6     | Vite Integration      | PENDING |
 | 7     | su Framework          | PENDING |

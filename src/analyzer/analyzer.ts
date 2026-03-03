@@ -297,6 +297,44 @@ export class Analyzer {
     const args = items.slice(2).map((f) => this.analyzeForm(f, scope));
     return { type: 'new', ctor, args };
   }
+
+  private analyzeTry(items: Form[], scope: Scope): Node {
+    // (try body... (catch ExType e handler)... (finally expr))
+    const body: Form[] = [];
+    const catches: { exType: string; binding: string; body: Node }[] = [];
+    let finallyNode: Node | null = null;
+
+    for (let i = 1; i < items.length; i++) {
+      const item = items[i]!;
+      if (item.data.type === 'list' && item.data.items.length > 0) {
+        const head = item.data.items[0]!;
+        if (head.data.type === 'symbol' && head.data.name === 'catch') {
+          const exType = item.data.items[1]!;
+          const binding = item.data.items[2]!;
+          if (binding.data.type !== 'symbol') throw new Error('catch binding must be a symbol');
+          const catchScope = makeScope(scope, [binding.data.name]);
+          const catchBody = item.data.items.slice(3).map((f) => this.analyzeForm(f, catchScope));
+          const catchBodyNode: Node = catchBody.length === 1 ? catchBody[0]! : { type: 'do', statements: catchBody.slice(0, -1), ret: catchBody[catchBody.length - 1]! };
+          catches.push({
+            exType: exType.data.type === 'symbol' ? exType.data.name : 'Error',
+            binding: binding.data.name,
+            body: catchBodyNode,
+          });
+          continue;
+        }
+        if (head.data.type === 'symbol' && head.data.name === 'finally') {
+          const finallyForms = item.data.items.slice(1).map((f) => this.analyzeForm(f, scope));
+          finallyNode = finallyForms.length === 1 ? finallyForms[0]! : { type: 'do', statements: finallyForms.slice(0, -1), ret: finallyForms[finallyForms.length - 1]! };
+          continue;
+        }
+      }
+      body.push(item);
+    }
+
+    const bodyNodes = body.map((f) => this.analyzeForm(f, scope));
+    const bodyNode: Node = bodyNodes.length === 1 ? bodyNodes[0]! : { type: 'do', statements: bodyNodes.slice(0, -1), ret: bodyNodes[bodyNodes.length - 1]! };
+    return { type: 'try', body: bodyNode, catches, finally: finallyNode };
+  }
 }
 
 const SPECIAL_FORMS = new Map<string, (this: Analyzer, items: Form[], scope: Scope) => Node>([
@@ -313,6 +351,7 @@ const SPECIAL_FORMS = new Map<string, (this: Analyzer, items: Form[], scope: Sco
   ['js*', Analyzer.prototype['analyzeJsStar']],
   ['set!', Analyzer.prototype['analyzeSetBang']],
   ['new', Analyzer.prototype['analyzeNew']],
+  ['try', Analyzer.prototype['analyzeTry']],
 ]);
 
 function lit(value: LiteralNode['value'], jsType: LiteralNode['jsType']): LiteralNode {

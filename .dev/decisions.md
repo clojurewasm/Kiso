@@ -47,3 +47,20 @@ Column tracking is 1-indexed (matching the Form `col` field), differing from CW'
 
 Syntax-quote deferred to Phase 5: requires namespace resolution context which the
 analyzer will provide. Current `backtick` token emits `(syntax-quote x)` wrapper form.
+
+## D5: Runtime Data Structures
+
+**Date**: 2026-03-03
+
+- PersistentVector: 32-way bit-partitioned trie with tail optimization (CW algorithm)
+- PersistentHashMap: HAMT with bitmap+popcount, BitmapIndexedNode + CollisionNode
+- PersistentHashSet: thin wrapper over PersistentHashMap
+- PersistentList: cons-cell linked list (simpler than CW's array-backed)
+- Keyword: interned (global Map). Symbol: not interned.
+- Hash: Murmur3 finalizer for collections, polynomial string hash, CW seeds.
+- Atom: simple mutable container (single-threaded JS, no CAS needed).
+
+**Deferred**: Seq abstraction (ISeq/LazySeq), Protocol system (Symbol-based dispatch),
+Transient collections. These will be added when needed by the compiler pipeline.
+
+**Affected**: `src/runtime/`.
