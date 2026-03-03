@@ -26,6 +26,7 @@ function emitNode(node: Node, ctx: EmitCtx): string {
     case 'if': return emitIf(node, ctx);
     case 'do': return emitDo(node, ctx);
     case 'let': return emitLet(node, ctx);
+    case 'letfn': return emitLetfn(node, ctx);
     case 'fn': return emitFn(node);
     case 'def': return emitDef(node, ctx);
     case 'recur': return emitRecur(node, ctx);
@@ -119,6 +120,15 @@ function emitLet(node: { bindings: LetBinding[]; body: Node }, ctx: EmitCtx): st
   return `(() => { ${bindings} return ${emitNode(node.body, ctx)}; })()`;
 }
 
+function emitLetfn(node: { bindings: LetBinding[]; body: Node }, ctx: EmitCtx): string {
+  // Declare all names first with let, then assign — enables mutual recursion
+  const decls = node.bindings.map((b) => munge(b.name)).join(', ');
+  const assigns = node.bindings.map(
+    (b) => `${munge(b.name)} = ${emitNode(b.init, ctx)};`,
+  ).join(' ');
+  return `(() => { let ${decls}; ${assigns} return ${emitNode(node.body, ctx)}; })()`;
+}
+
 function emitFn(node: { name: string | null; arities: FnArity[] }): string {
   const name = node.name ? munge(node.name) : '';
 
@@ -192,6 +202,13 @@ function emitStmt(node: Node, ctx: EmitCtx): string {
       (b) => `const ${munge(b.name)} = ${emitNode(b.init, ctx)};`,
     ).join(' ');
     return `${bindings} ${emitStmt(node.body, ctx)}`;
+  }
+  if (node.type === 'letfn') {
+    const decls = node.bindings.map((b) => munge(b.name)).join(', ');
+    const assigns = node.bindings.map(
+      (b) => `${munge(b.name)} = ${emitNode(b.init, ctx)};`,
+    ).join(' ');
+    return `let ${decls}; ${assigns} ${emitStmt(node.body, ctx)}`;
   }
   // Default: return the expression
   return `return ${emitNode(node, ctx)};`;
@@ -325,7 +342,7 @@ function scanNodeForRuntime(node: Node, used: Set<string>): void {
       scanNodeForRuntime(node.ret, used);
       break;
     }
-    case 'let': case 'loop': {
+    case 'let': case 'letfn': case 'loop': {
       for (const b of node.bindings) scanNodeForRuntime(b.init, used);
       scanNodeForRuntime(node.body, used);
       break;

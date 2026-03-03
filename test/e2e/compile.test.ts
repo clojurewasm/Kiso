@@ -323,6 +323,38 @@ describe('try/catch compilation', () => {
   });
 });
 
+// -- letfn --
+
+describe('letfn compilation', () => {
+  it('basic letfn with single fn', () => {
+    expect(run('(letfn [(f [x] x)] (f 42))')).toBe(42);
+  });
+
+  it('mutual recursion with letfn', () => {
+    // even?/odd? mutual recursion: even?(4) → odd?(3) → even?(2) → odd?(1) → even?(0) → true
+    const src = `(letfn [(even? [n] (if (js* "n === 0") true (odd? (js* "n - 1"))))
+                         (odd? [n] (if (js* "n === 0") false (even? (js* "n - 1"))))]
+                   (even? 4))`;
+    expect(run(src)).toBe(true);
+  });
+});
+
+// -- dot special form --
+
+describe('dot special form', () => {
+  it('(. obj method) calls method', () => {
+    expect(run('(. "hello" toUpperCase)')).toBe('HELLO');
+  });
+
+  it('(. obj method args) calls with args', () => {
+    expect(run('(. "hello world" indexOf "world")')).toBe(6);
+  });
+
+  it('(. obj -field) accesses field', () => {
+    expect(run('(. "hello" -length)')).toBe(5);
+  });
+});
+
 // -- full E2E --
 
 describe('E2E: compile and execute', () => {

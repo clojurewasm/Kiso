@@ -166,6 +166,51 @@ export class Analyzer {
     return { type: 'let', bindings, body: bodyNode };
   }
 
+  private analyzeLetfn(items: Form[], scope: Scope): Node {
+    // (letfn* [name1 init1 name2 init2 ...] body...)
+    // All names are in scope for ALL initializers (mutual recursion).
+    const bindingsForm = items[1]!;
+    if (bindingsForm.data.type !== 'vector') throw new Error('letfn* requires a vector');
+    const bindItems = bindingsForm.data.items;
+    const letScope = makeScope(scope);
+
+    // Phase 1: declare all names first
+    const names: string[] = [];
+    for (let i = 0; i < bindItems.length; i += 2) {
+      const nameForm = bindItems[i]!;
+      if (nameForm.data.type !== 'symbol') throw new Error('letfn* binding name must be a symbol');
+      names.push(nameForm.data.name);
+      letScope.locals.add(nameForm.data.name);
+    }
+
+    // Phase 2: analyze initializers with all names in scope
+    const bindings: LetBinding[] = [];
+    for (let i = 0; i < bindItems.length; i += 2) {
+      const init = this.analyzeForm(bindItems[i + 1]!, letScope);
+      bindings.push({ name: names[i / 2]!, init });
+    }
+
+    const body = items.slice(2).map((f) => this.analyzeForm(f, letScope));
+    const bodyNode: Node = body.length === 1 ? body[0]! : { type: 'do', statements: body.slice(0, -1), ret: body[body.length - 1]! };
+    return { type: 'letfn', bindings, body: bodyNode };
+  }
+
+  private analyzeDot(items: Form[], scope: Scope): Node {
+    // (. target method args...)   → interop-call
+    // (. target -field)           → interop-field
+    const target = this.analyzeForm(items[1]!, scope);
+    const memberForm = items[2]!;
+    if (memberForm.data.type !== 'symbol') throw new Error('. requires a symbol member');
+    const member = memberForm.data.name;
+    if (member.startsWith('-')) {
+      // Field access
+      return { type: 'interop-field', target, field: member.slice(1) };
+    }
+    // Method call
+    const args = items.slice(3).map((f) => this.analyzeForm(f, scope));
+    return { type: 'interop-call', target, method: member, args };
+  }
+
   private analyzeFn(items: Form[], scope: Scope): Node {
     let idx = 1;
     let name: string | null = null;
@@ -418,6 +463,8 @@ const SPECIAL_FORMS = new Map<string, (this: Analyzer, items: Form[], scope: Sco
   ['if', Analyzer.prototype['analyzeIf']],
   ['do', Analyzer.prototype['analyzeDo']],
   ['let*', Analyzer.prototype['analyzeLet']],
+  ['letfn*', Analyzer.prototype['analyzeLetfn']],
+  ['.', Analyzer.prototype['analyzeDot']],
   ['fn*', Analyzer.prototype['analyzeFn']],
   ['loop*', Analyzer.prototype['analyzeLoop']],
   ['recur', Analyzer.prototype['analyzeRecur']],

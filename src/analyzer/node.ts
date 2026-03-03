@@ -14,6 +14,7 @@ export type Node =
   | IfNode
   | DoNode
   | LetNode
+  | LetfnNode
   | FnNode
   | DefNode
   | RecurNode
@@ -43,6 +44,7 @@ export type InvokeNode = { type: 'invoke'; fn: Node; args: Node[] };
 export type IfNode = { type: 'if'; test: Node; then: Node; else: Node };
 export type DoNode = { type: 'do'; statements: Node[]; ret: Node };
 export type LetNode = { type: 'let'; bindings: LetBinding[]; body: Node };
+export type LetfnNode = { type: 'letfn'; bindings: LetBinding[]; body: Node };
 export type FnNode = {
   type: 'fn';
   name: string | null;

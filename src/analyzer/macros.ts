@@ -328,6 +328,23 @@ defmacro('loop', (items, form) => {
   return makeList([sym('loop*'), bindings, ...body], ...loc(form));
 });
 
+defmacro('letfn', (items, form) => {
+  // (letfn [(f [params] body) ...] body...)
+  // → (letfn* [f (fn* f [params] body) ...] body...)
+  const fnForms = nth(items, 1);
+  if (fnForms.data.type !== 'vector') throw new Error('letfn requires a vector');
+  const bindings: Form[] = [];
+  for (const fnForm of fnForms.data.items) {
+    if (fnForm.data.type !== 'list') throw new Error('letfn entries must be lists');
+    const fnItems = fnForm.data.items;
+    const name = nth(fnItems, 0);
+    const fnBody = fnItems.slice(1);
+    bindings.push(name, makeList([sym('fn*'), name, ...fnBody], ...loc(fnForm)));
+  }
+  const body = items.slice(2);
+  return makeList([sym('letfn*'), makeVector(bindings), ...body], ...loc(form));
+});
+
 // -- Other --
 
 defmacro('comment', (_items, form) => {
