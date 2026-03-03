@@ -10,18 +10,18 @@ Session handover document. Read at session start.
 - Runtime: hash, equiv, keyword, symbol, list, vector, hash-map, hash-set, atom, seq, core.
 - Codegen emits runtime calls: vector(), hashMap(), hashSet(), keyword(), EMPTY_LIST.
 - NS → ES6 modules: `:require` parsing + import/export emission.
-- Total: 780 tests passing, types clean.
+- Total: 793 tests passing, types clean.
 
 ## Current Task
 
-**Batch B, Item 13: Retrofit ISeq/ICounted on existing types** — DONE
+**Batch D, Item 16: ArrayMap** — DONE
 
-- Defined ISeq (first, rest), ICounted (count), ICollection (conj) protocols
-- installProtocols() extends prototypes: List (Cons + EmptyList), Vector, HashMap, HashSet, LazySeq
-- Protocol-based dispatch now works on all existing types
-- 12 tests, 780 total
+- PersistentArrayMap: flat array [k,v,k,v,...] for <=8 entries
+- assoc/dissoc/get/has/forEach, immutable (returns new instances)
+- Auto-promotes to PersistentHashMap (HAMT) when exceeding 8 entries
+- 13 tests, 793 total
 
-Next deferred item: Item 16 (ArrayMap) or Item 11 (defrecord*)
+All task queue items complete. Only deferred Item 11 (defrecord*) remains.
 
 ## Task Queue
 
@@ -49,7 +49,7 @@ Items ordered by priority. Work top-down. Dependencies noted in brackets.
 15. ~~lazy-seq macro~~ DONE
 
 ### Batch D: Remaining runtime + su prep
-16. ArrayMap (<=8 entries, auto-promote to HAMT)
+16. ~~ArrayMap (<=8 entries, auto-promote to HAMT)~~ DONE
 17. ~~interop.ts (clj->js, js->clj)~~ DONE
 18. ~~catch type discrimination (instanceof chain)~~ DONE
 19. ~~Source Map V3 (VLQ encoding)~~ DONE
