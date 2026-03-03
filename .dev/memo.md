@@ -10,19 +10,19 @@ Session handover document. Read at session start.
 - Runtime: hash, equiv, keyword, symbol, list, vector, hash-map, hash-set, atom, seq, core.
 - Codegen emits runtime calls: vector(), hashMap(), hashSet(), keyword(), EMPTY_LIST.
 - NS → ES6 modules: `:require` parsing + import/export emission.
-- Total: 745 tests passing, types clean.
+- Total: 753 tests passing, types clean.
 
 ## Current Task
 
-**Batch G, Item 33: defc macro** — DONE
+**Batch G, Item 34: defstyle macro** — DONE
 
-- `(defc my-counter "doc" {:props {...}} [{:keys [a]}] body...)` macro
-- Validates name has hyphen (CE spec)
-- Extracts observed attrs + prop types from {:props ...} or infers from destructuring
-- Expands to `(su.core/define-component "name" config render-fn)`
-- 6 tests, 745 total
+- `(defstyle name [css-data...])` macro
+- CSS-as-data nesting: :.selector → .selector, :&:hover → parent:hover
+- Supports :host, nested children, multiple properties
+- Expands to `(su.core/create-stylesheet "name" "css-text")`
+- 8 tests, 753 total
 
-Moving to Item 34: defstyle macro.
+Moving to Item 35: su vite-plugin.ts (HMR).
 
 ## Task Queue
 
@@ -74,7 +74,7 @@ Items ordered by priority. Work top-down. Dependencies noted in brackets.
 31. ~~su-runtime: hiccup.ts (renderHiccup, bind)~~ DONE
 32. ~~su-runtime: css.ts (createSheet, adoptedStyleSheets) + lifecycle.ts~~ DONE
 33. ~~defc macro (su/core.cljs → Custom Element)~~ DONE
-34. defstyle macro (su/core.cljs → adoptedStyleSheets)
+34. ~~defstyle macro (su/core.cljs → adoptedStyleSheets)~~ DONE
 35. su vite-plugin.ts (HMR: render fn replacement)
 36. Dogfooding: todo-app
 

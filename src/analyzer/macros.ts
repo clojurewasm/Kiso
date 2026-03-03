@@ -774,3 +774,133 @@ function extractKeysFromDestructure(mapForm: Form): string[] {
   }
   return [];
 }
+
+// -- defstyle macro --
+
+defmacro('defstyle', (items, form) => {
+  // (defstyle name [...css-data...])
+  // → (su.core/create-stylesheet "name" "css-text")
+  const nameForm = nth(items, 1);
+  if (nameForm.data.type !== 'symbol') {
+    throw new Error('defstyle: name must be a symbol');
+  }
+
+  const cssData = nth(items, 2);
+  if (cssData.data.type !== 'vector') {
+    throw new Error('defstyle: CSS data must be a vector');
+  }
+
+  const cssText = compileCssData(cssData);
+
+  return makeList([
+    makeSymbol('su.core', 'create-stylesheet', ...loc(form)),
+    makeStr(nameForm.data.name),
+    makeStr(cssText),
+  ], ...loc(form));
+});
+
+function compileCssData(vec: Form): string {
+  if (vec.data.type !== 'vector') return '';
+  const items = vec.data.items;
+  const rules: string[] = [];
+  compileCssRules(items, '', rules);
+  return rules.join(' ');
+}
+
+function compileCssRules(items: Form[], parentSelector: string, rules: string[]): void {
+  let i = 0;
+  while (i < items.length) {
+    const item = items[i]!;
+
+    if (item.data.type === 'keyword') {
+      // This is a selector — grab its properties and children
+      const selector = resolveSelector(item.data.name, parentSelector);
+
+      // Check what follows: a map (properties) and/or nested vectors (children)
+      const props: Form[] = [];
+      const children: Form[] = [];
+      i++;
+
+      if (i < items.length && items[i]!.data.type === 'map') {
+        props.push(items[i]!);
+        i++;
+      }
+
+      while (i < items.length && items[i]!.data.type === 'vector') {
+        children.push(items[i]!);
+        i++;
+      }
+
+      // Emit property rule
+      if (props.length > 0) {
+        const cssProps = compileCssProps(props[0]!);
+        if (cssProps) {
+          rules.push(`${selector} { ${cssProps} }`);
+        }
+      }
+
+      // Recurse into nested children
+      for (const child of children) {
+        if (child.data.type === 'vector') {
+          compileCssRules(child.data.items, selector, rules);
+        }
+      }
+    } else if (item.data.type === 'vector') {
+      // Nested vector — recurse
+      compileCssRules(item.data.items, parentSelector, rules);
+      i++;
+    } else if (item.data.type === 'map') {
+      // Properties for parent selector
+      if (parentSelector) {
+        const cssProps = compileCssProps(item);
+        if (cssProps) {
+          rules.push(`${parentSelector} { ${cssProps} }`);
+        }
+      }
+      i++;
+    } else {
+      i++;
+    }
+  }
+}
+
+function resolveSelector(name: string, parent: string): string {
+  // Keywords like :.foo → .foo, :&:hover → &:hover, :host → :host
+  let sel = name;
+
+  // Handle & (ampersand) — append to parent without space
+  if (sel.startsWith('&') && parent) {
+    return parent + sel.slice(1);
+  }
+
+  // Handle :host and other colon-prefixed CSS selectors
+  if (sel === 'host' || sel.startsWith('host(')) {
+    sel = ':' + sel;
+  }
+
+  if (parent) {
+    return parent + ' ' + sel;
+  }
+  return sel;
+}
+
+function compileCssProps(mapForm: Form): string {
+  if (mapForm.data.type !== 'map') return '';
+  const items = mapForm.data.items;
+  const props: string[] = [];
+  for (let i = 0; i < items.length - 1; i += 2) {
+    const key = items[i]!;
+    const val = items[i + 1]!;
+    if (key.data.type === 'keyword') {
+      const prop = key.data.name; // Already kebab-case from keyword
+      let value = '';
+      if (val.data.type === 'string') {
+        value = (val.data as { value: string }).value;
+      } else if (val.data.type === 'integer' || val.data.type === 'float') {
+        value = String((val.data as { value: number }).value);
+      }
+      props.push(`${prop}: ${value};`);
+    }
+  }
+  return props.join(' ');
+}
