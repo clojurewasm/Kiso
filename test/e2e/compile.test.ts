@@ -460,6 +460,19 @@ describe('cond-> and cond->>', () => {
   });
 });
 
+describe('dotimes', () => {
+  it('executes body n times', () => {
+    // Use js* with mutable object to track loop execution
+    const code = `
+      (let [result (js* "{ value: '' }")]
+        (dotimes [i 3]
+          (js* "result.value += String(i)"))
+        (js* "result.value"))
+    `;
+    expect(run(code)).toBe('012');
+  });
+});
+
 describe('var special form', () => {
   it('resolves var to its value', () => {
     expect(run('(let [x 42] (var x))')).toBe(42);

@@ -546,6 +546,36 @@ defmacro('time', (items, form) => {
   ], ...loc(form));
 });
 
+defmacro('dotimes', (items, form) => {
+  // (dotimes [i n] body...) → (let* [dt__limit n] (loop* [dt__i 0] (if (js* "dt__i < dt__limit") (let* [i dt__i] (do body... (recur (js* "dt__i + 1")))) nil)))
+  const bindings = nth(items, 1);
+  if (bindings.data.type !== 'vector') throw new Error('dotimes requires a vector');
+  const name = nth(bindings.data.items, 0);
+  const count = nth(bindings.data.items, 1);
+  const body = items.slice(2);
+  const limitSym = sym('dt__limit');
+  const iSym = sym('dt__i');
+  return makeList([
+    sym('let*'),
+    makeVector([limitSym, count]),
+    makeList([
+      sym('loop*'),
+      makeVector([iSym, { data: { type: 'integer', value: 0 }, line: 0, col: 0 } as Form]),
+      makeList([
+        sym('if'),
+        makeList([sym('js*'), makeStr('dt__i < dt__limit')]),
+        makeList([
+          sym('let*'),
+          makeVector([name, iSym]),
+          makeList([sym('do'), ...body,
+            makeList([sym('recur'), makeList([sym('js*'), makeStr('dt__i + 1')])])]),
+        ]),
+        makeNil(),
+      ]),
+    ]),
+  ], ...loc(form));
+});
+
 defmacro('comment', (_items, form) => {
   return makeNil(...loc(form));
 });

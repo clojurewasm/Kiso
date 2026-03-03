@@ -320,6 +320,17 @@ describe('time', () => {
   });
 });
 
+// -- dotimes --
+
+describe('dotimes', () => {
+  it('expands to loop with counter', () => {
+    const result = ex1('(dotimes [i n] body)');
+    expect(result).toContain('loop*');
+    expect(result).toContain('dt__i');
+    expect(result).toContain('dt__limit');
+  });
+});
+
 // -- Non-macro forms pass through --
 
 describe('non-macro forms', () => {
