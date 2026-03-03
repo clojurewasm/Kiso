@@ -79,6 +79,106 @@ function sym(name: string): Form { return makeSymbol(null, name); }
 
 function loc(form: Form): [number, number] { return [form.line, form.col]; }
 
+// -- Syntax-quote --
+
+let gensymCounter = 0;
+
+defmacro('syntax-quote', (items, _form) => {
+  const body = nth(items, 1);
+  const gensymMap = new Map<string, string>();
+  return expandSyntaxQuote(body, gensymMap);
+});
+
+function expandSyntaxQuote(form: Form, gensymMap: Map<string, string>): Form {
+  const [l, c] = loc(form);
+  const d = form.data;
+
+  // Literals: pass through (self-evaluating)
+  if (d.type === 'nil' || d.type === 'boolean' || d.type === 'integer' ||
+      d.type === 'float' || d.type === 'bigint' || d.type === 'string' ||
+      d.type === 'char' || d.type === 'keyword') {
+    return form;
+  }
+
+  // Symbols → (quote sym), with gensym and special form handling
+  if (d.type === 'symbol') {
+    const name = d.name as string;
+    const ns = d.ns as string | null;
+
+    // Gensym: foo# → foo__N__auto (unique per syntax-quote invocation)
+    if (!ns && name.endsWith('#')) {
+      const base = name.slice(0, -1);
+      let resolved = gensymMap.get(name);
+      if (!resolved) {
+        resolved = `${base}__${++gensymCounter}__auto`;
+        gensymMap.set(name, resolved);
+      }
+      return makeList([sym('quote'), makeSymbol(null, resolved, l, c)], l, c);
+    }
+
+    return makeList([sym('quote'), form], l, c);
+  }
+
+  // Unquote: (unquote x) → x
+  if (d.type === 'list' && d.items.length === 2 &&
+      d.items[0]!.data.type === 'symbol' && (d.items[0]!.data.name as string) === 'unquote') {
+    return d.items[1]!;
+  }
+
+  // Unquote-splicing at top level: error
+  if (d.type === 'list' && d.items.length === 2 &&
+      d.items[0]!.data.type === 'symbol' && (d.items[0]!.data.name as string) === 'unquote-splicing') {
+    throw new Error('unquote-splicing not in list');
+  }
+
+  // List → (seq (concat ...parts))
+  if (d.type === 'list') {
+    return sqExpandColl(d.items, gensymMap, 'seq', l, c);
+  }
+
+  // Vector → (vec (concat ...parts))
+  if (d.type === 'vector') {
+    return sqExpandColl(d.items, gensymMap, 'vec', l, c);
+  }
+
+  // Map → (apply hash-map (concat ...parts))
+  if (d.type === 'map') {
+    return sqExpandColl(d.items, gensymMap, 'apply-hash-map', l, c);
+  }
+
+  // Set → (set (concat ...parts))
+  if (d.type === 'set') {
+    return sqExpandColl(d.items, gensymMap, 'set', l, c);
+  }
+
+  // Fallback: quote it
+  return makeList([sym('quote'), form], l, c);
+}
+
+/** Expand collection elements for syntax-quote, handling unquote-splicing. */
+function sqExpandColl(
+  items: Form[], gensymMap: Map<string, string>,
+  wrapper: string, l: number, c: number,
+): Form {
+  const parts: Form[] = [];
+  for (const item of items) {
+    if (item.data.type === 'list' && item.data.items.length === 2 &&
+        item.data.items[0]!.data.type === 'symbol' &&
+        (item.data.items[0]!.data.name as string) === 'unquote-splicing') {
+      // ~@x → x (spliced directly into concat)
+      parts.push(item.data.items[1]!);
+    } else {
+      // x → (list expanded-x)
+      parts.push(makeList([sym('list'), expandSyntaxQuote(item, gensymMap)], l, c));
+    }
+  }
+  const concatCall = makeList([sym('concat'), ...parts], l, c);
+  if (wrapper === 'apply-hash-map') {
+    return makeList([sym('apply'), sym('hash-map'), concatCall], l, c);
+  }
+  return makeList([sym(wrapper), concatCall], l, c);
+}
+
 // -- Control Flow --
 
 defmacro('when', (items, form) => {

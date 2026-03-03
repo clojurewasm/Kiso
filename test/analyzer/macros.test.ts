@@ -372,3 +372,76 @@ describe('non-macro forms', () => {
     expect(ex('(if (when true x) 1 2)')).toBe('(if (if true (do x) nil) 1 2)');
   });
 });
+
+// -- Syntax-quote --
+
+describe('syntax-quote', () => {
+  it('quotes a symbol', () => {
+    expect(ex('`foo')).toBe('(quote foo)');
+  });
+
+  it('quotes a literal', () => {
+    expect(ex('`42')).toBe('42');
+  });
+
+  it('quotes a keyword (passes through)', () => {
+    expect(ex('`:kw')).toBe(':kw');
+  });
+
+  it('unquote returns the form as-is', () => {
+    expect(ex('`~x')).toBe('x');
+  });
+
+  it('expands a simple list to seq + concat + list', () => {
+    const result = ex('`(a b)');
+    // Should produce (seq (concat (list (quote a)) (list (quote b))))
+    expect(result).toContain('concat');
+    expect(result).toContain('quote a');
+    expect(result).toContain('quote b');
+  });
+
+  it('expands a list with unquote', () => {
+    const result = ex('`(a ~b)');
+    expect(result).toContain('quote a');
+    expect(result).toContain('list b');
+    expect(result).not.toContain('quote b');
+  });
+
+  it('expands a list with unquote-splicing', () => {
+    const result = ex('`(a ~@xs)');
+    expect(result).toContain('quote a');
+    expect(result).toContain('xs');
+  });
+
+  it('expands a vector', () => {
+    const result = ex('`[a b]');
+    expect(result).toContain('vec');
+    expect(result).toContain('concat');
+  });
+
+  it('expands special forms without ns-qualifying', () => {
+    const result = ex('`(if true x)');
+    expect(result).toContain('quote if');
+    expect(result).not.toContain('/if');
+  });
+
+  it('handles gensym (foo#)', () => {
+    const result = ex('`(let [x# 1] x#)');
+    expect(result).toContain('__auto');
+    // Same gensym should appear twice (binding + reference)
+    const match = result.match(/x__\d+__auto/g);
+    expect(match).not.toBeNull();
+    expect(match!.length).toBeGreaterThanOrEqual(2);
+    // Both should be the same gensym
+    expect(match![0]).toBe(match![1]);
+  });
+
+  it('quotes nil and boolean', () => {
+    expect(ex('`nil')).toBe('nil');
+    expect(ex('`true')).toBe('true');
+  });
+
+  it('quotes a string', () => {
+    expect(ex('`"hello"')).toBe('"hello"');
+  });
+});
