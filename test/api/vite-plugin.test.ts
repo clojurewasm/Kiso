@@ -38,4 +38,30 @@ describe('vite-plugin-cljs', () => {
     expect(result).not.toBeNull();
     expect(result!.map).toBeDefined();
   });
+
+  it('has handleHotUpdate for cljs files', () => {
+    const plugin = cljs();
+    expect(plugin.handleHotUpdate).toBeDefined();
+  });
+
+  it('handleHotUpdate returns affected modules for cljs files', () => {
+    const plugin = cljs();
+    const mockModule = { file: '/app/src/core.cljs', type: 'js' };
+    const mockCtx = {
+      file: '/app/src/core.cljs',
+      modules: [mockModule],
+    };
+    const result = (plugin.handleHotUpdate as (ctx: typeof mockCtx) => unknown)(mockCtx);
+    expect(result).toEqual([mockModule]);
+  });
+
+  it('handleHotUpdate ignores non-cljs files', () => {
+    const plugin = cljs();
+    const mockCtx = {
+      file: '/app/src/core.ts',
+      modules: [{ file: '/app/src/core.ts' }],
+    };
+    const result = (plugin.handleHotUpdate as (ctx: typeof mockCtx) => unknown)(mockCtx);
+    expect(result).toBeUndefined();
+  });
 });

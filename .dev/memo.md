@@ -10,17 +10,13 @@ Session handover document. Read at session start.
 - Runtime: hash, equiv, keyword, symbol, list, vector, hash-map, hash-set, atom, seq, core.
 - Codegen emits runtime calls: vector(), hashMap(), hashSet(), keyword(), EMPTY_LIST.
 - NS → ES6 modules: `:require` parsing + import/export emission.
-- Total: 692 tests passing, types clean.
+- Total: 695 tests passing, types clean.
 
 ## Current Task
 
-**Batch F, Item 27: Vite transform plugin** — DONE
+**Batch F complete.** Public API + Vite plugin + HMR all done.
 
-- `cljs()` plugin: transforms .cljs/.cljc files via compile()
-- Source maps included automatically
-- Non-cljs files pass through
-
-Moving to Item 28: HMR (hot module replacement for .cljs).
+Moving to Batch G: su Framework.
 
 ## Task Queue
 
@@ -64,7 +60,7 @@ Items ordered by priority. Work top-down. Dependencies noted in brackets.
 ### Batch F: Vite Integration [depends on: Batch E + Source Map]
 26. ~~Public API (compile, compileFile, read, analyze, generate)~~ DONE
 27. ~~Vite transform plugin~~ DONE
-28. HMR (hot module replacement for .cljs)
+28. ~~HMR (hot module replacement for .cljs)~~ DONE
 
 ### Batch G: su Framework [depends on: Batch E + F] [design: 07-su-framework.md]
 29. su-runtime: reactive.ts (track, effect, computed)
