@@ -22,6 +22,20 @@ Track blockers and deferred work items. Format: K## (Kiso item number).
 - K07: interop.ts (clj->js, js->clj) priority for su DOM attribute conversion.
   su-runtime needs map→object conversion. Already in Batch D (item 17).
   See design 07-su-framework.md §F7.
+- K08: CE tag name validation + hiccup ns-keyword resolution for su.
+  defc name must contain a hyphen (compile error otherwise).
+  Hiccup ns-qualified keywords (::name, :ns/name) resolve to CE tag names
+  via component registry. Bare keywords = native HTML.
+  See design 07-su-framework.md §F8.
+- K09: Shadow DOM form participation — ElementInternals API for form-associated
+  custom elements. defc {:form-associated true} must wire up setFormValue().
+  Baseline 2023. See design 07-su-framework.md §C1.
+- K10: Shadow DOM theming — CSS custom properties (--var) convention for themeable
+  components. ::part() for selective external styling.
+  See design 07-su-framework.md §C2.
+- K11: Shadow DOM accessibility — delegatesFocus, ARIA across shadow boundaries,
+  semantic structure via slots. Requires screen reader testing in dogfooding.
+  See design 07-su-framework.md §C3.
 
 ## Resolved
 

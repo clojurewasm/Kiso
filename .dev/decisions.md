@@ -134,11 +134,17 @@ No virtual DOM, no React dependency, no diffing engine.
 
 **Core model**:
 - `defc` → `customElements.define()` with Shadow DOM
+- defc name IS the CE tag name (hyphen required, no forced prefix)
 - Component function runs **once** in `connectedCallback` (solid-element pattern)
 - Kiso `atom` = su's state primitive (extended with tracking hook)
 - `effect()` / `bind()` = fine-grained DOM updates inside Shadow DOM
 - `defstyle` → `adoptedStyleSheets` (Shadow DOM provides natural CSS scoping)
 - Props = observed attributes → atom signals → reactive updates
+
+**Hiccup component syntax**: Namespace-qualified keywords. "One way to do it."
+- `[::my-counter {:initial 5}]` — same-ns component (:: = current ns)
+- `[:app.ui/my-counter ...]` — cross-ns component (full qualification)
+- `[:div ...]` — bare keyword = native HTML element
 
 **Rationale** (from 12+ framework comparative research):
 - solid-element proves signals work perfectly inside Custom Elements
@@ -147,6 +153,11 @@ No virtual DOM, no React dependency, no diffing engine.
 - adoptedStyleSheets share a single CSSStyleSheet across all instances
 - Declarative Shadow DOM (Baseline 2024) enables SSR
 - Fine-grained reactivity eliminates need for virtual DOM diffing
+- Ns-qualified keywords enable clj-kondo/clojure-lsp integration (unlike bare keywords)
+
+**Collision policy**: Same-compilation duplicate tag names → compile error.
+Cross-package collisions are user's responsibility. Scoped Custom Element
+Registries (Interop 2026) will solve this at the platform level.
 
 **Trade-off**: Shadow DOM adds ~2KB overhead vs plain direct DOM.
 Custom Element re-registration is not possible — HMR uses render function replacement.
@@ -155,4 +166,4 @@ Custom Element re-registration is not possible — HMR uses render function repl
 
 **Affected**: `@kiso/su` package (separate from `@kiso/cljs`).
 `@kiso/cljs` impact: atom tracking hook (F1), watch unsubscribe (F2),
-tag name generation (F8) — see design doc.
+CE tag validation and hiccup ns-keyword resolution (F8) — see design doc.

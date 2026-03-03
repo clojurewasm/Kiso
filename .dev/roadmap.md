@@ -130,7 +130,7 @@ Design: `07-su-framework.md`. Decision: D8.
 **su-runtime** (pure TypeScript, can develop in parallel with Batches B-E):
 - 7.1 reactive.ts — track(), effect(), computed()
 - 7.2 component.ts — defineComponent(), Custom Element class, Shadow DOM
-- 7.3 hiccup.ts — renderHiccup(), bind(), tag parsing
+- 7.3 hiccup.ts — renderHiccup(), bind(), ns-keyword→CE tag resolution
 - 7.4 css.ts — createSheet(), adoptedStyleSheets (Shadow DOM scoping)
 - 7.5 lifecycle.ts — on-mount, on-unmount hooks
 

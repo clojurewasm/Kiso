@@ -61,6 +61,7 @@ Items ordered by priority. Work top-down. Dependencies noted in brackets.
 S1. Atom tracking hook — add `_onDeref` to atom.ts (K04)
 S2. Atom addWatch return unsubscribe fn (K05)
 S3. Verify keyword edge cases for CSS selectors (K06)
+S4. CE tag name validation + hiccup ns-keyword resolution (K08)
 
 ### Batch G: su Framework [depends on: Batch E + F] [design: 07-su-framework.md]
 26. su-runtime: reactive.ts (track, effect, computed)

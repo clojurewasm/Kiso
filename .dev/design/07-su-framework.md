@@ -49,7 +49,7 @@ The key architectural proof comes from `solid-element`: Solid.js signals work
 perfectly inside Web Components. su adopts this exact pattern with Kiso atoms:
 
 ```
-defc counter [props]          →  customElements.define('su-counter', class)
+defc my-counter [props]       →  customElements.define('my-counter', class)
   component fn runs ONCE      →  connectedCallback → createRoot(...)
   props become atom-signals   →  createProps() → atom per observed attribute
   attr changes update atoms   →  attributeChangedCallback → atom.reset!
@@ -154,13 +154,37 @@ su-runtime sets `atom._onDeref = notifyTracking` at initialization.
 
 ## defc Macro — Custom Element Definition
 
+### Naming Rule: defc Name = Custom Element Tag Name
+
+The defc name IS the Custom Element tag name. No prefix is added.
+
+**Hyphen required**: The HTML spec mandates that Custom Element names contain at least
+one hyphen. defc enforces this at compile time:
+
+```clojure
+(defc my-counter ...)     ;; OK → <my-counter>
+(defc todo-list ...)      ;; OK → <todo-list>
+(defc nav-bar ...)        ;; OK → <nav-bar>
+(defc counter ...)        ;; COMPILE ERROR: "Custom Element names require a hyphen"
+```
+
+Clojure's kebab-case convention naturally produces valid CE names.
+No forced `su-` or other prefix — users choose meaningful names for their domain.
+
+**Collision detection**: If two `defc` forms in the same compilation unit define
+the same tag name, the compiler emits an error. Cross-package collisions are the
+user's responsibility (use project-specific prefixes as needed, e.g., `app-counter`).
+
+**Future**: Scoped Custom Element Registries (Interop 2026, currently Safari-only)
+will allow same tag names in different Shadow DOM scopes. su can adopt this
+transparently — user code stays the same.
+
 ### Input Syntax
 
 ```clojure
-(defc counter
+(defc my-counter
   "A simple counter component."
-  {:tag "su-counter"                    ;; optional, auto-generated if omitted
-   :props {:initial {:type :number      ;; attribute type for serialization
+  {:props {:initial {:type :number      ;; attribute type for serialization
                      :default 0}}}      ;; default value
   [{:keys [initial]}]
   (let [count (atom initial)]
@@ -173,7 +197,7 @@ su-runtime sets `atom._onDeref = notifyTracking` at initialization.
 ### Minimal Syntax (props auto-inferred)
 
 ```clojure
-(defc counter [{:keys [initial] :or {initial 0}}]
+(defc my-counter [{:keys [initial] :or {initial 0}}]
   (let [count (atom initial)]
     [:div.counter
       [:span "Count: " @count]
@@ -181,7 +205,6 @@ su-runtime sets `atom._onDeref = notifyTracking` at initialization.
 ```
 
 When the options map is omitted:
-- Tag name auto-generated from namespace + name: `my.app/counter` → `su-my-app-counter`
 - Props inferred from destructuring keys
 - Types default to `:string`
 
@@ -190,11 +213,11 @@ When the options map is omitted:
 defc expands to a `customElements.define()` call:
 
 ```clojure
-;; (defc counter [{:keys [initial]}] ...)
+;; (defc my-counter [{:keys [initial]}] ...)
 ;; expands to approximately:
 
 (su.core/define-component
-  "su-counter"
+  "my-counter"
   {:observed-attrs ["initial"]
    :prop-types {:initial :number}}
   (fn [props-atom]
@@ -265,35 +288,59 @@ function defineComponent(
     }
   }
 
-  customElements.define(tagName, SuComponent);
+  customElements.define(tagName, SuComponent); // e.g., "my-counter"
 }
 ```
 
-### Using Components in Hiccup
+### Using Components in Hiccup — Namespace-Qualified Keywords
+
+**Design decision**: "One way to do it." All hiccup elements use keywords.
+Namespace-qualified keywords = components. Bare keywords = HTML elements.
 
 ```clojure
-;; defc creates a Custom Element tag.
-;; Use it in hiccup like any HTML element:
+(ns app.ui
+  (:require [su.core :refer [defc]]))
+
+(defc my-counter [{:keys [initial]}]
+  ...)
+
+;; Same namespace — use :: (auto-qualified to current ns)
+[:div
+  [::my-counter {:initial 5}]         ;; → :app.ui/my-counter → <my-counter>
+  [::my-counter {:initial 10}]]
+
+;; Cross-namespace — use full qualification
+(ns app.page
+  (:require [app.ui :as ui]))
 
 [:div
-  [:su-counter {:initial 5}]          ;; Custom Element tag
-  [:su-counter {:initial 10}]]        ;; Another instance
-
-;; Or with the symbol reference (macro rewrites to tag):
-[counter {:initial 5}]
-;; → [:su-counter {:initial "5"}]  (attribute serialization)
+  [:app.ui/my-counter {:initial 5}]]  ;; fully qualified
 ```
+
+**Resolution rule**:
+- Bare keyword (`:div`, `:span`, `:input`) → native HTML element
+- Namespace-qualified keyword (`::name`, `:ns/name`) → component lookup → CE tag name
+
+**IDE/Lint benefits**:
+- clj-kondo: ns-qualified keyword → verify defc definition exists
+- clojure-lsp: `::my-counter` → jump to `(defc my-counter ...)` in same ns
+- Typo detection: `::my-couter` → undefined ns-qualified keyword warning
+- Rename: defc name change → hiccup references follow
+
+**Why not symbol references?** Reagent uses `[counter ...]` (symbol), `[:> React ...]`,
+and `[:div ...]` — three syntaxes for the same concept. su uses one: `[keyword ...]`.
+The only variation is namespace qualification, which is a standard Clojure concept.
 
 ### Component Nesting and Slots
 
 ```clojure
-(defc card [{:keys [title]}]
+(defc info-card [{:keys [title]}]
   [:div.card
     [:h2 title]
     [:slot]])                          ;; Light DOM children go here
 
 ;; Usage:
-[:su-card {:title "Hello"}
+[::info-card {:title "Hello"}
   [:p "This goes into the slot"]]
 ```
 
@@ -313,7 +360,7 @@ disconnectedCallback: dispose all effects → cleanup hooks
 ### Lifecycle Hooks
 
 ```clojure
-(defc my-component [props]
+(defc my-widget [props]
   (on-mount (fn [] ...))          ;; after connectedCallback + first render
   (on-unmount (fn [] ...))        ;; before disconnectedCallback
   [:div ...])
@@ -328,7 +375,7 @@ disconnectedCallback: dispose all effects → cleanup hooks
 ### Key Insight: Shadow DOM Eliminates Class Name Hashing
 
 With Shadow DOM, CSS is **naturally scoped** to the component. No hash suffixes needed.
-`.counter` inside `<su-counter>`'s Shadow DOM only matches elements in that shadow tree.
+`.counter` inside `<my-counter>`'s Shadow DOM only matches elements in that shadow tree.
 
 This is a major simplification over the non-WC approach.
 
@@ -399,7 +446,7 @@ Note: `:host` and `::slotted()` are Shadow DOM-specific CSS selectors.
 ```clojure
 (defstyle counter-style ...)
 
-(defc counter
+(defc my-counter
   {:style counter-style}            ;; attach stylesheet to this component
   [{:keys [initial]}]
   ...)
@@ -410,7 +457,7 @@ The `:style` option in defc's metadata tells `defineComponent` to set
 
 Multiple stylesheets can be composed:
 ```clojure
-(defc counter
+(defc my-counter
   {:style [base-style counter-style]}
   ...)
 ```
@@ -459,12 +506,17 @@ it is wrapped in `effect()` to update the DOM attribute reactively.
 ### Custom Element Tags in Hiccup
 
 ```clojure
-;; Custom elements (defc components) by tag name:
-[:su-counter {:initial 5}]
+;; Components use namespace-qualified keywords:
+[::my-counter {:initial 5}]           ;; same ns (:: = current ns)
+[:app.ui/my-counter {:initial 5}]     ;; cross-ns (full qualification)
 
-;; Or by symbol reference (macro rewrites to Custom Element tag):
-[counter {:initial 5}]
+;; Native HTML elements use bare keywords:
+[:div {:class "wrapper"}]
+[:input {:type "text"}]
 ```
+
+The `renderHiccup` function checks: namespace-qualified → lookup component
+registry → `document.createElement(ceTagName)`. Bare keyword → `document.createElement(tag)`.
 
 ---
 
@@ -508,7 +560,7 @@ function hotReplace(tagName: string, newRenderFn: RenderFn): void {
 // Generated by su vite plugin
 if (import.meta.hot) {
   import.meta.hot.accept((newModule) => {
-    su_runtime.hotReplace("su-counter", newModule.counter_renderFn);
+    su_runtime.hotReplace("my-counter", newModule.my_counter_renderFn);
   });
 }
 ```
@@ -528,7 +580,7 @@ if (import.meta.hot) {
 
 ```html
 <!-- Server output using Declarative Shadow DOM (Baseline 2024) -->
-<su-counter initial="5">
+<my-counter initial="5">
   <template shadowrootmode="open">
     <style>.counter { display: flex; gap: 8px; }</style>
     <div class="counter">
@@ -537,7 +589,7 @@ if (import.meta.hot) {
       <button>-</button>
     </div>
   </template>
-</su-counter>
+</my-counter>
 ```
 
 Browser parses the `<template shadowrootmode="open">` and attaches
@@ -552,6 +604,79 @@ When the Custom Element class upgrades:
 
 Hydration is a **Phase 2 optimization** — initial implementation can
 clear and re-render the shadow DOM on upgrade.
+
+---
+
+## Shadow DOM Known Challenges
+
+These are known issues with Shadow DOM that su must address during implementation.
+Not design flaws — they are well-understood platform constraints with established solutions.
+
+### C1: Form Participation
+
+`<input>` elements inside Shadow DOM do NOT participate in ancestor `<form>` elements.
+A `<form>` containing `<my-input>` (a CE with Shadow DOM) won't see its internal inputs.
+
+**Solution**: `ElementInternals` API with `static formAssociated = true`.
+This is Baseline 2023 (all modern browsers). su's `defc` should support a
+`:form-associated` option that wires up `ElementInternals`:
+
+```clojure
+(defc my-input
+  {:form-associated true
+   :props {:name {:type :string} :value {:type :string}}}
+  [{:keys [name value]}]
+  [:input {:value @value :on-input #(...)}])
+```
+
+The component.ts runtime sets `this._internals = this.attachInternals()` and
+calls `this._internals.setFormValue(val)` when the value atom changes.
+
+**When to address**: Phase 7.2 (component.ts). Design the `ElementInternals`
+integration when implementing `defineComponent`.
+
+### C2: External Styling / Theming
+
+Shadow DOM intentionally blocks external CSS. This is a feature for encapsulation
+but a challenge for theming (dark mode, brand colors, design tokens).
+
+**Solution**: CSS Custom Properties (aka CSS Variables) penetrate Shadow DOM.
+Design a theming convention:
+
+```clojure
+;; defstyle uses CSS custom properties for themeable values:
+(defstyle counter-style
+  [:.counter {:color "var(--su-text, #333)"
+              :background "var(--su-bg, #fff)"}])
+
+;; Host page sets theme:
+;; :root { --su-text: #eee; --su-bg: #222; }
+```
+
+Additionally, `::part()` CSS pseudo-element allows selective external styling:
+```clojure
+(defc my-button [props]
+  [:button {:part "button"} ...])  ;; exposes "button" part
+
+;; External CSS can target: my-button::part(button) { ... }
+```
+
+**When to address**: Phase 7.4 (css.ts) and 7.7 (defstyle macro).
+Document the `--var` and `::part()` conventions.
+
+### C3: Accessibility
+
+Screen readers may behave differently at Shadow DOM boundaries. Key concerns:
+
+1. **Focus management**: Focus can get "trapped" or "lost" at shadow boundaries.
+   Use `delegatesFocus: true` in `attachShadow()` options where appropriate.
+2. **ARIA references**: `aria-labelledby` cannot reference IDs across shadow boundaries.
+   Use `aria-label` (string) instead, or expose parts with `exportparts`.
+3. **Semantic structure**: Ensure landmarks (`<nav>`, `<main>`, `<header>`) are
+   in the light DOM or properly composed via slots.
+
+**When to address**: Phase 7.2 (component.ts) for `delegatesFocus`.
+Phase 7.9 (dogfooding) to validate accessibility with screen reader testing.
 
 ---
 
@@ -648,20 +773,31 @@ The `interop.ts` module (Batch D, item 17) is required for this.
 If `interop.ts` is not ready when su starts, su-runtime can include
 a minimal inline converter. But the proper solution is interop.ts.
 
-### F8: Custom Element Tag Name Generation
+### F8: Custom Element Tag Name Validation and Hiccup Resolution
 
-**Batch**: Codegen consideration
+**Batch**: Analyzer/Codegen consideration
 
-defc needs to generate valid Custom Element tag names (must contain a hyphen).
-The namespace + name → tag name mapping should be deterministic:
+defc enforces that the component name contains a hyphen (CE spec requirement).
+The defc name IS the CE tag name — no prefix is added, no transformation occurs.
 
 ```
-my.app/counter      → su-my-app-counter
-su.core/button      → su-core-button
-counter             → su-counter (default namespace)
+(defc my-counter ...)  → tag: "my-counter"     ✓
+(defc todo-list ...)   → tag: "todo-list"      ✓
+(defc counter ...)     → COMPILE ERROR          ✗ (no hyphen)
 ```
 
-@kiso/cljs's symbol/namespace handling should support this mapping.
+**Collision detection**: The compiler must track all defc-defined tag names
+within the same compilation unit. Duplicate tag names produce a compile error.
+Cross-package collisions are the user's responsibility.
+
+**Hiccup ns-keyword resolution**: `renderHiccup` must resolve namespace-qualified
+keywords to CE tag names at runtime. This requires a component registry:
+- `defc` registration: `defineComponent` stores `{nsKeyword → ceTagName}` mapping
+- `renderHiccup` lookup: ns-qualified keyword → registry → `createElement(ceTagName)`
+- Bare keyword → `createElement(tagName)` directly (native HTML)
+
+**Future**: Scoped Custom Element Registries (Interop 2026) can be adopted
+in `defineComponent` internals without changing user-facing hiccup syntax.
 
 ---
 
