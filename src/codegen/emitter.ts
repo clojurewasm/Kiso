@@ -6,7 +6,7 @@
 // - Multi-arity fn → switch(args.length)
 // - Name munging for special characters
 
-import type { Node, FnArity, LetBinding, CatchClause, CaseNode, DeftypeNode, ExtendTypeNode, ReifyNode } from '../analyzer/node.js';
+import type { Node, FnArity, LetBinding, CatchClause, CaseNode, DeftypeNode, DefrecordNode, ExtendTypeNode, ReifyNode } from '../analyzer/node.js';
 
 type EmitCtx = {
   loopBindings: string[] | null; // current loop/fn binding names for recur
@@ -44,6 +44,7 @@ function emitNode(node: Node, ctx: EmitCtx): string {
     case 'js-raw': return node.code;
     case 'case*': return emitCase(node, ctx);
     case 'deftype': return emitDeftype(node, ctx);
+    case 'defrecord': return emitDefrecord(node, ctx);
     case 'extend-type': return emitExtendType(node, ctx);
     case 'reify': return emitReify(node, ctx);
     case 'ns': return emitNs(node);
@@ -76,6 +77,12 @@ function emitTopLevel(node: Node): string {
     const code = emitDeftype(node, DEFAULT_CTX);
     const factoryName = `__GT_${node.name}`;
     return `${code}\nexport { ${node.name}, ${factoryName} };`;
+  }
+  if (node.type === 'defrecord') {
+    const code = emitDefrecord(node, DEFAULT_CTX);
+    const factoryName = `__GT_${node.name}`;
+    const mapFactoryName = `map__GT_${node.name}`;
+    return `${code}\nexport { ${node.name}, ${factoryName}, ${mapFactoryName} };`;
   }
   if (node.type === 'ns') {
     return emitNs(node);
@@ -215,6 +222,37 @@ function emitDeftype(node: DeftypeNode, ctx: EmitCtx): string {
   const factoryName = `__GT_${name}`;
   // Emit as class declaration + factory (used inside emitTopLevel for export)
   return `class ${name} { constructor(${ctorParams}) { ${ctorBody} }${methodStr} }\nfunction ${factoryName}(${ctorParams}) { return new ${name}(${ctorParams}); }`;
+}
+
+function emitDefrecord(node: DefrecordNode, ctx: EmitCtx): string {
+  const name = node.name;
+  const fields = node.fields.map(munge);
+  const ctorParams = fields.join(', ');
+  const ctorBody = fields.map((f) => `this.${f} = ${f};`).join(' ');
+  // Add __kiso_type for type discrimination
+  const typeAssign = `this.__kiso_type = "${name}";`;
+  // Protocol methods
+  const methods: string[] = [];
+  for (const impl of node.protocols) {
+    const protoVar = emitNode(impl.protocol, ctx);
+    for (const m of impl.methods) {
+      const mParams = m.params.slice(1).map(munge);
+      const body = emitNode(m.body, ctx);
+      methods.push(`[${protoVar}.methods.${m.name}](${mParams.join(', ')}) { return ${body}; }`);
+    }
+  }
+  const methodStr = methods.length > 0 ? ' ' + methods.join(' ') : '';
+  const factoryName = `__GT_${name}`;
+  // map->Name factory: creates from a map (keyword lookup)
+  const mapFactoryName = `map__GT_${name}`;
+  const mapFactoryParams = fields.map((f) => `keyword("${f}")`);
+  const mapFactoryBody = fields.map((_f, i) => `m.get(${mapFactoryParams[i]})`).join(', ');
+
+  return [
+    `class ${name} { constructor(${ctorParams}) { ${ctorBody} ${typeAssign}}${methodStr} }`,
+    `function ${factoryName}(${ctorParams}) { return new ${name}(${ctorParams}); }`,
+    `function ${mapFactoryName}(m) { return new ${name}(${mapFactoryBody}); }`,
+  ].join('\n');
 }
 
 function emitReify(node: ReifyNode, ctx: EmitCtx): string {

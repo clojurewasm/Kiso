@@ -10,18 +10,19 @@ Session handover document. Read at session start.
 - Runtime: hash, equiv, keyword, symbol, list, vector, hash-map, hash-set, atom, seq, core.
 - Codegen emits runtime calls: vector(), hashMap(), hashSet(), keyword(), EMPTY_LIST.
 - NS → ES6 modules: `:require` parsing + import/export emission.
-- Total: 793 tests passing, types clean.
+- Total: 799 tests passing, types clean.
 
 ## Current Task
 
-**Batch D, Item 16: ArrayMap** — DONE
+**Batch B, Item 11: defrecord*** — DONE
 
-- PersistentArrayMap: flat array [k,v,k,v,...] for <=8 entries
-- assoc/dissoc/get/has/forEach, immutable (returns new instances)
-- Auto-promotes to PersistentHashMap (HAMT) when exceeding 8 entries
-- 13 tests, 793 total
+- defrecord* special form → ES6 class with __kiso_type property
+- Generates ->Name factory + map->Name factory (keyword lookup)
+- Protocol methods same as deftype*
+- defrecord macro → delegates to defrecord*
+- 6 tests, 799 total
 
-All task queue items complete. Only deferred Item 11 (defrecord*) remains.
+**All task queue items complete.** Batches A-G fully done.
 
 ## Task Queue
 
@@ -40,7 +41,7 @@ Items ordered by priority. Work top-down. Dependencies noted in brackets.
 8. ~~defprotocol macro (→ def + runtime calls)~~ DONE
 9. ~~deftype* special form + codegen (→ ES6 class)~~ DONE
 10. ~~extend-type macro (→ prototype mutation)~~ DONE
-11. defrecord* special form + codegen (→ deftype + map extras) — deferred
+11. ~~defrecord* special form + codegen (→ deftype + map extras)~~ DONE
 12. ~~reify (→ object literal with Symbol methods)~~ DONE
 13. ~~Retrofit ISeq/ICounted on existing types~~ DONE
 

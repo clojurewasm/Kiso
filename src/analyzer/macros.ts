@@ -619,6 +619,12 @@ defmacro('deftype', (items, form) => {
   return makeList([sym('deftype*'), ...items.slice(1)], ...loc(form));
 });
 
+defmacro('defrecord', (items, form) => {
+  // (defrecord Name [fields...] Proto (method [this args] body) ...)
+  // → (defrecord* Name [fields...] Proto (method [this args] body) ...)
+  return makeList([sym('defrecord*'), ...items.slice(1)], ...loc(form));
+});
+
 defmacro('lazy-seq', (items, form) => {
   // (lazy-seq body) → (new LazySeq (fn* [] body))
   const body = items.slice(1);

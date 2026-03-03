@@ -546,6 +546,13 @@ export class Analyzer {
     return { type: 'deftype', name, fields, protocols };
   }
 
+  private analyzeDefrecord(items: Form[], scope: Scope): Node {
+    // (defrecord* Name [fields...] Proto (method [this args] body) ...)
+    // Same parsing as deftype*, but returns 'defrecord' node type
+    const deftypeResult = this.analyzeDeftype(items, scope) as import('./node.js').DeftypeNode;
+    return { type: 'defrecord' as const, name: deftypeResult.name, fields: deftypeResult.fields, protocols: deftypeResult.protocols };
+  }
+
   private analyzeExtendType(items: Form[], scope: Scope): Node {
     // (extend-type* Target Proto (method [this args] body) ...)
     const targetForm = items[1]!;
@@ -635,6 +642,7 @@ const SPECIAL_FORMS = new Map<string, (this: Analyzer, items: Form[], scope: Sco
   ['case*', Analyzer.prototype['analyzeCase']],
   ['var', Analyzer.prototype['analyzeVar']],
   ['deftype*', Analyzer.prototype['analyzeDeftype']],
+  ['defrecord*', Analyzer.prototype['analyzeDefrecord']],
   ['extend-type*', Analyzer.prototype['analyzeExtendType']],
   ['reify', Analyzer.prototype['analyzeReify']],
 ]);

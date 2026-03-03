@@ -29,6 +29,7 @@ export type Node =
   | NsNode
   | CaseNode
   | DeftypeNode
+  | DefrecordNode
   | ExtendTypeNode
   | ReifyNode;
 
@@ -71,6 +72,7 @@ export type FnArity = { params: string[]; restParam: string | null; body: Node }
 export type CatchClause = { exType: string; binding: string; body: Node };
 export type CaseNode = { type: 'case*'; test: Node; clauses: CaseClause[]; default: Node };
 export type DeftypeNode = { type: 'deftype'; name: string; fields: string[]; protocols: ProtocolImplNode[] };
+export type DefrecordNode = { type: 'defrecord'; name: string; fields: string[]; protocols: ProtocolImplNode[] };
 export type ProtocolImplNode = { protocol: Node; methods: ProtocolMethodNode[] };
 export type ProtocolMethodNode = { name: string; params: string[]; body: Node };
 export type ExtendTypeNode = { type: 'extend-type'; target: Node; protocols: ProtocolImplNode[] };
