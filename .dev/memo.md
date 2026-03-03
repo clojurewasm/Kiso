@@ -10,20 +10,21 @@ Session handover document. Read at session start.
 - Runtime: hash, equiv, keyword, symbol, list, vector, hash-map, hash-set, atom, seq, core.
 - Codegen emits runtime calls: vector(), hashMap(), hashSet(), keyword(), EMPTY_LIST.
 - NS → ES6 modules: `:require` parsing + import/export emission.
-- Total: 711 tests passing, types clean.
+- Total: 730 tests passing, types clean.
 
 ## Current Task
 
-**Batch G, Item 30: su-runtime component.ts** — DONE
+**Batch G, Item 31: su-runtime hiccup.ts** — DONE
 
-- `defineComponent(tagName, config, renderFn)` → ComponentDef
-- `ComponentDef.createInstance(initialProps)` → ComponentInstance with propsAtom, mount/unmount/setAttr
-- `registerComponent(def, config)` → Custom Element with Shadow DOM (browser only)
-- Attribute deserialization (number, boolean, string)
-- Tag name validation (hyphen required)
-- 6 tests, 711 total
+- `parseTag(s)` — splits "div#id.class1.class2" → {tag, id, classes}
+- `renderHiccup(hiccup)` — converts hiccup vectors to DOM nodes
+  - Handles string, number, null, nested vectors, attrs map
+  - Supports :class (merged), :style (map), :on-* (addEventListener)
+  - Flattens sequences (from map/for), skips nil children
+- `bind(fn)` — reactive DOM fragment, re-renders via effect()
+- 19 tests (DOM mock via vi.stubGlobal), 730 total
 
-Moving to Item 31: su-runtime: hiccup.ts.
+Moving to Item 32: su-runtime: css.ts + lifecycle.ts.
 
 ## Task Queue
 
@@ -72,7 +73,7 @@ Items ordered by priority. Work top-down. Dependencies noted in brackets.
 ### Batch G: su Framework [depends on: Batch E + F] [design: 07-su-framework.md]
 29. ~~su-runtime: reactive.ts (track, effect, computed)~~ DONE
 30. ~~su-runtime: component.ts (defineComponent, Custom Element, Shadow DOM)~~ DONE
-31. su-runtime: hiccup.ts (renderHiccup, bind)
+31. ~~su-runtime: hiccup.ts (renderHiccup, bind)~~ DONE
 32. su-runtime: css.ts (createSheet, adoptedStyleSheets) + lifecycle.ts
 33. defc macro (su/core.cljs → Custom Element)
 34. defstyle macro (su/core.cljs → adoptedStyleSheets)
