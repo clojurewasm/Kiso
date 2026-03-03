@@ -4,20 +4,23 @@ Session handover document. Read at session start.
 
 ## Current State
 
-- Reader complete: form, tokenizer, reader. 177 tests.
-- Macros complete: 20 core macros. 38 tests.
-- Analyzer + Codegen complete: special forms, scope, interop, emitter. 32 E2E tests.
-- Runtime Phase 4 progress: hash, equiv, keyword, symbol, list, vector, hash-map, hash-set.
-- Total: 420 tests passing, types clean.
+- Reader complete: form, tokenizer, reader.
+- Macros complete: 20 core macros.
+- Analyzer + Codegen complete: special forms, scope, interop, loop/recur, try/catch.
+- Runtime Phase 4 done: hash, equiv, keyword, symbol, list, vector, hash-map, hash-set, atom.
+- Total: 437 tests passing, types clean.
 
 ## Current Task
 
-Phase 4 Runtime — core data structures done (4.1-4.6).
-Next: Phase 4.8 Atom, then consider Phase 5 (Mini Evaluator) or continue runtime.
+Continue autonomous work. Next candidates:
+- Seq abstraction (ISeq protocol for list/vector iteration)
+- NS → ES6 module compilation (import/export mapping)
+- Core functions (cljs.core equivalents: map, filter, reduce, etc.)
+- Connect runtime to codegen (emit calls to runtime constructors)
 
 ## Previous Task
 
-Phase 4.6: PersistentHashSet. DONE.
+Codegen improvements: loop/recur with while(true) + temp vars, try/catch. DONE.
 
 ## Task Queue
 
@@ -27,10 +30,13 @@ Phase 4.6: PersistentHashSet. DONE.
 4. ~~PersistentVector (32-way trie)~~ DONE
 5. ~~PersistentHashMap (HAMT)~~ DONE
 6. ~~PersistentHashSet~~ DONE
-7. Atom (mutable reference)
-8. Seq abstraction (ISeq, LazySeq)
-9. Protocol system (Symbol-based dispatch)
-10. Transient collections
+7. ~~Atom~~ DONE
+8. ~~loop/recur codegen~~ DONE
+9. ~~try/catch codegen~~ DONE
+10. Seq abstraction (ISeq, LazySeq)
+11. Core functions (map, filter, reduce, etc.)
+12. NS → ES6 modules
+13. Protocol system (Symbol-based dispatch)
 
 ## References
 
