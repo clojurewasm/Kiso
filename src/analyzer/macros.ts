@@ -758,11 +758,15 @@ defmacro('defc', (items, form) => {
     idx++;
   }
 
-  // Optional options map {:props {...}}
+  // Optional options map {:props {...} :form-associated true :delegates-focus true}
   let propsMap: Map<string, string> | null = null;
+  let formAssociated = false;
+  let delegatesFocus = false;
   if (idx < items.length && items[idx]!.data.type === 'map') {
     const optsForm = items[idx]!;
     propsMap = extractPropsFromOpts(optsForm);
+    formAssociated = extractBoolOpt(optsForm, 'form-associated');
+    delegatesFocus = extractBoolOpt(optsForm, 'delegates-focus');
     idx++;
   }
 
@@ -797,6 +801,14 @@ defmacro('defc', (items, form) => {
     ptItems.push(makeStr(v));
   }
   configItems.push(makeMap(ptItems));
+  if (formAssociated) {
+    configItems.push(makeKeyword(null, 'form-associated'));
+    configItems.push(makeBool(true));
+  }
+  if (delegatesFocus) {
+    configItems.push(makeKeyword(null, 'delegates-focus'));
+    configItems.push(makeBool(true));
+  }
 
   // Build render fn: (fn* [props-atom] (let* [{:keys [...]} @props-atom] body...))
   const propsAtomSym = sym('props-atom__auto');
@@ -816,6 +828,19 @@ defmacro('defc', (items, form) => {
     renderFn,
   ], ...loc(form));
 });
+
+function extractBoolOpt(optsForm: Form, name: string): boolean {
+  if (optsForm.data.type !== 'map') return false;
+  const items = optsForm.data.items;
+  for (let i = 0; i < items.length - 1; i += 2) {
+    const key = items[i]!;
+    if (key.data.type === 'keyword' && key.data.name === name && key.data.ns === null) {
+      const val = items[i + 1]!;
+      return val.data.type === 'boolean' && (val.data as { value: boolean }).value === true;
+    }
+  }
+  return false;
+}
 
 function extractPropsFromOpts(optsForm: Form): Map<string, string> {
   if (optsForm.data.type !== 'map') return new Map();

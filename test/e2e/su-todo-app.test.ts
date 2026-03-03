@@ -122,6 +122,28 @@ describe('su todo-app dogfooding', () => {
     it('rejects defc without hyphen', () => {
       expect(() => compileForm(`(defc counter [{:keys [x]}] [:div])`)).toThrow('hyphen');
     });
+
+    it('defc passes form-associated option to config', () => {
+      const js = compileForm(`
+        (defc my-input
+          {:form-associated true :props {:value {:type :string}}}
+          [{:keys [value]}]
+          [:input {:value value}])
+      `);
+      expect(js).toContain('keyword("form-associated")');
+      expect(js).toContain(', true)');
+    });
+
+    it('defc passes delegates-focus option to config', () => {
+      const js = compileForm(`
+        (defc focus-comp
+          {:delegates-focus true}
+          [{:keys [label]}]
+          [:input {:placeholder label}])
+      `);
+      expect(js).toContain('keyword("delegates-focus")');
+      expect(js).toContain(', true)');
+    });
   });
 
   describe('end-to-end: realistic todo app snippet', () => {
