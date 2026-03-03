@@ -233,4 +233,17 @@ describe('renderHiccup', () => {
     expect(node.children[0].children[0].text).toBe('a');
     expect(node.children[2].children[0].text).toBe('c');
   });
+
+  // K10: part attribute for external styling
+  it('sets part attribute', () => {
+    const node = renderHiccup(['button', { part: 'btn' }, 'Click']) as unknown as MockNode;
+    expect(node.attrs['part']).toBe('btn');
+  });
+
+  // K10: CSS custom properties in style
+  it('sets CSS custom properties via style map', () => {
+    const node = renderHiccup(['div', { style: { '--su-color': 'red', color: 'var(--su-color)' } }]) as unknown as MockNode;
+    expect(node.style['--su-color']).toBe('red');
+    expect(node.style['color']).toBe('var(--su-color)');
+  });
 });

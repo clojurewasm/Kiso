@@ -146,6 +146,27 @@ describe('su todo-app dogfooding', () => {
     });
   });
 
+  describe('K10: CSS theming', () => {
+    it('defstyle supports CSS custom property var()', () => {
+      const js = compileForm(`
+        (defstyle theme-style
+          [:.themed {:color "var(--su-text, #333)"
+                     :background "var(--su-bg, #fff)"}])
+      `);
+      expect(js).toContain('var(--su-text, #333)');
+      expect(js).toContain('var(--su-bg, #fff)');
+    });
+
+    it('defstyle supports :host selector', () => {
+      const js = compileForm(`
+        (defstyle host-style
+          [:host {:display "block" :padding "16px"}])
+      `);
+      expect(js).toContain(':host');
+      expect(js).toContain('display: block');
+    });
+  });
+
   describe('end-to-end: realistic todo app snippet', () => {
     it('compiles a full todo component', () => {
       const js = compileForm(`
