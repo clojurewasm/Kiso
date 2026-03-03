@@ -14,7 +14,15 @@ Session handover document. Read at session start.
 
 ## Current Task
 
-Work through Task Queue top-down. Mark DONE after commit.
+**Batch A, Item 1: Special form `case*` + `case` macro**
+
+case macro expands to case* special form. Needs:
+- `case` macro in macros.ts (Form→Form transform: input + pairs + default)
+- `case*` special form in analyzer (CaseNode with test constants + exprs)
+- `case*` codegen in emitter (switch statement or if-else chain)
+- Reference: CW `macro_transforms.zig` (case), `analyzer.zig` (analyzeCaseStar)
+- Reference: CLJS upstream `cljs/core.cljc` (case macro expansion)
+- Design: `.dev/design/04-analyzer-codegen.md` for special form patterns
 
 ## Task Queue
 
@@ -41,37 +49,37 @@ Items ordered by priority. Work top-down. Dependencies noted in brackets.
 14. LazySeq runtime class
 15. lazy-seq macro (+ delay macro)
 
-### Batch D: Remaining runtime
+### Batch D: Remaining runtime + su prep
 16. ArrayMap (<=8 entries, auto-promote to HAMT)
-17. interop.ts (clj->js, js->clj)
+17. interop.ts (clj->js, js->clj) — also needed for su DOM attributes (K07)
 18. catch type discrimination (instanceof chain)
 19. Source Map V3 (VLQ encoding) — independent, any time
+20. Atom tracking hook — add `_onDeref` to atom.ts (K04, su F1)
+21. Atom addWatch return unsubscribe fn (K05, su F2)
+22. Verify keyword edge cases for CSS selectors (K06, su F6)
 
 ### Batch E: Mini Evaluator [depends on: Batch A mostly done]
-20. Evaluator core (def, fn*, let*, do, if, quote, loop*, recur)
-21. Built-in functions (~30: cons, concat, seq, symbol, gensym, etc.)
-22. Macro expander pipeline (core macros + user defmacro)
+23. Evaluator core (def, fn*, let*, do, if, quote, loop*, recur)
+24. Built-in functions (~30: cons, concat, seq, symbol, gensym, etc.)
+25. Macro expander pipeline (core macros + user defmacro)
 
 ### Batch F: Vite Integration [depends on: Batch E + Source Map]
-23. Public API (compile, compileFile, read, analyze, generate)
-24. Vite transform plugin
-25. HMR (hot module replacement for .cljs)
-
-### su Prep: @kiso/cljs feedback items [can do during Batch D]
-S1. Atom tracking hook — add `_onDeref` to atom.ts (K04)
-S2. Atom addWatch return unsubscribe fn (K05)
-S3. Verify keyword edge cases for CSS selectors (K06)
-S4. CE tag name validation + hiccup ns-keyword resolution (K08)
+26. Public API (compile, compileFile, read, analyze, generate)
+27. Vite transform plugin
+28. HMR (hot module replacement for .cljs)
 
 ### Batch G: su Framework [depends on: Batch E + F] [design: 07-su-framework.md]
-26. su-runtime: reactive.ts (track, effect, computed)
-27. su-runtime: component.ts (defineComponent, Custom Element, Shadow DOM)
-28. su-runtime: hiccup.ts (renderHiccup, bind)
-29. su-runtime: css.ts (createSheet, adoptedStyleSheets) + lifecycle.ts
-30. defc macro (su/core.cljs → Custom Element)
-31. defstyle macro (su/core.cljs → adoptedStyleSheets)
-32. su vite-plugin.ts (HMR: render fn replacement)
-33. Dogfooding: todo-app
+29. su-runtime: reactive.ts (track, effect, computed)
+30. su-runtime: component.ts (defineComponent, Custom Element, Shadow DOM)
+31. su-runtime: hiccup.ts (renderHiccup, bind)
+32. su-runtime: css.ts (createSheet, adoptedStyleSheets) + lifecycle.ts
+33. defc macro (su/core.cljs → Custom Element)
+34. defstyle macro (su/core.cljs → adoptedStyleSheets)
+35. su vite-plugin.ts (HMR: render fn replacement)
+36. Dogfooding: todo-app
+
+Note: CE tag name validation + hiccup ns-keyword resolution (K08)
+is a Batch G concern — addressed in 07-su-framework.md §F8.
 
 ## Key Design References
 
