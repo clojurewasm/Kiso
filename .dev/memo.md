@@ -10,18 +10,17 @@ Session handover document. Read at session start.
 - Runtime: hash, equiv, keyword, symbol, list, vector, hash-map, hash-set, atom, seq, core.
 - Codegen emits runtime calls: vector(), hashMap(), hashSet(), keyword(), EMPTY_LIST.
 - NS → ES6 modules: `:require` parsing + import/export emission.
-- Total: 596 tests passing, types clean.
+- Total: 602 tests passing, types clean.
 
 ## Current Task
 
-**Batch D, Item 19: Source Map V3** — DONE
+**Batch D, Items 20+21: Atom tracking hook + watches** — DONE
 
-Implemented VLQ encoding + SourceMapBuilder:
-- `encodeVLQ`: Base64 VLQ integer encoding per spec
-- `SourceMapBuilder`: addMapping(genLine, genCol, srcLine, srcCol) → V3 JSON
-- Emitter integration (propagating Form locations) deferred to Batch F
+- `_onDeref` hook: called in `deref()`, used by su-runtime for dependency tracking
+- `addWatch`/`removeWatch`: notify on reset/swap/compareAndSet
+- `addWatch` returns unsubscribe function for su's `effect()`
 
-Moving to Item 20: Atom tracking hook.
+Moving to Item 22: Verify keyword edge cases for CSS selectors.
 
 ## Task Queue
 
@@ -53,8 +52,8 @@ Items ordered by priority. Work top-down. Dependencies noted in brackets.
 17. ~~interop.ts (clj->js, js->clj)~~ DONE
 18. ~~catch type discrimination (instanceof chain)~~ DONE
 19. ~~Source Map V3 (VLQ encoding)~~ DONE
-20. Atom tracking hook — add `_onDeref` to atom.ts (K04, su F1)
-21. Atom addWatch return unsubscribe fn (K05, su F2)
+20. ~~Atom tracking hook — add `_onDeref` to atom.ts~~ DONE
+21. ~~Atom addWatch return unsubscribe fn~~ DONE
 22. Verify keyword edge cases for CSS selectors (K06, su F6)
 
 ### Batch E: Mini Evaluator [depends on: Batch A mostly done]

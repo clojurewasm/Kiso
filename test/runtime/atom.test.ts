@@ -59,6 +59,66 @@ describe('compareAndSet', () => {
   });
 });
 
+describe('_onDeref hook', () => {
+  it('calls _onDeref when deref is called', () => {
+    const a = atom(42);
+    const calls: unknown[] = [];
+    a._onDeref = (target) => calls.push(target);
+    a.deref();
+    expect(calls).toEqual([a]);
+  });
+
+  it('does not call when _onDeref is not set', () => {
+    const a = atom(42);
+    // Should not throw
+    expect(a.deref()).toBe(42);
+  });
+});
+
+describe('addWatch / removeWatch', () => {
+  it('notifies watchers on reset', () => {
+    const a = atom(1);
+    const calls: unknown[][] = [];
+    a.addWatch('w1', (key, _ref, oldVal, newVal) => {
+      calls.push([key, oldVal, newVal]);
+    });
+    a.reset(2);
+    expect(calls).toEqual([['w1', 1, 2]]);
+  });
+
+  it('notifies watchers on swap', () => {
+    const a = atom(10);
+    const calls: unknown[][] = [];
+    a.addWatch('w1', (_k, _r, oldVal, newVal) => {
+      calls.push([oldVal, newVal]);
+    });
+    a.swap((v: number) => v + 5);
+    expect(calls).toEqual([[10, 15]]);
+  });
+
+  it('removeWatch stops notifications', () => {
+    const a = atom(1);
+    const calls: unknown[] = [];
+    a.addWatch('w1', () => calls.push('called'));
+    a.reset(2);
+    expect(calls.length).toBe(1);
+    a.removeWatch('w1');
+    a.reset(3);
+    expect(calls.length).toBe(1); // not called again
+  });
+
+  it('addWatch returns unsubscribe function', () => {
+    const a = atom(1);
+    const calls: unknown[] = [];
+    const unsub = a.addWatch('w1', () => calls.push('called'));
+    a.reset(2);
+    expect(calls.length).toBe(1);
+    unsub();
+    a.reset(3);
+    expect(calls.length).toBe(1); // unsubscribed
+  });
+});
+
 describe('isAtom', () => {
   it('true for atoms', () => {
     expect(isAtom(atom(1))).toBe(true);
