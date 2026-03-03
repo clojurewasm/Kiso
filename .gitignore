@@ -3,3 +3,5 @@ dist/
 *.tsbuildinfo
 .DS_Store
 coverage/
+.lsp/
+.clj-kondo

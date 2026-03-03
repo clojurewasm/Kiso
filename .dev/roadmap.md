@@ -8,8 +8,8 @@ Package: `@kiso/cljs`. Framework: `@kiso/su`.
 | Phase | Name                  | Status  |
 |-------|-----------------------|---------|
 | 1     | Reader                | DONE*   |
-| 2     | Core Macros + Analyzer| PENDING |
-| 3     | Codegen + Source Map  | PENDING |
+| 2     | Core Macros + Analyzer| DONE*   |
+| 3     | Codegen + Source Map  | DONE*   |
 | 4     | Runtime               | PENDING |
 | 5     | Mini Evaluator        | PENDING |
 | 6     | Vite Integration      | PENDING |
