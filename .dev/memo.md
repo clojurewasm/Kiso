@@ -10,13 +10,19 @@ Session handover document. Read at session start.
 - Runtime: hash, equiv, keyword, symbol, list, vector, hash-map, hash-set, atom, seq, core.
 - Codegen emits runtime calls: vector(), hashMap(), hashSet(), keyword(), EMPTY_LIST.
 - NS → ES6 modules: `:require` parsing + import/export emission.
-- Total: 606 tests passing, types clean.
+- Total: 626 tests passing, types clean.
 
 ## Current Task
 
-**Batch D complete.** All items done (16 skipped, 17-22 done).
+**Batch E, Item 23: Evaluator core** — DONE
 
-Moving to Batch E: Mini Evaluator.
+Mini evaluator for defmacro support. Interprets Form directly.
+- Special forms: def, fn*, let*, do, if, quote, loop*, recur
+- ~30 built-in functions: arithmetic, comparison, collections, symbols, gensym, apply
+- Immutable environments with parent chain
+- Closures with rest params and recursion
+
+Moving to Item 24: Built-in functions (verify coverage, add missing).
 
 ## Task Queue
 
@@ -53,7 +59,7 @@ Items ordered by priority. Work top-down. Dependencies noted in brackets.
 22. ~~Verify keyword edge cases for CSS selectors~~ DONE
 
 ### Batch E: Mini Evaluator [depends on: Batch A mostly done]
-23. Evaluator core (def, fn*, let*, do, if, quote, loop*, recur)
+23. ~~Evaluator core (def, fn*, let*, do, if, quote, loop*, recur)~~ DONE
 24. Built-in functions (~30: cons, concat, seq, symbol, gensym, etc.)
 25. Macro expander pipeline (core macros + user defmacro)
 
