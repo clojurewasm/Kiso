@@ -9,8 +9,13 @@ type HotUpdateCtx = {
   modules: unknown[];
 };
 
+type ViteConfig = {
+  resolve?: { alias?: Record<string, string> };
+};
+
 type VitePlugin = {
   name: string;
+  config: () => ViteConfig;
   transform: (code: string, id: string) => { code: string; map?: unknown } | null;
   handleHotUpdate: (ctx: HotUpdateCtx) => unknown[] | undefined;
 };
@@ -23,6 +28,15 @@ function isCljsFile(id: string): boolean {
 export function cljs(_options?: CljsPluginOptions): VitePlugin {
   return {
     name: 'vite-plugin-clojurescript',
+    config() {
+      return {
+        resolve: {
+          alias: {
+            'su/core.js': '@kiso/cljs/su',
+          },
+        },
+      };
+    },
     transform(code: string, id: string) {
       if (!isCljsFile(id)) return null;
       const result = compile(code, { filename: id, sourceMap: true });

@@ -7,8 +7,10 @@
   "types": "./dist/index.d.ts",
   "exports": {
     ".": "./dist/index.js",
-    "./core": "./dist/runtime/core.js",
-    "./vite": "./dist/vite/plugin.js"
+    "./runtime": "./dist/runtime/index.js",
+    "./su": "./dist/su-runtime/index.js",
+    "./vite": "./dist/api/vite-plugin.js",
+    "./compiler": "./dist/api/compiler.js"
   },
   "scripts": {
     "build": "tsc",
