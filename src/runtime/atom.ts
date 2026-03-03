@@ -12,14 +12,18 @@ export class Atom {
   private state: unknown;
   private watches = new Map<unknown, WatchFn>();
 
-  /** Optional deref tracking hook. Set by su-runtime for dependency tracking. */
+  /** Optional per-instance deref tracking hook. */
   _onDeref: ((atom: Atom) => void) | undefined;
+
+  /** Global deref hook. Set by su-runtime for dependency tracking. */
+  static _globalOnDeref: ((atom: Atom) => void) | undefined;
 
   constructor(initial: unknown) {
     this.state = initial;
   }
 
   deref(): unknown {
+    if (Atom._globalOnDeref) Atom._globalOnDeref(this);
     if (this._onDeref) this._onDeref(this);
     return this.state;
   }
@@ -59,7 +63,9 @@ export class Atom {
   }
 
   private notifyWatches(oldVal: unknown, newVal: unknown): void {
-    for (const [key, fn] of this.watches) {
+    // Snapshot watches to avoid issues with add/remove during iteration
+    const snapshot = [...this.watches];
+    for (const [key, fn] of snapshot) {
       fn(key, this, oldVal, newVal);
     }
   }

@@ -10,13 +10,19 @@ Session handover document. Read at session start.
 - Runtime: hash, equiv, keyword, symbol, list, vector, hash-map, hash-set, atom, seq, core.
 - Codegen emits runtime calls: vector(), hashMap(), hashSet(), keyword(), EMPTY_LIST.
 - NS → ES6 modules: `:require` parsing + import/export emission.
-- Total: 695 tests passing, types clean.
+- Total: 705 tests passing, types clean.
 
 ## Current Task
 
-**Batch F complete.** Public API + Vite plugin + HMR all done.
+**Batch G, Item 29: su-runtime reactive.ts** — DONE
 
-Moving to Batch G: su Framework.
+- `track(fn)` — records atom deps during execution
+- `effect(fn)` — re-runs on dep changes, with batched scheduling
+- `computed(fn)` — lazy derived value, trackable in effects
+- `initReactiveTracking()` — sets Atom._globalOnDeref hook
+- Fixed atom watch snapshot to avoid concurrent modification
+
+Moving to Item 30: su-runtime: component.ts.
 
 ## Task Queue
 
@@ -63,7 +69,7 @@ Items ordered by priority. Work top-down. Dependencies noted in brackets.
 28. ~~HMR (hot module replacement for .cljs)~~ DONE
 
 ### Batch G: su Framework [depends on: Batch E + F] [design: 07-su-framework.md]
-29. su-runtime: reactive.ts (track, effect, computed)
+29. ~~su-runtime: reactive.ts (track, effect, computed)~~ DONE
 30. su-runtime: component.ts (defineComponent, Custom Element, Shadow DOM)
 31. su-runtime: hiccup.ts (renderHiccup, bind)
 32. su-runtime: css.ts (createSheet, adoptedStyleSheets) + lifecycle.ts
