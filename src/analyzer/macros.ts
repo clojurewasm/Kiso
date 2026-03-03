@@ -129,6 +129,52 @@ defmacro('when-let', (items, form) => {
   ], ...loc(form));
 });
 
+defmacro('if-some', (items, form) => {
+  // (if-some [x expr] then else?) → (let* [x expr] (if (nil? x) else then))
+  const bindings = nth(items, 1);
+  const then = nth(items, 2);
+  const els = items.length > 3 ? nth(items, 3) : makeNil();
+  if (bindings.data.type !== 'vector') throw new Error('if-some requires a vector');
+  const name = nth(bindings.data.items, 0);
+  const init = nth(bindings.data.items, 1);
+  return makeList([
+    sym('let*'),
+    makeVector([name, init]),
+    makeList([sym('if'), makeList([sym('nil?'), name]), els, then]),
+  ], ...loc(form));
+});
+
+defmacro('when-some', (items, form) => {
+  // (when-some [x expr] body...) → (let* [x expr] (if (nil? x) nil (do body...)))
+  const bindings = nth(items, 1);
+  const body = items.slice(2);
+  if (bindings.data.type !== 'vector') throw new Error('when-some requires a vector');
+  const name = nth(bindings.data.items, 0);
+  const init = nth(bindings.data.items, 1);
+  return makeList([
+    sym('let*'),
+    makeVector([name, init]),
+    makeList([sym('if'), makeList([sym('nil?'), name]), makeNil(), makeList([sym('do'), ...body])]),
+  ], ...loc(form));
+});
+
+defmacro('when-first', (items, form) => {
+  // (when-first [x coll] body...) → (let* [wf__auto (seq coll)] (if wf__auto (let* [x (first wf__auto)] (do body...)) nil))
+  const bindings = nth(items, 1);
+  const body = items.slice(2);
+  if (bindings.data.type !== 'vector') throw new Error('when-first requires a vector');
+  const name = nth(bindings.data.items, 0);
+  const coll = nth(bindings.data.items, 1);
+  const autoSym = sym('wf__auto');
+  return makeList([
+    sym('let*'),
+    makeVector([autoSym, makeList([sym('seq'), coll])]),
+    makeList([sym('if'), autoSym,
+      makeList([sym('let*'), makeVector([name, makeList([sym('first'), autoSym])]), makeList([sym('do'), ...body])]),
+      makeNil()]),
+  ], ...loc(form));
+});
+
 defmacro('cond', (items, form) => {
   // (cond a 1 b 2) → (if a 1 (if b 2 nil))
   const pairs = items.slice(1);

@@ -218,6 +218,38 @@ describe('do', () => {
   });
 });
 
+// -- if-some, when-some, when-first --
+
+describe('if-some', () => {
+  it('expands to let + nil check', () => {
+    expect(ex1('(if-some [x expr] :then :else)')).toBe(
+      '(let* [x expr] (if (nil? x) :else :then))'
+    );
+  });
+
+  it('defaults else to nil', () => {
+    expect(ex1('(if-some [x expr] :then)')).toBe(
+      '(let* [x expr] (if (nil? x) nil :then))'
+    );
+  });
+});
+
+describe('when-some', () => {
+  it('expands to let + when-not nil?', () => {
+    expect(ex1('(when-some [x expr] a b)')).toBe(
+      '(let* [x expr] (if (nil? x) nil (do a b)))'
+    );
+  });
+});
+
+describe('when-first', () => {
+  it('expands to seq + first + body', () => {
+    expect(ex1('(when-first [x coll] body)')).toBe(
+      '(let* [wf__auto (seq coll)] (if wf__auto (let* [x (first wf__auto)] (do body)) nil))'
+    );
+  });
+});
+
 // -- condp, cond->, cond->> --
 
 describe('condp', () => {
