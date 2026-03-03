@@ -4,17 +4,17 @@ Session handover document. Read at session start.
 
 ## Current State
 
-- Form data model complete. 46 tests passing, types clean.
+- Reader tokenizer complete. 110 tests passing, types clean.
 - Design docs complete: `.dev/design/01` through `05`.
 
 ## Current Task
 
-Phase 1.3: Tokenizer — `src/reader/tokenizer.ts` + tests.
-Read `.dev/design/02-reader.md` (Tokenizer section) and CW `src/engine/reader/tokenizer.zig`.
+Phase 1.4: Reader — `src/reader/reader.ts` + tests.
+Read `.dev/design/02-reader.md` (Reader section) and CW `src/engine/reader/reader.zig`.
 
 ## Previous Task
 
-Phase 1.2: Form data model — `src/reader/form.ts` + tests. DONE.
+Phase 1.3: Tokenizer — `src/reader/tokenizer.ts` + tests. DONE.
 
 ## Task Queue
 
