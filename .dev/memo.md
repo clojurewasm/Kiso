@@ -10,19 +10,17 @@ Session handover document. Read at session start.
 - Runtime: hash, equiv, keyword, symbol, list, vector, hash-map, hash-set, atom, seq, core.
 - Codegen emits runtime calls: vector(), hashMap(), hashSet(), keyword(), EMPTY_LIST.
 - NS → ES6 modules: `:require` parsing + import/export emission.
-- Total: 757 tests passing, types clean.
+- Total: 768 tests passing, types clean.
 
 ## Current Task
 
-**Batch G, Item 35: su HMR** — DONE
+**Batch G complete.** All items 29-36 done.
 
-- `registerRenderFn(tagName, fn)` — stores render fn in component registry
-- `hotReplace(tagName, newFn)` — replaces render fn, re-mounts live instances
-- `getComponentRenderFn(tagName)` — retrieves current render fn
-- Browser-only: queries DOM for live instances, disposes old effects, clears shadow
-- 4 tests, 757 total
-
-Moving to Item 36: Dogfooding todo-app.
+Last item: Item 36 dogfooding todo-app — 11 e2e tests validating:
+- defc macro → analysis → codegen pipeline
+- defstyle macro → CSS generation pipeline
+- Realistic todo-app component + styling compilation
+- 768 tests total
 
 ## Task Queue
 
@@ -76,7 +74,7 @@ Items ordered by priority. Work top-down. Dependencies noted in brackets.
 33. ~~defc macro (su/core.cljs → Custom Element)~~ DONE
 34. ~~defstyle macro (su/core.cljs → adoptedStyleSheets)~~ DONE
 35. ~~su vite-plugin.ts (HMR: render fn replacement)~~ DONE
-36. Dogfooding: todo-app
+36. ~~Dogfooding: todo-app~~ DONE
 
 Note: CE tag name validation + hiccup ns-keyword resolution (K08)
 is a Batch G concern — addressed in 07-su-framework.md §F8.
