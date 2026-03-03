@@ -10,13 +10,17 @@ Session handover document. Read at session start.
 - Runtime: hash, equiv, keyword, symbol, list, vector, hash-map, hash-set, atom, seq, core.
 - Codegen emits runtime calls: vector(), hashMap(), hashSet(), keyword(), EMPTY_LIST.
 - NS → ES6 modules: `:require` parsing + import/export emission.
-- Total: 679 tests passing, types clean.
+- Total: 687 tests passing, types clean.
 
 ## Current Task
 
-**Batch E complete.** Evaluator + built-ins + macro expander pipeline all done.
+**Batch F, Item 26: Public API** — DONE
 
-Moving to Batch F: Vite Integration.
+- `compile(source, options?)` → `{ code, map? }`
+- `read(source)`, `readAll(source)`, `analyze(form)`, `generate(node)`
+- Source map generation (basic mapping, full integration deferred)
+
+Moving to Item 27: Vite transform plugin.
 
 ## Task Queue
 
@@ -58,7 +62,7 @@ Items ordered by priority. Work top-down. Dependencies noted in brackets.
 25. ~~Macro expander pipeline (core macros + user defmacro)~~ DONE
 
 ### Batch F: Vite Integration [depends on: Batch E + Source Map]
-26. Public API (compile, compileFile, read, analyze, generate)
+26. ~~Public API (compile, compileFile, read, analyze, generate)~~ DONE
 27. Vite transform plugin
 28. HMR (hot module replacement for .cljs)
 
