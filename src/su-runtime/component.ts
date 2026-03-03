@@ -9,6 +9,8 @@ import { Atom, atom } from '../runtime/atom.js';
 export type ComponentConfig = {
   observedAttrs: string[];
   propTypes: Record<string, string>;
+  formAssociated?: boolean;
+  delegatesFocus?: boolean;
 };
 
 type RenderFn = (propsAtom: Atom) => unknown;
@@ -16,6 +18,8 @@ type RenderFn = (propsAtom: Atom) => unknown;
 export type ComponentDef = {
   tagName: string;
   observedAttrs: string[];
+  formAssociated: boolean;
+  delegatesFocus: boolean;
   createInstance: (initialProps: Record<string, unknown>) => ComponentInstance;
 };
 
@@ -48,6 +52,8 @@ export function defineComponent(
   return {
     tagName,
     observedAttrs: config.observedAttrs,
+    formAssociated: config.formAssociated ?? false,
+    delegatesFocus: config.delegatesFocus ?? false,
     createInstance(initialProps: Record<string, unknown>): ComponentInstance {
       const propsAtom = atom(initialProps);
       let mounted = false;
@@ -80,10 +86,17 @@ export function registerComponent(def: ComponentDef, config: ComponentConfig, _r
 
   class SuComponent extends HTMLElement {
     static observedAttributes = def.observedAttrs;
+    static formAssociated = def.formAssociated;
     private _instance: ComponentInstance | null = null;
+    _internals: ElementInternals | null = null;
 
     connectedCallback() {
-      if (!this.shadowRoot) this.attachShadow({ mode: 'open' });
+      if (!this.shadowRoot) {
+        this.attachShadow({ mode: 'open', delegatesFocus: def.delegatesFocus });
+      }
+      if (def.formAssociated) {
+        this._internals = this.attachInternals();
+      }
       const initialProps: Record<string, unknown> = {};
       for (const attr of def.observedAttrs) {
         initialProps[attr] = deserializeAttr(

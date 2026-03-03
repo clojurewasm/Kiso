@@ -70,4 +70,33 @@ describe('defineComponent', () => {
     // Should not throw
     instance.unmount();
   });
+
+  // K09: Form participation
+  it('accepts formAssociated option', () => {
+    const def = defineComponent('form-input', {
+      observedAttrs: ['value'],
+      propTypes: { value: 'string' },
+      formAssociated: true,
+    }, () => ['input']);
+    expect(def.tagName).toBe('form-input');
+    expect(def.formAssociated).toBe(true);
+  });
+
+  it('defaults formAssociated to false', () => {
+    const def = defineComponent('plain-comp', {
+      observedAttrs: [],
+      propTypes: {},
+    }, () => ['div']);
+    expect(def.formAssociated).toBe(false);
+  });
+
+  // K11: delegatesFocus
+  it('accepts delegatesFocus option', () => {
+    const def = defineComponent('focus-comp', {
+      observedAttrs: [],
+      propTypes: {},
+      delegatesFocus: true,
+    }, () => ['input']);
+    expect(def.delegatesFocus).toBe(true);
+  });
 });
