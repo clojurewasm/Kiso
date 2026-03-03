@@ -10,17 +10,13 @@ Session handover document. Read at session start.
 - Runtime: hash, equiv, keyword, symbol, list, vector, hash-map, hash-set, atom, seq, core.
 - Codegen emits runtime calls: vector(), hashMap(), hashSet(), keyword(), EMPTY_LIST.
 - NS → ES6 modules: `:require` parsing + import/export emission.
-- Total: 602 tests passing, types clean.
+- Total: 606 tests passing, types clean.
 
 ## Current Task
 
-**Batch D, Items 20+21: Atom tracking hook + watches** — DONE
+**Batch D complete.** All items done (16 skipped, 17-22 done).
 
-- `_onDeref` hook: called in `deref()`, used by su-runtime for dependency tracking
-- `addWatch`/`removeWatch`: notify on reset/swap/compareAndSet
-- `addWatch` returns unsubscribe function for su's `effect()`
-
-Moving to Item 22: Verify keyword edge cases for CSS selectors.
+Moving to Batch E: Mini Evaluator.
 
 ## Task Queue
 
@@ -54,7 +50,7 @@ Items ordered by priority. Work top-down. Dependencies noted in brackets.
 19. ~~Source Map V3 (VLQ encoding)~~ DONE
 20. ~~Atom tracking hook — add `_onDeref` to atom.ts~~ DONE
 21. ~~Atom addWatch return unsubscribe fn~~ DONE
-22. Verify keyword edge cases for CSS selectors (K06, su F6)
+22. ~~Verify keyword edge cases for CSS selectors~~ DONE
 
 ### Batch E: Mini Evaluator [depends on: Batch A mostly done]
 23. Evaluator core (def, fn*, let*, do, if, quote, loop*, recur)

@@ -228,6 +228,23 @@ describe('keywords', () => {
     expect(pr('::foo')).toBe(':foo');
     // auto-resolved keywords are stored without the ::
   });
+
+  // CSS selector keywords for su's defstyle
+  it('reads CSS class keyword', () => {
+    expect(pr(':.counter')).toBe(':.counter');
+  });
+
+  it('reads CSS ampersand-hover keyword', () => {
+    expect(pr(':&:hover')).toBe(':&:hover');
+  });
+
+  it('reads CSS host keyword', () => {
+    expect(pr(':host')).toBe(':host');
+  });
+
+  it('reads CSS keyword with hyphens', () => {
+    expect(pr(':font-size')).toBe(':font-size');
+  });
 });
 
 // -- Collections --
