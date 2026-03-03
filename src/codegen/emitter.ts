@@ -497,6 +497,12 @@ function scanNodeForRuntime(node: Node, used: Set<string>): void {
       used.add('keyword');
       break;
     }
+    case 'var-ref': {
+      if (!node.local && RUNTIME_FUNCTIONS.has(node.name)) {
+        used.add(munge(node.name));
+      }
+      break;
+    }
     case 'invoke': {
       // Detect runtime function calls by name
       if (node.fn.type === 'var-ref' && !node.fn.local) {
