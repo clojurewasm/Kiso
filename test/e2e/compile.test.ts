@@ -390,3 +390,40 @@ describe('E2E: compile and execute', () => {
     expect(m.get(keyword('x'))).toBe(42);
   });
 });
+
+// -- case --
+
+describe('case', () => {
+  it('matches integer constant', () => {
+    expect(run('(case 1 1 :one 2 :two :default)')).toEqual(keyword('one'));
+  });
+
+  it('matches second clause', () => {
+    expect(run('(case 2 1 :one 2 :two :default)')).toEqual(keyword('two'));
+  });
+
+  it('falls through to default', () => {
+    expect(run('(case 42 1 :one 2 :two :default)')).toEqual(keyword('default'));
+  });
+
+  it('matches string constant', () => {
+    expect(run('(case "hello" "hello" 1 "world" 2 0)')).toBe(1);
+  });
+
+  it('matches keyword constant', () => {
+    expect(run('(case :a :a 1 :b 2 0)')).toBe(1);
+  });
+
+  it('supports grouped test values', () => {
+    expect(run('(case 2 (1 2) :early 3 :late :default)')).toEqual(keyword('early'));
+  });
+
+  it('throws on no match without default', () => {
+    expect(() => run('(case 42 1 :one 2 :two)')).toThrow('No matching clause');
+  });
+
+  it('evaluates test expression via let binding', () => {
+    // test expr is wrapped in let* by the macro
+    expect(run('(let [x 2] (case x 1 :one 2 :two :default))')).toEqual(keyword('two'));
+  });
+});

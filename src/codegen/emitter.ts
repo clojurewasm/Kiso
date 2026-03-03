@@ -6,7 +6,7 @@
 // - Multi-arity fn → switch(args.length)
 // - Name munging for special characters
 
-import type { Node, FnArity, LetBinding, CatchClause } from '../analyzer/node.js';
+import type { Node, FnArity, LetBinding, CatchClause, CaseNode } from '../analyzer/node.js';
 
 type EmitCtx = {
   loopBindings: string[] | null; // current loop/fn binding names for recur
@@ -38,6 +38,7 @@ function emitNode(node: Node, ctx: EmitCtx): string {
     case 'interop-field': return `${emitNode(node.target, ctx)}.${node.field}`;
     case 'set!': return `(${emitNode(node.target, ctx)} = ${emitNode(node.value, ctx)})`;
     case 'js-raw': return node.code;
+    case 'case*': return emitCase(node, ctx);
     case 'ns': return emitNs(node);
   }
 }
@@ -105,6 +106,22 @@ function emitIf(node: { test: Node; then: Node; else: Node }, ctx: EmitCtx): str
   const then = emitNode(node.then, ctx);
   const els = emitNode(node.else, ctx);
   return `((${test} != null && ${test} !== false) ? ${then} : ${els})`;
+}
+
+function emitCase(node: CaseNode, ctx: EmitCtx): string {
+  // case* test is already in a let binding, so safe to emit multiple times.
+  // Generate chained ternaries: (t === c1 ? v1 : t === c2 ? v2 : default)
+  const test = emitNode(node.test, ctx);
+  const defaultVal = emitNode(node.default, ctx);
+  if (node.clauses.length === 0) return defaultVal;
+  let result = defaultVal;
+  for (let i = node.clauses.length - 1; i >= 0; i--) {
+    const c = node.clauses[i]!;
+    const testVal = emitNode(c.test, ctx);
+    const thenVal = emitNode(c.then, ctx);
+    result = `(${test} === ${testVal} ? ${thenVal} : ${result})`;
+  }
+  return result;
 }
 
 function emitDo(node: { statements: Node[]; ret: Node }, ctx: EmitCtx): string {
@@ -386,6 +403,15 @@ function scanNodeForRuntime(node: Node, used: Set<string>): void {
     }
     case 'recur': {
       for (const a of node.args) scanNodeForRuntime(a, used);
+      break;
+    }
+    case 'case*': {
+      scanNodeForRuntime(node.test, used);
+      for (const c of node.clauses) {
+        scanNodeForRuntime(c.test, used);
+        scanNodeForRuntime(c.then, used);
+      }
+      scanNodeForRuntime(node.default, used);
       break;
     }
     // literal, var-ref, js-raw, ns: no runtime needed

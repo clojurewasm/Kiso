@@ -6,7 +6,7 @@ import { type Form } from '../reader/form.js';
 import { expandAll } from './macros.js';
 import { expandBinding } from './destructure.js';
 import type {
-  Node, LetBinding, FnArity, LiteralNode, DefNode,
+  Node, LetBinding, FnArity, LiteralNode, DefNode, CaseClause,
 } from './node.js';
 
 type Scope = {
@@ -456,6 +456,24 @@ export class Analyzer {
     const bodyNode: Node = bodyNodes.length === 1 ? bodyNodes[0]! : { type: 'do', statements: bodyNodes.slice(0, -1), ret: bodyNodes[bodyNodes.length - 1]! };
     return { type: 'try', body: bodyNode, catches, finally: finallyNode };
   }
+
+  private analyzeCase(items: Form[], scope: Scope): Node {
+    // (case* test-expr t1 v1 t2 v2 ... default?)
+    const test = this.analyzeForm(items[1]!, scope);
+    const rest = items.slice(2);
+    const clauses: CaseClause[] = [];
+    let i = 0;
+    while (i + 1 < rest.length) {
+      const testConst = this.analyzeForm(rest[i]!, scope);
+      const thenExpr = this.analyzeForm(rest[i + 1]!, scope);
+      clauses.push({ test: testConst, then: thenExpr });
+      i += 2;
+    }
+    const defaultNode: Node = rest.length % 2 === 1
+      ? this.analyzeForm(rest[rest.length - 1]!, scope)
+      : { type: 'throw', expr: { type: 'new', ctor: { type: 'var-ref', name: 'Error', local: false }, args: [{ type: 'literal', value: 'No matching clause', jsType: 'string' }] } };
+    return { type: 'case*', test, clauses, default: defaultNode };
+  }
 }
 
 const SPECIAL_FORMS = new Map<string, (this: Analyzer, items: Form[], scope: Scope) => Node>([
@@ -475,6 +493,7 @@ const SPECIAL_FORMS = new Map<string, (this: Analyzer, items: Form[], scope: Sco
   ['set!', Analyzer.prototype['analyzeSetBang']],
   ['new', Analyzer.prototype['analyzeNew']],
   ['try', Analyzer.prototype['analyzeTry']],
+  ['case*', Analyzer.prototype['analyzeCase']],
 ]);
 
 function lit(value: LiteralNode['value'], jsType: LiteralNode['jsType']): LiteralNode {

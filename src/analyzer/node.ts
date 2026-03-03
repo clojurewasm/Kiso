@@ -26,7 +26,8 @@ export type Node =
   | InteropFieldNode
   | SetBangNode
   | JsRawNode
-  | NsNode;
+  | NsNode
+  | CaseNode;
 
 export type LiteralNode = {
   type: 'literal';
@@ -65,4 +66,6 @@ export type NsNode = { type: 'ns'; name: string; requires: NsRequire[] };
 export type LetBinding = { name: string; init: Node };
 export type FnArity = { params: string[]; restParam: string | null; body: Node };
 export type CatchClause = { exType: string; binding: string; body: Node };
+export type CaseNode = { type: 'case*'; test: Node; clauses: CaseClause[]; default: Node };
+export type CaseClause = { test: Node; then: Node };
 export type NsRequire = { ns: string; alias: string | null; refers: string[] };

@@ -347,6 +347,38 @@ defmacro('letfn', (items, form) => {
 
 // -- Other --
 
+defmacro('case', (items, form) => {
+  // (case expr test1 result1 test2 result2 ... default?)
+  // → (let* [case__auto expr] (case* case__auto t1 r1 t2 r2 ... default?))
+  // Grouped tests: (case x (1 2) :r) → flattened to (case* x 1 :r 2 :r)
+  const expr = nth(items, 1);
+  const rest = items.slice(2);
+  const autoSym = sym('case__auto');
+  const flat: Form[] = [];
+  let i = 0;
+  while (i + 1 < rest.length) {
+    const test = nth(rest, i);
+    const then = nth(rest, i + 1);
+    if (test.data.type === 'list') {
+      for (const t of test.data.items) {
+        flat.push(t, then);
+      }
+    } else {
+      flat.push(test, then);
+    }
+    i += 2;
+  }
+  // Odd remainder is default
+  if (rest.length % 2 === 1) {
+    flat.push(nth(rest, rest.length - 1));
+  }
+  return makeList([
+    sym('let*'),
+    makeVector([autoSym, expr]),
+    makeList([sym('case*'), autoSym, ...flat]),
+  ], ...loc(form));
+});
+
 defmacro('comment', (_items, form) => {
   return makeNil(...loc(form));
 });
