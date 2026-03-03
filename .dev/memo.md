@@ -10,19 +10,18 @@ Session handover document. Read at session start.
 - Runtime: hash, equiv, keyword, symbol, list, vector, hash-map, hash-set, atom, seq, core.
 - Codegen emits runtime calls: vector(), hashMap(), hashSet(), keyword(), EMPTY_LIST.
 - NS → ES6 modules: `:require` parsing + import/export emission.
-- Total: 573 tests passing, types clean.
+- Total: 586 tests passing, types clean.
 
 ## Current Task
 
-**Batch D, Item 18: catch type discrimination** — DONE
+**Batch D, Item 17: interop.ts** — DONE
 
-Implemented instanceof chain in emitter for typed catch clauses.
-- `(catch js/TypeError e ...)` → `if (catch__auto instanceof TypeError)`
-- `(catch :default e ...)` → catch-all else clause
-- Multiple catch clauses generate if/else if chain
-- Single `:default` catch keeps simple form
+Implemented clj->js and js->clj conversion:
+- `cljToJs`: keyword→string, vector→array, list→array, map→object, set→array, recursive
+- `jsToClj`: array→vector, object→hashMap(keyword keys), recursive
+- Added `forEach` to PersistentHashMap and PersistentHashSet
 
-Moving to Item 17: interop.ts (clj->js, js->clj).
+Moving to Item 19: Source Map V3.
 
 ## Task Queue
 
@@ -51,7 +50,7 @@ Items ordered by priority. Work top-down. Dependencies noted in brackets.
 
 ### Batch D: Remaining runtime + su prep
 16. ArrayMap (<=8 entries, auto-promote to HAMT)
-17. interop.ts (clj->js, js->clj) — also needed for su DOM attributes (K07)
+17. ~~interop.ts (clj->js, js->clj)~~ DONE
 18. ~~catch type discrimination (instanceof chain)~~ DONE
 19. Source Map V3 (VLQ encoding) — independent, any time
 20. Atom tracking hook — add `_onDeref` to atom.ts (K04, su F1)

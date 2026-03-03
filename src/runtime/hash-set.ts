@@ -25,6 +25,10 @@ export class PersistentHashSet {
     return new PersistentHashSet(newImpl);
   }
 
+  forEach(fn: (key: unknown) => void): void {
+    this.impl.forEach((key) => fn(key));
+  }
+
   disj(key: unknown): PersistentHashSet {
     const newImpl = this.impl.dissoc(key);
     if (newImpl === this.impl) return this;

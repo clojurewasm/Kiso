@@ -37,6 +37,7 @@ interface HAMTNode {
   get(hash: number, shift: number, key: unknown): unknown;
   assoc(hash: number, shift: number, key: unknown, val: unknown): { node: HAMTNode; added: boolean };
   dissoc(hash: number, shift: number, key: unknown): HAMTNode | null;
+  forEach(fn: (key: unknown, val: unknown) => void): void;
 }
 
 // BitmapIndexedNode: sparse node with bitmap + popcount indexing
@@ -154,6 +155,11 @@ class BitmapNode implements HAMTNode {
 
     return this; // key not found
   }
+
+  forEach(fn: (key: unknown, val: unknown) => void): void {
+    for (const kv of this.kvs) fn(kv.key, kv.val);
+    for (const node of this.nodes) node.forEach(fn);
+  }
 }
 
 // CollisionNode: all entries have the same hash
@@ -204,6 +210,10 @@ class CollisionNode implements HAMTNode {
       }
     }
     return this;
+  }
+
+  forEach(fn: (key: unknown, val: unknown) => void): void {
+    for (const kv of this.kvs) fn(kv.key, kv.val);
   }
 }
 
@@ -306,6 +316,11 @@ export class PersistentHashMap {
       this.hasNull,
       this.nullVal,
     );
+  }
+
+  forEach(fn: (key: unknown, val: unknown) => void): void {
+    if (this.hasNull) fn(null, this.nullVal);
+    this.root.forEach(fn);
   }
 
   dissoc(key: unknown): PersistentHashMap {
