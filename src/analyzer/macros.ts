@@ -606,6 +606,12 @@ defmacro('defprotocol', (items, form) => {
   return makeList([sym('do'), ...defs], ...loc(form));
 });
 
+defmacro('deftype', (items, form) => {
+  // (deftype Name [fields...] Proto (method [this args] body) ...)
+  // → (deftype* Name [fields...] Proto (method [this args] body) ...)
+  return makeList([sym('deftype*'), ...items.slice(1)], ...loc(form));
+});
+
 defmacro('comment', (_items, form) => {
   return makeNil(...loc(form));
 });

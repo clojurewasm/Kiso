@@ -6,7 +6,7 @@
 // - Multi-arity fn → switch(args.length)
 // - Name munging for special characters
 
-import type { Node, FnArity, LetBinding, CatchClause, CaseNode } from '../analyzer/node.js';
+import type { Node, FnArity, LetBinding, CatchClause, CaseNode, DeftypeNode } from '../analyzer/node.js';
 
 type EmitCtx = {
   loopBindings: string[] | null; // current loop/fn binding names for recur
@@ -39,6 +39,7 @@ function emitNode(node: Node, ctx: EmitCtx): string {
     case 'set!': return `(${emitNode(node.target, ctx)} = ${emitNode(node.value, ctx)})`;
     case 'js-raw': return node.code;
     case 'case*': return emitCase(node, ctx);
+    case 'deftype': return emitDeftype(node, ctx);
     case 'ns': return emitNs(node);
   }
 }
@@ -64,6 +65,11 @@ function emitTopLevel(node: Node): string {
   if (node.type === 'def') {
     const init = node.init ? emit(node.init) : 'null';
     return `export const ${munge(node.name)} = ${init};`;
+  }
+  if (node.type === 'deftype') {
+    const code = emitDeftype(node, DEFAULT_CTX);
+    const factoryName = `__GT_${node.name}`;
+    return `${code}\nexport { ${node.name}, ${factoryName} };`;
   }
   if (node.type === 'ns') {
     return emitNs(node);
@@ -182,6 +188,27 @@ function emitSingleArity(name: string, arity: FnArity): string {
   const ctx: EmitCtx = { loopBindings: arity.params };
   const body = emitNode(arity.body, ctx);
   return `function ${name}(${params.join(', ')}) { return ${body}; }`;
+}
+
+function emitDeftype(node: DeftypeNode, ctx: EmitCtx): string {
+  const name = node.name;
+  const fields = node.fields.map(munge);
+  const ctorParams = fields.join(', ');
+  const ctorBody = fields.map((f) => `this.${f} = ${f};`).join(' ');
+  // Protocol methods → [Proto.methods.name]() { ... }
+  const methods: string[] = [];
+  for (const impl of node.protocols) {
+    const protoVar = emitNode(impl.protocol, ctx);
+    for (const m of impl.methods) {
+      const mParams = m.params.slice(1).map(munge); // skip 'this' param
+      const body = emitNode(m.body, ctx);
+      methods.push(`[${protoVar}.methods.${m.name}](${mParams.join(', ')}) { return ${body}; }`);
+    }
+  }
+  const methodStr = methods.length > 0 ? ' ' + methods.join(' ') : '';
+  const factoryName = `__GT_${name}`;
+  // Emit as class declaration + factory (used inside emitTopLevel for export)
+  return `class ${name} { constructor(${ctorParams}) { ${ctorBody} }${methodStr} }\nfunction ${factoryName}(${ctorParams}) { return new ${name}(${ctorParams}); }`;
 }
 
 function emitDef(node: { name: string; init: Node | null }, ctx: EmitCtx): string {
@@ -422,6 +449,13 @@ function scanNodeForRuntime(node: Node, used: Set<string>): void {
         scanNodeForRuntime(c.then, used);
       }
       scanNodeForRuntime(node.default, used);
+      break;
+    }
+    case 'deftype': {
+      for (const impl of node.protocols) {
+        scanNodeForRuntime(impl.protocol, used);
+        for (const m of impl.methods) scanNodeForRuntime(m.body, used);
+      }
       break;
     }
     // literal, var-ref, js-raw, ns: no runtime needed

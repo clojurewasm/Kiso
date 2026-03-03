@@ -7,6 +7,7 @@ import { expandAll } from './macros.js';
 import { expandBinding } from './destructure.js';
 import type {
   Node, LetBinding, FnArity, LiteralNode, DefNode, CaseClause,
+  ProtocolImplNode, ProtocolMethodNode,
 } from './node.js';
 
 type Scope = {
@@ -97,6 +98,12 @@ export class Analyzer {
     // Interop rewrite
     if (head.data.type === 'symbol' && head.data.ns === null) {
       const name = head.data.name;
+      // (.-field target) → interop-field
+      if (name.startsWith('.-') && name.length > 2) {
+        const field = name.slice(2);
+        const target = this.analyzeForm(items[1]!, scope);
+        return { type: 'interop-field', target, field };
+      }
       // (.method target args...) → interop-call
       if (name.startsWith('.') && !name.startsWith('..') && name.length > 1) {
         const method = name.slice(1);
@@ -479,6 +486,57 @@ export class Analyzer {
     // (var x) → resolves to the var's value (no reified Vars yet)
     return this.analyzeForm(items[1]!, scope);
   }
+
+  private analyzeDeftype(items: Form[], scope: Scope): Node {
+    // (deftype* Name [fields...] Proto (method [this args] body) ...)
+    const nameSym = items[1]!;
+    if (nameSym.data.type !== 'symbol') throw new Error('deftype* requires a name');
+    const name = nameSym.data.name;
+    const fieldsForm = items[2]!;
+    if (fieldsForm.data.type !== 'vector') throw new Error('deftype* requires a fields vector');
+    const fields = fieldsForm.data.items.map((f) => {
+      if (f.data.type !== 'symbol') throw new Error('field must be a symbol');
+      return f.data.name;
+    });
+
+    // Parse protocol implementations: Protocol (method [this args] body) ...
+    const protocols: ProtocolImplNode[] = [];
+    let i = 3;
+    while (i < items.length) {
+      const protoRef = items[i]!;
+      if (protoRef.data.type !== 'symbol' && protoRef.data.type !== 'keyword') {
+        throw new Error('Expected protocol name');
+      }
+      const protocol = this.analyzeForm(protoRef, scope);
+      const methods: ProtocolMethodNode[] = [];
+      i++;
+      // Collect methods until we hit another symbol (next protocol) or end
+      while (i < items.length) {
+        const item = items[i]!;
+        if (item.data.type !== 'list') break;
+        const methodItems = item.data.items;
+        const mNameSym = methodItems[0]!;
+        if (mNameSym.data.type !== 'symbol') break;
+        const mName = mNameSym.data.name;
+        const paramsForm = methodItems[1]!;
+        if (paramsForm.data.type !== 'vector') throw new Error('method params must be a vector');
+        const params = paramsForm.data.items.map((p) => {
+          if (p.data.type !== 'symbol') throw new Error('param must be a symbol');
+          return p.data.name;
+        });
+        // Method body: analyze with fields + params in scope
+        const methodScope = makeScope(scope, [...fields, ...params]);
+        const bodyForms = methodItems.slice(2).map((f) => this.analyzeForm(f, methodScope));
+        const body: Node = bodyForms.length === 1 ? bodyForms[0]! : { type: 'do', statements: bodyForms.slice(0, -1), ret: bodyForms[bodyForms.length - 1]! };
+        methods.push({ name: mName, params, body });
+        i++;
+      }
+      protocols.push({ protocol, methods });
+    }
+
+    scope.locals.add(name);
+    return { type: 'deftype', name, fields, protocols };
+  }
 }
 
 const SPECIAL_FORMS = new Map<string, (this: Analyzer, items: Form[], scope: Scope) => Node>([
@@ -500,6 +558,7 @@ const SPECIAL_FORMS = new Map<string, (this: Analyzer, items: Form[], scope: Sco
   ['try', Analyzer.prototype['analyzeTry']],
   ['case*', Analyzer.prototype['analyzeCase']],
   ['var', Analyzer.prototype['analyzeVar']],
+  ['deftype*', Analyzer.prototype['analyzeDeftype']],
 ]);
 
 function lit(value: LiteralNode['value'], jsType: LiteralNode['jsType']): LiteralNode {

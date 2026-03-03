@@ -485,14 +485,27 @@ describe('var special form', () => {
 
 describe('defprotocol + protocolFn', () => {
   it('defines protocol and dispatches via symbol', () => {
-    // Use runModule to handle top-level defs
     const code = `
       (defprotocol IGreet
         (greet [this]))
     `;
     const js = compileModule(code);
-    // The module should contain defprotocol and protocolFn calls
     expect(js).toContain('defprotocol');
     expect(js).toContain('protocolFn');
+  });
+});
+
+describe('deftype', () => {
+  it('creates a type with fields and protocol method', () => {
+    const code = `
+      (defprotocol IGreet
+        (greet [this]))
+      (deftype Greeter [name]
+        IGreet
+        (greet [this] (.-name this)))
+    `;
+    const js = compileModule(code);
+    expect(js).toContain('class Greeter');
+    expect(js).toContain('constructor(name)');
   });
 });

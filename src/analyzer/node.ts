@@ -27,7 +27,8 @@ export type Node =
   | SetBangNode
   | JsRawNode
   | NsNode
-  | CaseNode;
+  | CaseNode
+  | DeftypeNode;
 
 export type LiteralNode = {
   type: 'literal';
@@ -67,5 +68,8 @@ export type LetBinding = { name: string; init: Node };
 export type FnArity = { params: string[]; restParam: string | null; body: Node };
 export type CatchClause = { exType: string; binding: string; body: Node };
 export type CaseNode = { type: 'case*'; test: Node; clauses: CaseClause[]; default: Node };
+export type DeftypeNode = { type: 'deftype'; name: string; fields: string[]; protocols: ProtocolImplNode[] };
+export type ProtocolImplNode = { protocol: Node; methods: ProtocolMethodNode[] };
+export type ProtocolMethodNode = { name: string; params: string[]; body: Node };
 export type CaseClause = { test: Node; then: Node };
 export type NsRequire = { ns: string; alias: string | null; refers: string[] };
