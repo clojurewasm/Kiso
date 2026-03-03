@@ -474,6 +474,11 @@ export class Analyzer {
       : { type: 'throw', expr: { type: 'new', ctor: { type: 'var-ref', name: 'Error', local: false }, args: [{ type: 'literal', value: 'No matching clause', jsType: 'string' }] } };
     return { type: 'case*', test, clauses, default: defaultNode };
   }
+
+  private analyzeVar(items: Form[], scope: Scope): Node {
+    // (var x) → resolves to the var's value (no reified Vars yet)
+    return this.analyzeForm(items[1]!, scope);
+  }
 }
 
 const SPECIAL_FORMS = new Map<string, (this: Analyzer, items: Form[], scope: Scope) => Node>([
@@ -494,6 +499,7 @@ const SPECIAL_FORMS = new Map<string, (this: Analyzer, items: Form[], scope: Sco
   ['new', Analyzer.prototype['analyzeNew']],
   ['try', Analyzer.prototype['analyzeTry']],
   ['case*', Analyzer.prototype['analyzeCase']],
+  ['var', Analyzer.prototype['analyzeVar']],
 ]);
 
 function lit(value: LiteralNode['value'], jsType: LiteralNode['jsType']): LiteralNode {

@@ -427,3 +427,11 @@ describe('case', () => {
     expect(run('(let [x 2] (case x 1 :one 2 :two :default))')).toEqual(keyword('two'));
   });
 });
+
+// -- var --
+
+describe('var special form', () => {
+  it('resolves var to its value', () => {
+    expect(run('(let [x 42] (var x))')).toBe(42);
+  });
+});
