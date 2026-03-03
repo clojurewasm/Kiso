@@ -7,7 +7,7 @@ Package: `@kiso/cljs`. Framework: `@kiso/su`.
 
 | Phase | Name                  | Status  |
 |-------|-----------------------|---------|
-| 1     | Reader                | PENDING |
+| 1     | Reader                | DONE*   |
 | 2     | Core Macros + Analyzer| PENDING |
 | 3     | Codegen + Source Map  | PENDING |
 | 4     | Runtime               | PENDING |

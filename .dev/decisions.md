@@ -34,3 +34,16 @@ Use a self-implemented mini evaluator for defmacro expansion instead of SCI depe
 Scoped packages (`@kiso/*`) to avoid npm name conflicts.
 
 **Affected**: package.json, distribution strategy.
+
+## D4: Reader Token-Level Design
+
+**Date**: 2026-03-03
+
+nil/true/false are tokenized as `symbol` kind (not separate token kinds like CW).
+Discrimination happens in the Reader (`readSymbol`). This keeps the tokenizer simpler
+and avoids redundant token kinds that duplicate the symbol reading path.
+
+Column tracking is 1-indexed (matching the Form `col` field), differing from CW's 0-based.
+
+Syntax-quote deferred to Phase 5: requires namespace resolution context which the
+analyzer will provide. Current `backtick` token emits `(syntax-quote x)` wrapper form.
