@@ -617,6 +617,13 @@ defmacro('deftype', (items, form) => {
   return makeList([sym('deftype*'), ...items.slice(1)], ...loc(form));
 });
 
+defmacro('lazy-seq', (items, form) => {
+  // (lazy-seq body) → (new LazySeq (fn* [] body))
+  const body = items.slice(1);
+  const bodyForm = body.length === 1 ? nth(body, 0) : makeList([sym('do'), ...body]);
+  return makeList([sym('new'), sym('LazySeq'), makeList([sym('fn*'), makeVector([]), bodyForm])], ...loc(form));
+});
+
 defmacro('comment', (_items, form) => {
   return makeNil(...loc(form));
 });

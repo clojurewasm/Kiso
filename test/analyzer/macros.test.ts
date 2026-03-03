@@ -349,6 +349,14 @@ describe('defprotocol', () => {
   });
 });
 
+// -- lazy-seq --
+
+describe('lazy-seq', () => {
+  it('expands to new LazySeq with thunk', () => {
+    expect(ex1('(lazy-seq body)')).toBe('(new LazySeq (fn* [] body))');
+  });
+});
+
 // -- Non-macro forms pass through --
 
 describe('non-macro forms', () => {
