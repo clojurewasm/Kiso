@@ -4,34 +4,33 @@ Session handover document. Read at session start.
 
 ## Current State
 
-- Reader complete (form, tokenizer, reader). 177 tests passing, types clean.
-- Core macros complete (20 macros). 38 tests passing.
-- Analyzer + Codegen complete. 32 E2E tests passing.
-- Design docs complete: `.dev/design/01` through `05`.
-- Total: 247 tests passing, types clean.
+- Reader complete: form, tokenizer, reader. 177 tests.
+- Macros complete: 20 core macros. 38 tests.
+- Analyzer + Codegen complete: special forms, scope, interop, emitter. 32 E2E tests.
+- Runtime Phase 4 progress: hash, equiv, keyword, symbol, list, vector, hash-map, hash-set.
+- Total: 420 tests passing, types clean.
 
 ## Current Task
 
-Phase 2/3 done: Analyzer + Codegen core. Next up: decide what to tackle next.
-Check roadmap for remaining items in Phase 2 (destructuring) and Phase 3 (source maps, NS→ES6).
+Phase 4 Runtime — core data structures done (4.1-4.6).
+Next: Phase 4.8 Atom, then consider Phase 5 (Mini Evaluator) or continue runtime.
 
 ## Previous Task
 
-Phase 2.5-3.5: Analyzer (node.ts, analyzer.ts) + Codegen (emitter.ts) + E2E tests. DONE.
+Phase 4.6: PersistentHashSet. DONE.
 
 ## Task Queue
 
-1. ~~Form data model (form.ts + tests)~~ DONE
-2. ~~Tokenizer (tokenizer.ts + tests)~~ DONE
-3. ~~Reader (reader.ts + tests)~~ DONE
-4. ~~Core macros (macros.ts + tests)~~ DONE
-5. ~~Analyzer (analyzer.ts + tests)~~ DONE
-6. ~~Codegen (emitter.ts + tests)~~ DONE
-7. ~~E2E pipeline (compile .cljs → run .js)~~ DONE
-8. Destructuring (sequential + associative)
-9. NS → ES6 modules (import/export)
-10. Source Map V3
-11. Runtime (persistent data structures)
+1. ~~Hash + Equiv~~ DONE
+2. ~~Keyword + Symbol~~ DONE
+3. ~~PersistentList~~ DONE
+4. ~~PersistentVector (32-way trie)~~ DONE
+5. ~~PersistentHashMap (HAMT)~~ DONE
+6. ~~PersistentHashSet~~ DONE
+7. Atom (mutable reference)
+8. Seq abstraction (ISeq, LazySeq)
+9. Protocol system (Symbol-based dispatch)
+10. Transient collections
 
 ## References
 
