@@ -6,7 +6,7 @@
 // - Multi-arity fn → switch(args.length)
 // - Name munging for special characters
 
-import type { Node, FnArity, LetBinding, CatchClause, CaseNode, DeftypeNode, ExtendTypeNode } from '../analyzer/node.js';
+import type { Node, FnArity, LetBinding, CatchClause, CaseNode, DeftypeNode, ExtendTypeNode, ReifyNode } from '../analyzer/node.js';
 
 type EmitCtx = {
   loopBindings: string[] | null; // current loop/fn binding names for recur
@@ -45,6 +45,7 @@ function emitNode(node: Node, ctx: EmitCtx): string {
     case 'case*': return emitCase(node, ctx);
     case 'deftype': return emitDeftype(node, ctx);
     case 'extend-type': return emitExtendType(node, ctx);
+    case 'reify': return emitReify(node, ctx);
     case 'ns': return emitNs(node);
   }
 }
@@ -214,6 +215,20 @@ function emitDeftype(node: DeftypeNode, ctx: EmitCtx): string {
   const factoryName = `__GT_${name}`;
   // Emit as class declaration + factory (used inside emitTopLevel for export)
   return `class ${name} { constructor(${ctorParams}) { ${ctorBody} }${methodStr} }\nfunction ${factoryName}(${ctorParams}) { return new ${name}(${ctorParams}); }`;
+}
+
+function emitReify(node: ReifyNode, ctx: EmitCtx): string {
+  // ({ [Proto.methods.m]() { return ...; }, ... })
+  const methods: string[] = [];
+  for (const impl of node.protocols) {
+    const protoVar = emitNode(impl.protocol, ctx);
+    for (const m of impl.methods) {
+      const mParams = m.params.slice(1).map(munge); // skip 'this'
+      const body = emitNode(m.body, ctx);
+      methods.push(`[${protoVar}.methods.${m.name}](${mParams.join(', ')}) { return ${body}; }`);
+    }
+  }
+  return `({ ${methods.join(', ')} })`;
 }
 
 function emitExtendType(node: ExtendTypeNode, ctx: EmitCtx): string {
@@ -470,7 +485,7 @@ function scanNodeForRuntime(node: Node, used: Set<string>): void {
       scanNodeForRuntime(node.default, used);
       break;
     }
-    case 'deftype': case 'extend-type': {
+    case 'deftype': case 'extend-type': case 'reify': {
       if ('target' in node) scanNodeForRuntime(node.target, used);
       for (const impl of node.protocols) {
         scanNodeForRuntime(impl.protocol, used);

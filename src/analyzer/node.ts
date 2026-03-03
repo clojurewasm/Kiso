@@ -29,7 +29,8 @@ export type Node =
   | NsNode
   | CaseNode
   | DeftypeNode
-  | ExtendTypeNode;
+  | ExtendTypeNode
+  | ReifyNode;
 
 export type LiteralNode = {
   type: 'literal';
@@ -73,5 +74,6 @@ export type DeftypeNode = { type: 'deftype'; name: string; fields: string[]; pro
 export type ProtocolImplNode = { protocol: Node; methods: ProtocolMethodNode[] };
 export type ProtocolMethodNode = { name: string; params: string[]; body: Node };
 export type ExtendTypeNode = { type: 'extend-type'; target: Node; protocols: ProtocolImplNode[] };
+export type ReifyNode = { type: 'reify'; protocols: ProtocolImplNode[] };
 export type CaseClause = { test: Node; then: Node };
 export type NsRequire = { ns: string; alias: string | null; refers: string[] };

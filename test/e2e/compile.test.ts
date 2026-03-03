@@ -483,6 +483,19 @@ describe('var special form', () => {
 
 // -- Protocol System --
 
+describe('reify', () => {
+  it('generates object literal with symbol methods', () => {
+    const code = `
+      (defprotocol IFoo
+        (foo [this]))
+      (def x (reify IFoo (foo [this] 42)))
+    `;
+    const js = compileModule(code);
+    expect(js).toContain('[IFoo.methods.foo]');
+    expect(js).toContain('42');
+  });
+});
+
 describe('extend-type', () => {
   it('generates prototype assignment for protocol methods', () => {
     const code = `

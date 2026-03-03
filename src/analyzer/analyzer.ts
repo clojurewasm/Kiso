@@ -572,6 +572,39 @@ export class Analyzer {
     }
     return { type: 'extend-type', target, protocols };
   }
+
+  private analyzeReify(items: Form[], scope: Scope): Node {
+    // (reify Proto (method [this args] body) ...)
+    const protocols: ProtocolImplNode[] = [];
+    let i = 1;
+    while (i < items.length) {
+      const protoRef = items[i]!;
+      const protocol = this.analyzeForm(protoRef, scope);
+      const methods: ProtocolMethodNode[] = [];
+      i++;
+      while (i < items.length) {
+        const item = items[i]!;
+        if (item.data.type !== 'list') break;
+        const methodItems = item.data.items;
+        const mNameSym = methodItems[0]!;
+        if (mNameSym.data.type !== 'symbol') break;
+        const mName = mNameSym.data.name;
+        const paramsForm = methodItems[1]!;
+        if (paramsForm.data.type !== 'vector') throw new Error('method params must be a vector');
+        const params = paramsForm.data.items.map((p) => {
+          if (p.data.type !== 'symbol') throw new Error('param must be a symbol');
+          return p.data.name;
+        });
+        const methodScope = makeScope(scope, params);
+        const bodyForms = methodItems.slice(2).map((f) => this.analyzeForm(f, methodScope));
+        const body: Node = bodyForms.length === 1 ? bodyForms[0]! : { type: 'do', statements: bodyForms.slice(0, -1), ret: bodyForms[bodyForms.length - 1]! };
+        methods.push({ name: mName, params, body });
+        i++;
+      }
+      protocols.push({ protocol, methods });
+    }
+    return { type: 'reify', protocols };
+  }
 }
 
 const SPECIAL_FORMS = new Map<string, (this: Analyzer, items: Form[], scope: Scope) => Node>([
@@ -595,6 +628,7 @@ const SPECIAL_FORMS = new Map<string, (this: Analyzer, items: Form[], scope: Sco
   ['var', Analyzer.prototype['analyzeVar']],
   ['deftype*', Analyzer.prototype['analyzeDeftype']],
   ['extend-type*', Analyzer.prototype['analyzeExtendType']],
+  ['reify', Analyzer.prototype['analyzeReify']],
 ]);
 
 function lit(value: LiteralNode['value'], jsType: LiteralNode['jsType']): LiteralNode {
