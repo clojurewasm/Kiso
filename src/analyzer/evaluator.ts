@@ -506,6 +506,11 @@ export class MacroEvaluator {
       const spreadArgs = toSeq(lastArg);
       return this.applyFn(fn!, [...initArgs, ...spreadArgs]);
     });
+
+    // Meta (stubs — Forms don't support meta yet)
+    set('meta', () => makeNil());
+    set('with-meta', (obj) => obj!);
+    set('vary-meta', (obj) => obj!);
   }
 }
 

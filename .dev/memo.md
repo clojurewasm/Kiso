@@ -10,19 +10,18 @@ Session handover document. Read at session start.
 - Runtime: hash, equiv, keyword, symbol, list, vector, hash-map, hash-set, atom, seq, core.
 - Codegen emits runtime calls: vector(), hashMap(), hashSet(), keyword(), EMPTY_LIST.
 - NS → ES6 modules: `:require` parsing + import/export emission.
-- Total: 626 tests passing, types clean.
+- Total: 677 tests passing, types clean.
 
 ## Current Task
 
-**Batch E, Item 23: Evaluator core** — DONE
+**Batch E, Item 24: Built-in functions** — DONE
 
-Mini evaluator for defmacro support. Interprets Form directly.
-- Special forms: def, fn*, let*, do, if, quote, loop*, recur
-- ~30 built-in functions: arithmetic, comparison, collections, symbols, gensym, apply
-- Immutable environments with parent chain
-- Closures with rest params and recursion
+Verified all ~30 design spec functions implemented + meta stubs:
+- Collections: cons, concat, list, list*, first, rest, next, seq, empty?, conj, assoc, dissoc, get, vec, vector, hash-map, hash-set, count, nth, contains?
+- Symbol/keyword: symbol, keyword, name, namespace + type predicates
+- Arithmetic, comparison, string, gensym, apply, meta/with-meta/vary-meta
 
-Moving to Item 24: Built-in functions (verify coverage, add missing).
+Moving to Item 25: Macro expander pipeline.
 
 ## Task Queue
 
@@ -60,7 +59,7 @@ Items ordered by priority. Work top-down. Dependencies noted in brackets.
 
 ### Batch E: Mini Evaluator [depends on: Batch A mostly done]
 23. ~~Evaluator core (def, fn*, let*, do, if, quote, loop*, recur)~~ DONE
-24. Built-in functions (~30: cons, concat, seq, symbol, gensym, etc.)
+24. ~~Built-in functions (~30: cons, concat, seq, symbol, gensym, etc.)~~ DONE
 25. Macro expander pipeline (core macros + user defmacro)
 
 ### Batch F: Vite Integration [depends on: Batch E + Source Map]
