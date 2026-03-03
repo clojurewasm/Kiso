@@ -10,21 +10,18 @@ Session handover document. Read at session start.
 - Runtime: hash, equiv, keyword, symbol, list, vector, hash-map, hash-set, atom, seq, core.
 - Codegen emits runtime calls: vector(), hashMap(), hashSet(), keyword(), EMPTY_LIST.
 - NS → ES6 modules: `:require` parsing + import/export emission.
-- Total: 730 tests passing, types clean.
+- Total: 739 tests passing, types clean.
 
 ## Current Task
 
-**Batch G, Item 31: su-runtime hiccup.ts** — DONE
+**Batch G, Item 32: su-runtime css.ts + lifecycle.ts** — DONE
 
-- `parseTag(s)` — splits "div#id.class1.class2" → {tag, id, classes}
-- `renderHiccup(hiccup)` — converts hiccup vectors to DOM nodes
-  - Handles string, number, null, nested vectors, attrs map
-  - Supports :class (merged), :style (map), :on-* (addEventListener)
-  - Flattens sequences (from map/for), skips nil children
-- `bind(fn)` — reactive DOM fragment, re-renders via effect()
-- 19 tests (DOM mock via vi.stubGlobal), 730 total
+- `createSheet(name, cssText)` — creates/caches CSSStyleSheet (adoptedStyleSheets)
+- `onMount(fn)` / `onUnmount(fn)` — register lifecycle callbacks
+- `collectLifecycleHooks(fn)` — context-stack pattern (like React hooks)
+- 9 tests, 739 total
 
-Moving to Item 32: su-runtime: css.ts + lifecycle.ts.
+Moving to Item 33: defc macro.
 
 ## Task Queue
 
@@ -74,7 +71,7 @@ Items ordered by priority. Work top-down. Dependencies noted in brackets.
 29. ~~su-runtime: reactive.ts (track, effect, computed)~~ DONE
 30. ~~su-runtime: component.ts (defineComponent, Custom Element, Shadow DOM)~~ DONE
 31. ~~su-runtime: hiccup.ts (renderHiccup, bind)~~ DONE
-32. su-runtime: css.ts (createSheet, adoptedStyleSheets) + lifecycle.ts
+32. ~~su-runtime: css.ts (createSheet, adoptedStyleSheets) + lifecycle.ts~~ DONE
 33. defc macro (su/core.cljs → Custom Element)
 34. defstyle macro (su/core.cljs → adoptedStyleSheets)
 35. su vite-plugin.ts (HMR: render fn replacement)
