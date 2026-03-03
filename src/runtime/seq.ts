@@ -5,6 +5,7 @@
 
 import { isList, EMPTY_LIST, first as listFirst, rest as listRest, count as listCount } from './list.js';
 import { isVector, PersistentVector } from './vector.js';
+import { LazySeq } from './lazy-seq.js';
 
 // IndexedSeq: seq over a vector or array by index
 class IndexedSeq {
@@ -35,6 +36,12 @@ export function seq(coll: Seqable): unknown {
   // Already a seq
   if (coll instanceof IndexedSeq) return coll;
 
+  // LazySeq: realize and recurse
+  if (coll instanceof LazySeq) {
+    const realized = coll.realize();
+    return realized === null ? null : seq(realized);
+  }
+
   if (isList(coll)) {
     return listCount(coll) === 0 ? null : coll;
   }
@@ -56,6 +63,10 @@ export function first(coll: Seqable): unknown {
 
   if (isList(coll)) return listFirst(coll);
   if (coll instanceof IndexedSeq) return coll.first();
+  if (coll instanceof LazySeq) {
+    const s = seq(coll);
+    return s === null ? null : first(s);
+  }
 
   // Try seq-ing first
   const s = seq(coll);
@@ -74,6 +85,12 @@ export function rest(coll: Seqable): unknown {
     return r ?? EMPTY_LIST;
   }
 
+  if (coll instanceof LazySeq) {
+    const s = seq(coll);
+    if (s === null) return EMPTY_LIST;
+    return rest(s);
+  }
+
   const s = seq(coll);
   if (s === null) return EMPTY_LIST;
   return rest(s);
@@ -90,6 +107,12 @@ export function next(coll: Seqable): unknown {
 
   if (coll instanceof IndexedSeq) {
     return coll.rest();
+  }
+
+  if (coll instanceof LazySeq) {
+    const s = seq(coll);
+    if (s === null) return null;
+    return next(s);
   }
 
   const s = seq(coll);
