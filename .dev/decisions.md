@@ -124,31 +124,35 @@ to their prototypes safely. These use a fallback path in `protocolFn`.
 
 **Affected**: `src/runtime/protocols.ts`, `src/analyzer/`, `src/codegen/emitter.ts`.
 
-## D8: su Architecture — Fine-Grained Signals + Direct DOM (No VDOM)
+## D8: su Architecture — Web Components + Fine-Grained Signals (No VDOM)
 
 **Date**: 2026-03-04
 
-su uses VanJS/Solid.js-style fine-grained reactivity with direct DOM manipulation.
+su compiles `defc` to Custom Elements with Shadow DOM. Fine-grained reactivity
+(VanJS/Solid.js/solid-element pattern) drives updates inside the Shadow DOM.
 No virtual DOM, no React dependency, no diffing engine.
 
 **Core model**:
+- `defc` → `customElements.define()` with Shadow DOM
+- Component function runs **once** in `connectedCallback` (solid-element pattern)
 - Kiso `atom` = su's state primitive (extended with tracking hook)
-- `computed()` = derived state with auto-dependency tracking via `deref` interception
-- `effect()` = side-effect that re-runs when tracked atoms change
-- `bind()` = DOM-level effect that replaces a node when dependencies change
-- `defc` macro = component definition, function runs once (Solid.js model)
+- `effect()` / `bind()` = fine-grained DOM updates inside Shadow DOM
+- `defstyle` → `adoptedStyleSheets` (Shadow DOM provides natural CSS scoping)
+- Props = observed attributes → atom signals → reactive updates
 
-**Rationale** (from 12-framework comparative research):
-- VanJS proves the model works in ~141 LOC / 1KB
+**Rationale** (from 12+ framework comparative research):
+- solid-element proves signals work perfectly inside Custom Elements
+- Shadow DOM provides natural CSS scoping — no class name hashing needed
+- Custom Elements are web standards — interop with any framework or plain HTML
+- adoptedStyleSheets share a single CSSStyleSheet across all instances
+- Declarative Shadow DOM (Baseline 2024) enables SSR
 - Fine-grained reactivity eliminates need for virtual DOM diffing
-- Kiso atom already exists — no new state primitive needed
-- Compile-time hiccup optimization possible (UIx AOT pattern)
-- Future TC39 Signals compatibility (API shape alignment)
 
-**Trade-off**: No virtual DOM means no snapshot-based testing of render output.
-su provides a test helper that captures DOM mutations instead (Replicant pattern).
+**Trade-off**: Shadow DOM adds ~2KB overhead vs plain direct DOM.
+Custom Element re-registration is not possible — HMR uses render function replacement.
 
 **Design**: See `.dev/design/07-su-framework.md` for full specification.
 
 **Affected**: `@kiso/su` package (separate from `@kiso/cljs`).
-`@kiso/cljs` impact: atom tracking hook (F1), watch unsubscribe (F2) — see design doc.
+`@kiso/cljs` impact: atom tracking hook (F1), watch unsubscribe (F2),
+tag name generation (F8) — see design doc.

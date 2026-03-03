@@ -62,14 +62,15 @@ S1. Atom tracking hook — add `_onDeref` to atom.ts (K04)
 S2. Atom addWatch return unsubscribe fn (K05)
 S3. Verify keyword edge cases for CSS selectors (K06)
 
-### Batch G: su Framework [depends on: Batch E + F]
+### Batch G: su Framework [depends on: Batch E + F] [design: 07-su-framework.md]
 26. su-runtime: reactive.ts (track, effect, computed)
-27. su-runtime: hiccup.ts (renderHiccup, bind, mount)
-28. su-runtime: css.ts + lifecycle.ts
-29. defc macro (su/core.cljs)
-30. defstyle macro (su/core.cljs)
-31. su vite-plugin.ts (HMR)
-32. Dogfooding: todo-app
+27. su-runtime: component.ts (defineComponent, Custom Element, Shadow DOM)
+28. su-runtime: hiccup.ts (renderHiccup, bind)
+29. su-runtime: css.ts (createSheet, adoptedStyleSheets) + lifecycle.ts
+30. defc macro (su/core.cljs → Custom Element)
+31. defstyle macro (su/core.cljs → adoptedStyleSheets)
+32. su vite-plugin.ts (HMR: render fn replacement)
+33. Dogfooding: todo-app
 
 ## Key Design References
 

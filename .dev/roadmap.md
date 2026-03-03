@@ -120,7 +120,8 @@ Vite plugin for .cljs files, HMR support.
 
 ## Phase 7: su Framework — PENDING
 
-Fine-grained reactive UI framework. No VDOM, no React. ~3KB gzipped.
+Web Components framework with fine-grained reactivity. No VDOM, no React. ~3-5KB gzipped.
+defc → Custom Element + Shadow DOM. solid-element pattern (Solid.js signals inside WC).
 Design: `07-su-framework.md`. Decision: D8.
 
 **Prerequisites from @kiso/cljs** (during earlier phases):
@@ -128,14 +129,15 @@ Design: `07-su-framework.md`. Decision: D8.
 
 **su-runtime** (pure TypeScript, can develop in parallel with Batches B-E):
 - 7.1 reactive.ts — track(), effect(), computed()
-- 7.2 hiccup.ts — renderHiccup(), bind(), mount(), tag parsing
-- 7.3 css.ts — injectStyle(), scopeClass(), CSS-as-data nesting
-- 7.4 lifecycle.ts — on-mount, on-unmount hooks
+- 7.2 component.ts — defineComponent(), Custom Element class, Shadow DOM
+- 7.3 hiccup.ts — renderHiccup(), bind(), tag parsing
+- 7.4 css.ts — createSheet(), adoptedStyleSheets (Shadow DOM scoping)
+- 7.5 lifecycle.ts — on-mount, on-unmount hooks
 
 **su macros** (require Batch E: mini evaluator):
-- 7.5 defc macro (su/core.cljs — component definition)
-- 7.6 defstyle macro (su/core.cljs — scoped CSS-as-data)
+- 7.6 defc macro (su/core.cljs — component → Custom Element)
+- 7.7 defstyle macro (su/core.cljs — CSS-as-data → adoptedStyleSheets)
 
 **Integration**:
-- 7.7 su vite-plugin.ts — HMR for components + styles
-- 7.8 Dogfooding: todo-app (validates full @kiso/cljs + @kiso/su pipeline)
+- 7.8 su vite-plugin.ts — HMR for components + styles
+- 7.9 Dogfooding: todo-app (validates full @kiso/cljs + @kiso/su pipeline)
