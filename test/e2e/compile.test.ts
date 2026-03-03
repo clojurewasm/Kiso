@@ -430,6 +430,36 @@ describe('case', () => {
 
 // -- var --
 
+describe('condp', () => {
+  it('matches with predicate', () => {
+    // Use inline fn with js* for identity comparison
+    const eq = '(fn [a b] (js* "a === b"))';
+    expect(run(`(let [eq ${eq}] (condp eq 1 1 :yes :no))`)).toEqual(keyword('yes'));
+  });
+
+  it('falls through to default', () => {
+    const eq = '(fn [a b] (js* "a === b"))';
+    expect(run(`(let [eq ${eq}] (condp eq 99 1 :one 2 :two :default))`)).toEqual(keyword('default'));
+  });
+});
+
+describe('cond-> and cond->>', () => {
+  it('cond-> threads when test is truthy', () => {
+    // (cond-> 1 true (.toString)) → "1"
+    expect(run('(cond-> 1 true (.toString))')).toBe('1');
+  });
+
+  it('cond-> skips when test is falsy', () => {
+    // (cond-> 1 false (.toString)) → 1 (not threaded)
+    expect(run('(cond-> 1 false (.toString))')).toBe(1);
+  });
+
+  it('cond->> threads as last arg', () => {
+    // (.concat "hello " cond__auto) → "hello ".concat("world") → "hello world"
+    expect(run('(cond->> "world" true (.concat "hello "))')).toBe('hello world');
+  });
+});
+
 describe('var special form', () => {
   it('resolves var to its value', () => {
     expect(run('(let [x 42] (var x))')).toBe(42);

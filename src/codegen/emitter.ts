@@ -131,9 +131,14 @@ function emitDo(node: { statements: Node[]; ret: Node }, ctx: EmitCtx): string {
 }
 
 function emitLet(node: { bindings: LetBinding[]; body: Node }, ctx: EmitCtx): string {
-  const bindings = node.bindings.map(
-    (b) => `const ${munge(b.name)} = ${emitNode(b.init, ctx)};`,
-  ).join(' ');
+  const seen = new Set<string>();
+  const bindings = node.bindings.map((b) => {
+    const name = munge(b.name);
+    const init = emitNode(b.init, ctx);
+    if (seen.has(name)) return `${name} = ${init};`;
+    seen.add(name);
+    return `let ${name} = ${init};`;
+  }).join(' ');
   return `(() => { ${bindings} return ${emitNode(node.body, ctx)}; })()`;
 }
 

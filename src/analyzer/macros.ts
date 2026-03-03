@@ -347,6 +347,77 @@ defmacro('letfn', (items, form) => {
 
 // -- Other --
 
+defmacro('condp', (items, form) => {
+  // (condp pred expr test1 result1 test2 result2 ... default?)
+  // → nested (let* [condp__auto (pred test expr)] (if condp__auto result ...))
+  const pred = nth(items, 1);
+  const expr = nth(items, 2);
+  const rest = items.slice(3);
+  return buildCondpChain(pred, expr, rest, form);
+});
+
+function buildCondpChain(pred: Form, expr: Form, rest: Form[], form: Form): Form {
+  if (rest.length === 0) {
+    return makeList([sym('throw'), makeList([sym('new'), sym('Error'), makeList([sym('str'), { data: { type: 'string', value: 'No matching clause: ' }, line: 0, col: 0 } as Form, expr])])], ...loc(form));
+  }
+  if (rest.length === 1) return nth(rest, 0); // default
+  const test = nth(rest, 0);
+  const result = nth(rest, 1);
+  const remaining = rest.slice(2);
+  const autoSym = sym('condp__auto');
+  return makeList([
+    sym('let*'),
+    makeVector([autoSym, makeList([pred, test, expr])]),
+    makeList([sym('if'), autoSym, result, buildCondpChain(pred, expr, remaining, form)]),
+  ], ...loc(form));
+}
+
+defmacro('cond->', (items, form) => {
+  // (cond-> expr test1 form1 test2 form2 ...)
+  // → (let* [a expr a (if test1 (-> a form1) a) a (if test2 (-> a form2) a)] a)
+  const expr = nth(items, 1);
+  const pairs = items.slice(2);
+  const autoSym = sym('cond__auto');
+  const bindings: Form[] = [autoSym, expr];
+  for (let i = 0; i + 1 < pairs.length; i += 2) {
+    const test = nth(pairs, i);
+    const step = nth(pairs, i + 1);
+    let threaded: Form;
+    if (step.data.type === 'list') {
+      const fn = nth(step.data.items, 0);
+      const args = step.data.items.slice(1);
+      threaded = makeList([fn, autoSym, ...args]);
+    } else {
+      threaded = makeList([step, autoSym]);
+    }
+    bindings.push(autoSym, makeList([sym('if'), test, threaded, autoSym]));
+  }
+  return makeList([sym('let*'), makeVector(bindings), autoSym], ...loc(form));
+});
+
+defmacro('cond->>', (items, form) => {
+  // (cond->> expr test1 form1 test2 form2 ...)
+  // → like cond-> but thread-last
+  const expr = nth(items, 1);
+  const pairs = items.slice(2);
+  const autoSym = sym('cond__auto');
+  const bindings: Form[] = [autoSym, expr];
+  for (let i = 0; i + 1 < pairs.length; i += 2) {
+    const test = nth(pairs, i);
+    const step = nth(pairs, i + 1);
+    let threaded: Form;
+    if (step.data.type === 'list') {
+      const fn = nth(step.data.items, 0);
+      const args = step.data.items.slice(1);
+      threaded = makeList([fn, ...args, autoSym]);
+    } else {
+      threaded = makeList([step, autoSym]);
+    }
+    bindings.push(autoSym, makeList([sym('if'), test, threaded, autoSym]));
+  }
+  return makeList([sym('let*'), makeVector(bindings), autoSym], ...loc(form));
+});
+
 defmacro('case', (items, form) => {
   // (case expr test1 result1 test2 result2 ... default?)
   // → (let* [case__auto expr] (case* case__auto t1 r1 t2 r2 ... default?))

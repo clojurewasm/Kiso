@@ -218,6 +218,36 @@ describe('do', () => {
   });
 });
 
+// -- condp, cond->, cond->> --
+
+describe('condp', () => {
+  it('expands to nested if with predicate', () => {
+    // (condp = x 1 "one" 2 "two" "default")
+    // → (let* [condp__auto (= 1 x)] (if condp__auto "one" (let* [condp__auto (= 2 x)] (if condp__auto "two" "default"))))
+    expect(ex1('(condp = x 1 "one" "default")')).toBe(
+      '(let* [condp__auto (= 1 x)] (if condp__auto "one" "default"))'
+    );
+  });
+});
+
+describe('cond->', () => {
+  it('expands to chained let with conditional threading', () => {
+    // (cond-> x true (f a)) → (let* [cond__auto x cond__auto (if true (f cond__auto a) cond__auto)] cond__auto)
+    expect(ex1('(cond-> x true (f a))')).toBe(
+      '(let* [cond__auto x cond__auto (if true (f cond__auto a) cond__auto)] cond__auto)'
+    );
+  });
+});
+
+describe('cond->>', () => {
+  it('expands to chained let with conditional thread-last', () => {
+    // (cond->> x true (f a)) → (let* [cond__auto x cond__auto (if true (f a cond__auto) cond__auto)] cond__auto)
+    expect(ex1('(cond->> x true (f a))')).toBe(
+      '(let* [cond__auto x cond__auto (if true (f a cond__auto) cond__auto)] cond__auto)'
+    );
+  });
+});
+
 // -- Non-macro forms pass through --
 
 describe('non-macro forms', () => {
