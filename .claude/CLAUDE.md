@@ -111,7 +111,7 @@ test/
 
 CW reference: `.claude/references/cw-reference.md` — check before implementing new modules.
 CLJS upstream: `.claude/references/cljs-upstream.md` — semantic reference and edge cases.
-Design docs: `.dev/design/` (01-architecture through 06-protocol-lazyseq).
+Design docs: `.dev/design/` (01-architecture through 07-su-framework).
 Roadmap: `@./.dev/roadmap.md` (phase planning).
 Decisions: `.dev/decisions.md` (architectural decisions).
 Deferred items: `.dev/checklist.md` (blockers to resolve).

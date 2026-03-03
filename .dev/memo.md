@@ -57,15 +57,25 @@ Items ordered by priority. Work top-down. Dependencies noted in brackets.
 24. Vite transform plugin
 25. HMR (hot module replacement for .cljs)
 
-### Batch G: su Framework [depends on: Batch F]
-26. defc macro
-27. defstyle macro
-28. su-runtime (reactive atoms, hiccup→DOM, CSS)
-29. Vite plugin (su-specific config + HMR)
+### su Prep: @kiso/cljs feedback items [can do during Batch D]
+S1. Atom tracking hook — add `_onDeref` to atom.ts (K04)
+S2. Atom addWatch return unsubscribe fn (K05)
+S3. Verify keyword edge cases for CSS selectors (K06)
+
+### Batch G: su Framework [depends on: Batch E + F]
+26. su-runtime: reactive.ts (track, effect, computed)
+27. su-runtime: hiccup.ts (renderHiccup, bind, mount)
+28. su-runtime: css.ts + lifecycle.ts
+29. defc macro (su/core.cljs)
+30. defstyle macro (su/core.cljs)
+31. su vite-plugin.ts (HMR)
+32. Dogfooding: todo-app
 
 ## Key Design References
 
 - Protocol + LazySeq: `.dev/design/06-protocol-lazyseq.md`
 - Mini Evaluator: `.dev/design/03-macros.md` (L150-334)
+- su Framework: `.dev/design/07-su-framework.md`
 - Scope decision: `.dev/decisions.md` D6
 - Protocol dispatch decision: `.dev/decisions.md` D7
+- su architecture decision: `.dev/decisions.md` D8

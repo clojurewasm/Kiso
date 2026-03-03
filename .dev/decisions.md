@@ -123,3 +123,32 @@ to their prototypes safely. These use a fallback path in `protocolFn`.
 **Design**: See `.dev/design/06-protocol-lazyseq.md` for full specification.
 
 **Affected**: `src/runtime/protocols.ts`, `src/analyzer/`, `src/codegen/emitter.ts`.
+
+## D8: su Architecture — Fine-Grained Signals + Direct DOM (No VDOM)
+
+**Date**: 2026-03-04
+
+su uses VanJS/Solid.js-style fine-grained reactivity with direct DOM manipulation.
+No virtual DOM, no React dependency, no diffing engine.
+
+**Core model**:
+- Kiso `atom` = su's state primitive (extended with tracking hook)
+- `computed()` = derived state with auto-dependency tracking via `deref` interception
+- `effect()` = side-effect that re-runs when tracked atoms change
+- `bind()` = DOM-level effect that replaces a node when dependencies change
+- `defc` macro = component definition, function runs once (Solid.js model)
+
+**Rationale** (from 12-framework comparative research):
+- VanJS proves the model works in ~141 LOC / 1KB
+- Fine-grained reactivity eliminates need for virtual DOM diffing
+- Kiso atom already exists — no new state primitive needed
+- Compile-time hiccup optimization possible (UIx AOT pattern)
+- Future TC39 Signals compatibility (API shape alignment)
+
+**Trade-off**: No virtual DOM means no snapshot-based testing of render output.
+su provides a test helper that captures DOM mutations instead (Replicant pattern).
+
+**Design**: See `.dev/design/07-su-framework.md` for full specification.
+
+**Affected**: `@kiso/su` package (separate from `@kiso/cljs`).
+`@kiso/cljs` impact: atom tracking hook (F1), watch unsubscribe (F2) — see design doc.

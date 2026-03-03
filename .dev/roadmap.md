@@ -120,9 +120,22 @@ Vite plugin for .cljs files, HMR support.
 
 ## Phase 7: su Framework — PENDING
 
-Web Components framework built on @kiso/cljs.
+Fine-grained reactive UI framework. No VDOM, no React. ~3KB gzipped.
+Design: `07-su-framework.md`. Decision: D8.
 
-- 7.1 defc macro (ClojureScript → Web Component)
-- 7.2 defstyle macro (CSS-as-data)
-- 7.3 su-runtime (reactive atoms, hiccup→DOM, CSS)
-- 7.4 Vite plugin (su-specific config + HMR)
+**Prerequisites from @kiso/cljs** (during earlier phases):
+- 7.0 Atom tracking hook + watch unsubscribe (K04, K05 — small atom.ts patch)
+
+**su-runtime** (pure TypeScript, can develop in parallel with Batches B-E):
+- 7.1 reactive.ts — track(), effect(), computed()
+- 7.2 hiccup.ts — renderHiccup(), bind(), mount(), tag parsing
+- 7.3 css.ts — injectStyle(), scopeClass(), CSS-as-data nesting
+- 7.4 lifecycle.ts — on-mount, on-unmount hooks
+
+**su macros** (require Batch E: mini evaluator):
+- 7.5 defc macro (su/core.cljs — component definition)
+- 7.6 defstyle macro (su/core.cljs — scoped CSS-as-data)
+
+**Integration**:
+- 7.7 su vite-plugin.ts — HMR for components + styles
+- 7.8 Dogfooding: todo-app (validates full @kiso/cljs + @kiso/su pipeline)
