@@ -4,6 +4,7 @@
 
 import { type Form } from '../reader/form.js';
 import { expandAll } from './macros.js';
+import { expandBinding } from './destructure.js';
 import type {
   Node, LetBinding, FnArity, LiteralNode, DefNode,
 } from './node.js';
@@ -151,11 +152,13 @@ export class Analyzer {
     const letScope = makeScope(scope);
 
     for (let i = 0; i < bindItems.length; i += 2) {
-      const name = bindItems[i]!;
-      if (name.data.type !== 'symbol') throw new Error('let* binding must be a symbol');
+      const pattern = bindItems[i]!;
       const init = this.analyzeForm(bindItems[i + 1]!, letScope);
-      bindings.push({ name: name.data.name, init });
-      letScope.locals.add(name.data.name);
+      const expanded = expandBinding(pattern, init, (f, s) => this.analyzeForm(f, s as Scope), letScope);
+      for (const b of expanded) {
+        bindings.push(b);
+        letScope.locals.add(b.name);
+      }
     }
 
     const body = items.slice(2).map((f) => this.analyzeForm(f, letScope));
@@ -198,22 +201,52 @@ export class Analyzer {
     const paramItems = paramsForm.data.items;
     const params: string[] = [];
     let restParam: string | null = null;
+    // Track destructured params: index → { syntheticName, pattern }
+    const destructured: { idx: number; synthetic: string; pattern: Form }[] = [];
 
     for (let i = 0; i < paramItems.length; i++) {
       const p = paramItems[i]!;
-      if (p.data.type !== 'symbol') throw new Error('fn* param must be a symbol');
-      if (p.data.name === '&') {
+      if (p.data.type === 'symbol' && p.data.name === '&') {
         const rest = paramItems[i + 1]!;
-        if (rest.data.type !== 'symbol') throw new Error('fn* rest param must be a symbol');
-        restParam = rest.data.name;
+        if (rest.data.type === 'symbol') {
+          restParam = rest.data.name;
+        } else {
+          const syntheticName = `__rest__`;
+          restParam = syntheticName;
+          destructured.push({ idx: i + 1, synthetic: syntheticName, pattern: rest });
+        }
         break;
       }
-      params.push(p.data.name);
+      if (p.data.type === 'symbol') {
+        params.push(p.data.name);
+      } else {
+        const syntheticName = `__p${i}__`;
+        params.push(syntheticName);
+        destructured.push({ idx: i, synthetic: syntheticName, pattern: p });
+      }
     }
 
     const fnScope = makeScope(parentScope, [...params, ...(restParam ? [restParam] : []), ...(fnName ? [fnName] : [])]);
+
+    // Expand destructured params into let bindings
+    const letBindings: LetBinding[] = [];
+    for (const d of destructured) {
+      const synthRef: Node = { type: 'var-ref', name: d.synthetic, local: true };
+      const expanded = expandBinding(d.pattern, synthRef, (f, s) => this.analyzeForm(f, s as Scope), fnScope);
+      for (const b of expanded) {
+        letBindings.push(b);
+        fnScope.locals.add(b.name);
+      }
+    }
+
     const body = items.slice(1).map((f) => this.analyzeForm(f, fnScope));
-    const bodyNode: Node = body.length === 1 ? body[0]! : { type: 'do', statements: body.slice(0, -1), ret: body[body.length - 1]! };
+    let bodyNode: Node = body.length === 1 ? body[0]! : { type: 'do', statements: body.slice(0, -1), ret: body[body.length - 1]! };
+
+    // Wrap body with destructure let bindings if needed
+    if (letBindings.length > 0) {
+      bodyNode = { type: 'let', bindings: letBindings, body: bodyNode };
+    }
+
     return { params, restParam, body: bodyNode };
   }
 
@@ -225,11 +258,11 @@ export class Analyzer {
     const loopScope = makeScope(scope);
 
     for (let i = 0; i < bindItems.length; i += 2) {
-      const name = bindItems[i]!;
-      if (name.data.type !== 'symbol') throw new Error('loop* binding must be a symbol');
+      const pattern = bindItems[i]!;
+      if (pattern.data.type !== 'symbol') throw new Error('loop* binding must be a symbol');
       const init = this.analyzeForm(bindItems[i + 1]!, loopScope);
-      bindings.push({ name: name.data.name, init });
-      loopScope.locals.add(name.data.name);
+      bindings.push({ name: pattern.data.name, init });
+      loopScope.locals.add(pattern.data.name);
     }
 
     const body = items.slice(2).map((f) => this.analyzeForm(f, loopScope));
