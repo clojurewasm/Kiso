@@ -10,9 +10,10 @@ import type { Node, FnArity, LetBinding, CatchClause, CaseNode, DeftypeNode, Def
 
 type EmitCtx = {
   loopBindings: string[] | null; // current loop/fn binding names for recur
+  nsAliases?: Map<string, string>; // ns → alias (e.g. "su.core" → "su")
 };
 
-const DEFAULT_CTX: EmitCtx = { loopBindings: null };
+const DEFAULT_CTX: EmitCtx = { loopBindings: null, nsAliases: new Map() };
 
 function emitNode(node: Node, ctx: EmitCtx): string {
   switch (node.type) {
@@ -21,6 +22,14 @@ function emitNode(node: Node, ctx: EmitCtx): string {
     case 'var-ref': {
       // js/Foo → Foo (JS global reference)
       if (node.name.startsWith('js/')) return node.name.slice(3);
+      // Resolve ns-qualified names using aliases: su.core/foo → su.foo
+      const slashIdx = node.name.indexOf('/');
+      if (slashIdx > 0) {
+        const ns = node.name.slice(0, slashIdx);
+        const local = node.name.slice(slashIdx + 1);
+        const alias = ctx.nsAliases?.get(ns);
+        if (alias) return `${alias}.${munge(local)}`;
+      }
       return munge(node.name);
     }
     case 'vector': return `vector(${node.items.map((n) => emitNode(n, ctx)).join(', ')})`;
@@ -58,7 +67,18 @@ export function emit(node: Node): string {
 
 /** Emit a complete module from a list of top-level nodes. */
 export function emitModule(nodes: Node[]): string {
-  const lines = nodes.map(emitTopLevel);
+  // Extract ns aliases for resolving qualified names
+  const nsAliases = new Map<string, string>();
+  for (const node of nodes) {
+    if (node.type === 'ns') {
+      for (const req of node.requires) {
+        if (req.alias) nsAliases.set(req.ns, req.alias);
+      }
+    }
+  }
+  const ctx: EmitCtx = { loopBindings: null, nsAliases };
+
+  const lines = nodes.map(n => emitTopLevelCtx(n, ctx));
   // Auto-import runtime functions used by collection literals
   const runtimeImports = collectRuntimeImports(nodes);
   if (runtimeImports.length > 0) {
@@ -68,18 +88,18 @@ export function emitModule(nodes: Node[]): string {
   return lines.join('\n');
 }
 
-function emitTopLevel(node: Node): string {
+function emitTopLevelCtx(node: Node, ctx: EmitCtx): string {
   if (node.type === 'def') {
-    const init = node.init ? emit(node.init) : 'null';
+    const init = node.init ? emitNode(node.init, ctx) : 'null';
     return `export const ${munge(node.name)} = ${init};`;
   }
   if (node.type === 'deftype') {
-    const code = emitDeftype(node, DEFAULT_CTX);
+    const code = emitDeftype(node, ctx);
     const factoryName = `__GT_${node.name}`;
     return `${code}\nexport { ${node.name}, ${factoryName} };`;
   }
   if (node.type === 'defrecord') {
-    const code = emitDefrecord(node, DEFAULT_CTX);
+    const code = emitDefrecord(node, ctx);
     const factoryName = `__GT_${node.name}`;
     const mapFactoryName = `map__GT_${node.name}`;
     return `${code}\nexport { ${node.name}, ${factoryName}, ${mapFactoryName} };`;
@@ -87,7 +107,7 @@ function emitTopLevel(node: Node): string {
   if (node.type === 'ns') {
     return emitNs(node);
   }
-  return `${emit(node)};`;
+  return `${emitNode(node, ctx)};`;
 }
 
 // -- Emitters --
@@ -432,6 +452,20 @@ function nsToPath(currentNs: string, targetNs: string): string {
 
 // -- Runtime Import Collection --
 
+const RUNTIME_FUNCTIONS = new Set([
+  'atom', 'deref', 'reset!', 'swap!', 'isAtom',
+  'cons', 'first', 'rest', 'count', 'list', 'seq', 'next',
+  'conj', 'get', 'assoc', 'dissoc',
+  'str', 'map', 'filter', 'reduce', 'apply',
+  'identity', 'constantly', 'comp', 'partial',
+  'not', 'nil?', 'some?',
+  'inc', 'dec', 'zero?', 'pos?', 'neg?',
+  'number?', 'string?', 'boolean?',
+  'equiv', 'symbol',
+  'defprotocol', 'protocolFn',
+  'cljToJs', 'jsToClj',
+]);
+
 /** Scan AST for runtime function usage and return needed import names. */
 function collectRuntimeImports(nodes: Node[]): string[] {
   const used = new Set<string>();
@@ -467,7 +501,7 @@ function scanNodeForRuntime(node: Node, used: Set<string>): void {
       // Detect runtime function calls by name
       if (node.fn.type === 'var-ref' && !node.fn.local) {
         const name = node.fn.name;
-        if (name === 'defprotocol' || name === 'protocolFn') used.add(name);
+        if (RUNTIME_FUNCTIONS.has(name)) used.add(munge(name));
       }
       scanNodeForRuntime(node.fn, used);
       for (const a of node.args) scanNodeForRuntime(a, used);
@@ -555,6 +589,7 @@ function scanNodeForRuntime(node: Node, used: Set<string>): void {
 
 export function munge(name: string): string {
   return name
+    .replace(/\//g, '.')
     .replace(/-/g, '_')
     .replace(/\?/g, '_QMARK_')
     .replace(/!/g, '_BANG_')

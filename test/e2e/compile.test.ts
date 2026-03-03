@@ -554,3 +554,51 @@ describe('deftype', () => {
     expect(js).toContain('constructor(name)');
   });
 });
+
+describe('ns-qualified symbols', () => {
+  it('emits ns-qualified var-ref as dot access', () => {
+    // su.core/define-component → su.core.define_component (valid JS)
+    const js = compile('su.core/define-component');
+    expect(js).toBe('su.core.define_component');
+  });
+
+  it('munge converts / to . for ns-qualified names', () => {
+    expect(munge('su.core/create-stylesheet')).toBe('su.core.create_stylesheet');
+    expect(munge('foo.bar/baz-qux')).toBe('foo.bar.baz_qux');
+  });
+
+  it('full module with ns emits valid JS for su calls', () => {
+    const js = compileModule(`
+      (ns my-app.core
+        (:require [su.core :as su]))
+      (defc todo-app [{:keys [title]}]
+        [:div title])
+    `);
+    // Must not contain / in function calls (invalid JS)
+    expect(js).not.toMatch(/su\.core\/\w/);
+    // Must use alias, not full namespace
+    expect(js).toContain('su.define_component');
+    expect(js).not.toContain('su.core.define_component');
+  });
+});
+
+describe('runtime auto-imports', () => {
+  it('auto-imports atom and deref', () => {
+    const js = compileModule(`
+      (ns my-app.core)
+      (def state (atom 0))
+      (def val (deref state))
+    `);
+    expect(js).toContain("import {");
+    expect(js).toContain('atom');
+    expect(js).toContain('deref');
+  });
+
+  it('auto-imports get', () => {
+    const js = compileModule(`
+      (ns my-app.core)
+      (def x (get m :key))
+    `);
+    expect(js).toContain('get');
+  });
+});
