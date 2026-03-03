@@ -38,9 +38,12 @@ export class ReaderError extends Error {
   }
 }
 
+const MAX_NESTING_DEPTH = 1024;
+
 class Reader {
   private tokenizer: Tokenizer;
   private peeked: Token | null = null;
+  private depth = 0;
 
   constructor(source: string) {
     this.tokenizer = new Tokenizer(source);
@@ -278,14 +281,21 @@ class Reader {
   }
 
   private readDelimited(closing: TokenKind): Form[] {
+    if (++this.depth > MAX_NESTING_DEPTH) {
+      throw new ReaderError('Maximum nesting depth exceeded', 0, 0);
+    }
     const items: Form[] = [];
-    for (;;) {
-      const tok = this.nextToken();
-      if (tok.kind === 'eof') {
-        throw this.error('EOF while reading collection', tok);
+    try {
+      for (;;) {
+        const tok = this.nextToken();
+        if (tok.kind === 'eof') {
+          throw this.error('EOF while reading collection', tok);
+        }
+        if (tok.kind === closing) break;
+        items.push(this.readForm(tok));
       }
-      if (tok.kind === closing) break;
-      items.push(this.readForm(tok));
+    } finally {
+      this.depth--;
     }
     return items;
   }

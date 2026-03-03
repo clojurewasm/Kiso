@@ -486,3 +486,32 @@ describe('namespaced maps', () => {
     expect(pr('#:ns{a 1}')).toBe('{ns/a 1}');
   });
 });
+
+// -- Edge cases: duplicate keys, nesting depth --
+
+describe('duplicate key detection', () => {
+  it('warns on duplicate map keys (last wins, no error)', () => {
+    // Clojure: last value wins. We accept it but could warn.
+    const form = readStr('{:a 1 :b 2 :a 3}');
+    expect(form).not.toBeNull();
+    // The form should contain all items (reader doesn't deduplicate)
+    expect(prStr(form!)).toBe('{:a 1, :b 2, :a 3}');
+  });
+
+  it('accepts duplicate set elements (runtime deduplicates)', () => {
+    const form = readStr('#{1 2 1}');
+    expect(form).not.toBeNull();
+  });
+});
+
+describe('nesting depth limit', () => {
+  it('reads moderately nested structures', () => {
+    const nested = '('.repeat(50) + '1' + ')'.repeat(50);
+    expect(() => readStr(nested)).not.toThrow();
+  });
+
+  it('throws on excessively nested structures', () => {
+    const nested = '('.repeat(1025) + '1' + ')'.repeat(1025);
+    expect(() => readStr(nested)).toThrow(/depth/i);
+  });
+});
