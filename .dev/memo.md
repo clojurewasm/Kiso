@@ -4,25 +4,19 @@ Session handover document. Read at session start.
 
 ## Current State
 
-- Reader complete: form, tokenizer, reader.
-- Macros: ~22 core macros implemented.
-- Analyzer + Codegen: 16 special forms, scope, interop, loop/recur, try/catch, letfn, dot, destructuring.
-- Runtime: hash, equiv, keyword, symbol, list, vector, hash-map, hash-set, atom, seq, core.
-- Codegen emits runtime calls: vector(), hashMap(), hashSet(), keyword(), EMPTY_LIST.
-- NS → ES6 modules: `:require` parsing + import/export emission.
-- Total: 799 tests passing, types clean.
+- Reader complete: form, tokenizer, reader, syntax-quote, namespaced maps, nesting depth limit.
+- Macros: ~24 core macros (incl. syntax-quote, defc, defstyle).
+- Analyzer + Codegen: 16 special forms, ns-alias resolution, runtime auto-imports.
+- Runtime: full data structures + atom (deref/reset!/swap! standalone fns) + barrel export.
+- su-runtime: reactive, component (formAssociated, delegatesFocus), hiccup, css, lifecycle, hmr.
+- Vite plugin: .cljs transform + HMR + alias resolution.
+- Demo: examples/hello-counter (working counter app in browser).
+- Total: 834 tests passing, types clean.
+- **All checklist items (K01-K11) resolved.**
 
 ## Current Task
 
-**Batch B, Item 11: defrecord*** — DONE
-
-- defrecord* special form → ES6 class with __kiso_type property
-- Generates ->Name factory + map->Name factory (keyword lookup)
-- Protocol methods same as deftype*
-- defrecord macro → delegates to defrecord*
-- 6 tests, 799 total
-
-**All task queue items complete.** Batches A-G fully done.
+**All task queue items and checklist items complete.** Batches A-H fully done.
 
 ## Task Queue
 
