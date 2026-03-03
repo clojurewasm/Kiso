@@ -4,24 +4,24 @@ Session handover document. Read at session start.
 
 ## Current State
 
-- Project initialized. No code yet.
+- Scaffolding complete. TypeScript + vitest working. 1 test passing.
 - Design docs complete: `.dev/design/01` through `05`.
 
 ## Current Task
 
-Phase 1: Project scaffolding — package.json, tsconfig, vitest, directory structure.
+Phase 1.2: Form data model — `src/reader/form.ts` + tests.
+Read `.dev/design/02-reader.md` (Form Data Model section) and CW `src/engine/reader/form.zig`.
 
 ## Previous Task
 
-(none)
+Phase 1.1: Project scaffolding — package.json, tsconfig, vitest, directory structure. DONE.
 
 ## Task Queue
 
-1. Project scaffolding (package.json, tsconfig, vitest, directory structure)
-2. Form data model (form.ts + tests)
-3. Tokenizer (tokenizer.ts + tests)
-4. Reader (reader.ts + tests)
-5. Core macros (macros.ts + tests)
+1. Form data model (form.ts + tests)
+2. Tokenizer (tokenizer.ts + tests)
+3. Reader (reader.ts + tests)
+4. Core macros (macros.ts + tests)
 
 ## References
 
