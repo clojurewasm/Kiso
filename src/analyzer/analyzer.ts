@@ -279,7 +279,50 @@ export class Analyzer {
   private analyzeNs(items: Form[], _scope: Scope): Node {
     const nameForm = items[1]!;
     if (nameForm.data.type !== 'symbol') throw new Error('ns requires a symbol name');
-    return { type: 'ns', name: nameForm.data.name, requires: [] };
+    const nsName = nameForm.data.ns ? `${nameForm.data.ns}.${nameForm.data.name}` : nameForm.data.name;
+    const requires: { ns: string; alias: string | null; refers: string[] }[] = [];
+
+    for (let i = 2; i < items.length; i++) {
+      const clause = items[i]!;
+      if (clause.data.type !== 'list' || clause.data.items.length === 0) continue;
+      const head = clause.data.items[0]!;
+      if (head.data.type !== 'keyword' || head.data.name !== 'require') continue;
+
+      // Parse each require spec: [ns.name :as alias :refer [names]]
+      for (let j = 1; j < clause.data.items.length; j++) {
+        const spec = clause.data.items[j]!;
+        if (spec.data.type !== 'vector') continue;
+        const specItems = spec.data.items;
+        if (specItems.length === 0) continue;
+
+        const nsSym = specItems[0]!;
+        if (nsSym.data.type !== 'symbol') continue;
+        const reqNs = nsSym.data.ns ? `${nsSym.data.ns}.${nsSym.data.name}` : nsSym.data.name;
+        let alias: string | null = null;
+        const refers: string[] = [];
+
+        for (let k = 1; k < specItems.length; k++) {
+          const kw = specItems[k]!;
+          if (kw.data.type !== 'keyword') continue;
+          if (kw.data.name === 'as' && k + 1 < specItems.length) {
+            const aliasSym = specItems[k + 1]!;
+            if (aliasSym.data.type === 'symbol') alias = aliasSym.data.name;
+            k++;
+          } else if (kw.data.name === 'refer' && k + 1 < specItems.length) {
+            const referVec = specItems[k + 1]!;
+            if (referVec.data.type === 'vector') {
+              for (const r of referVec.data.items) {
+                if (r.data.type === 'symbol') refers.push(r.data.name);
+              }
+            }
+            k++;
+          }
+        }
+        requires.push({ ns: reqNs, alias, refers });
+      }
+    }
+
+    return { type: 'ns', name: nsName, requires };
   }
 
   private analyzeJsStar(items: Form[], _scope: Scope): Node {

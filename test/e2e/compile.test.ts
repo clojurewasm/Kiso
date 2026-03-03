@@ -255,6 +255,42 @@ describe('module compilation', () => {
   });
 });
 
+// -- NS require --
+
+describe('ns require compilation', () => {
+  it('parses :as alias', () => {
+    const js = compileModule('(ns my.app (:require [my.util :as u]))');
+    expect(js).toContain('import * as u from');
+  });
+
+  it('parses :refer names', () => {
+    const js = compileModule('(ns my.app (:require [my.util :refer [helper]]))');
+    expect(js).toContain('import { helper }');
+  });
+
+  it('parses :as and :refer together', () => {
+    const js = compileModule('(ns my.app (:require [my.util :as u :refer [helper]]))');
+    expect(js).toContain('import * as u from');
+    expect(js).toContain('import { helper }');
+  });
+
+  it('maps ns to relative path', () => {
+    const js = compileModule('(ns my.app (:require [my.util :as u]))');
+    expect(js).toContain('./util.js');
+  });
+
+  it('maps different-package ns to full path', () => {
+    const js = compileModule('(ns my.app (:require [other.lib :as o]))');
+    expect(js).toContain('other/lib');
+  });
+
+  it('auto-imports runtime when collection literals are used', () => {
+    const js = compileModule('(ns my.app) (def v [1 2])');
+    expect(js).toContain('import');
+    expect(js).toContain('vector');
+  });
+});
+
 // -- loop/recur --
 
 describe('loop/recur compilation', () => {

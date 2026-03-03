@@ -48,7 +48,14 @@ export function emit(node: Node): string {
 
 /** Emit a complete module from a list of top-level nodes. */
 export function emitModule(nodes: Node[]): string {
-  return nodes.map(emitTopLevel).join('\n');
+  const lines = nodes.map(emitTopLevel);
+  // Auto-import runtime functions used by collection literals
+  const runtimeImports = collectRuntimeImports(nodes);
+  if (runtimeImports.length > 0) {
+    const importLine = `import { ${runtimeImports.join(', ')} } from '@kiso/cljs/runtime';`;
+    lines.unshift(importLine);
+  }
+  return lines.join('\n');
 }
 
 function emitTopLevel(node: Node): string {
@@ -229,7 +236,143 @@ function emitTry(
 }
 
 function emitNs(node: { name: string; requires: { ns: string; alias: string | null; refers: string[] }[] }): string {
-  return `/* ns: ${node.name} */`;
+  const lines: string[] = [];
+  for (const req of node.requires) {
+    const path = nsToPath(node.name, req.ns);
+    if (req.alias) {
+      lines.push(`import * as ${munge(req.alias)} from '${path}';`);
+    }
+    if (req.refers.length > 0) {
+      const names = req.refers.map(munge).join(', ');
+      lines.push(`import { ${names} } from '${path}';`);
+    }
+    if (!req.alias && req.refers.length === 0) {
+      lines.push(`import '${path}';`);
+    }
+  }
+  return lines.join('\n');
+}
+
+/** Map a Clojure ns to a JS module path relative to the current ns. */
+function nsToPath(currentNs: string, targetNs: string): string {
+  const currentParts = currentNs.split('.');
+  const targetParts = targetNs.split('.');
+
+  // Check if same top-level package
+  if (currentParts[0] === targetParts[0]) {
+    // Relative path: strip common prefix, then navigate
+    let common = 0;
+    while (common < currentParts.length - 1 && common < targetParts.length - 1
+      && currentParts[common] === targetParts[common]) {
+      common++;
+    }
+    const ups = currentParts.length - 1 - common;
+    const prefix = ups === 0 ? './' : '../'.repeat(ups);
+    const rest = targetParts.slice(common).join('/');
+    return `${prefix}${rest}.js`;
+  }
+
+  // Different package: use full dotted→slashed path
+  return `${targetParts.join('/')}.js`;
+}
+
+// -- Runtime Import Collection --
+
+/** Scan AST for runtime function usage and return needed import names. */
+function collectRuntimeImports(nodes: Node[]): string[] {
+  const used = new Set<string>();
+  for (const node of nodes) {
+    scanNodeForRuntime(node, used);
+  }
+  return [...used].sort();
+}
+
+function scanNodeForRuntime(node: Node, used: Set<string>): void {
+  switch (node.type) {
+    case 'vector': {
+      used.add('vector');
+      for (const item of node.items) scanNodeForRuntime(item, used);
+      break;
+    }
+    case 'map': {
+      used.add('hashMap');
+      for (const k of node.keys) scanNodeForRuntime(k, used);
+      for (const v of node.vals) scanNodeForRuntime(v, used);
+      break;
+    }
+    case 'set': {
+      used.add('hashSet');
+      for (const item of node.items) scanNodeForRuntime(item, used);
+      break;
+    }
+    case 'keyword': {
+      used.add('keyword');
+      break;
+    }
+    case 'invoke': {
+      scanNodeForRuntime(node.fn, used);
+      for (const a of node.args) scanNodeForRuntime(a, used);
+      break;
+    }
+    case 'if': {
+      scanNodeForRuntime(node.test, used);
+      scanNodeForRuntime(node.then, used);
+      scanNodeForRuntime(node.else, used);
+      break;
+    }
+    case 'do': {
+      for (const s of node.statements) scanNodeForRuntime(s, used);
+      scanNodeForRuntime(node.ret, used);
+      break;
+    }
+    case 'let': case 'loop': {
+      for (const b of node.bindings) scanNodeForRuntime(b.init, used);
+      scanNodeForRuntime(node.body, used);
+      break;
+    }
+    case 'fn': {
+      for (const a of node.arities) scanNodeForRuntime(a.body, used);
+      break;
+    }
+    case 'def': {
+      if (node.init) scanNodeForRuntime(node.init, used);
+      break;
+    }
+    case 'throw': {
+      scanNodeForRuntime(node.expr, used);
+      break;
+    }
+    case 'try': {
+      scanNodeForRuntime(node.body, used);
+      for (const c of node.catches) scanNodeForRuntime(c.body, used);
+      if (node.finally) scanNodeForRuntime(node.finally, used);
+      break;
+    }
+    case 'new': {
+      scanNodeForRuntime(node.ctor, used);
+      for (const a of node.args) scanNodeForRuntime(a, used);
+      break;
+    }
+    case 'interop-call': {
+      scanNodeForRuntime(node.target, used);
+      for (const a of node.args) scanNodeForRuntime(a, used);
+      break;
+    }
+    case 'interop-field': {
+      scanNodeForRuntime(node.target, used);
+      break;
+    }
+    case 'set!': {
+      scanNodeForRuntime(node.target, used);
+      scanNodeForRuntime(node.value, used);
+      break;
+    }
+    case 'recur': {
+      for (const a of node.args) scanNodeForRuntime(a, used);
+      break;
+    }
+    // literal, var-ref, js-raw, ns: no runtime needed
+  }
 }
 
 // -- Name Munging --
