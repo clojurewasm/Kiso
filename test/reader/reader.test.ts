@@ -461,3 +461,28 @@ describe('source location', () => {
     expect(forms[1].line).toBe(2);
   });
 });
+
+// -- Namespaced maps --
+
+describe('namespaced maps', () => {
+  it('reads #:ns{:a 1} as {:ns/a 1}', () => {
+    expect(pr('#:foo{:a 1 :b 2}')).toBe('{:foo/a 1, :foo/b 2}');
+  });
+
+  it('reads #::ns{:a 1} (auto-resolve alias)', () => {
+    expect(pr('#::bar{:a 1}')).toBe('{:bar/a 1}');
+  });
+
+  it('preserves already-qualified keys', () => {
+    expect(pr('#:foo{:other/a 1}')).toBe('{:other/a 1}');
+  });
+
+  it('only qualifies keyword keys, not values', () => {
+    expect(pr('#:ns{:k "v"}')).toBe('{:ns/k "v"}');
+  });
+
+  it('works with symbol keys', () => {
+    // Symbol keys also get ns-qualified
+    expect(pr('#:ns{a 1}')).toBe('{ns/a 1}');
+  });
+});

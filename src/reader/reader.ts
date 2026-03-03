@@ -101,6 +101,7 @@ class Reader {
       case 'hash_lparen': return this.readFnLit(token);
       case 'hash': return this.readTagged(token);
       case 'backtick': return this.readWrapped('syntax-quote', token);
+      case 'hash_colon': return this.readNsMap(token);
       case 'rparen': throw this.error('Unmatched )', token);
       case 'rbracket': throw this.error('Unmatched ]', token);
       case 'rbrace': throw this.error('Unmatched }', token);
@@ -231,6 +232,42 @@ class Reader {
     const items = this.readDelimited('rbrace');
     if (items.length % 2 !== 0) {
       throw this.error('Map literal must have even number of forms', token);
+    }
+    return makeMap(items, token.line, token.col);
+  }
+
+  private readNsMap(token: Token): Form {
+    // token.text is "#:foo", "#::bar", or "#::"
+    const text = token.text;
+    let ns: string;
+    if (text.startsWith('#::')) {
+      // #::bar or #:: (auto-resolve — use the suffix as ns for now)
+      ns = text.slice(3); // "" for #::, "bar" for #::bar
+    } else {
+      // #:foo
+      ns = text.slice(2);
+    }
+
+    // Next token must be lbrace
+    const next = this.nextToken();
+    if (next.kind !== 'lbrace') {
+      throw this.error('Expected { after namespaced map prefix', next);
+    }
+    const items = this.readDelimited('rbrace');
+    if (items.length % 2 !== 0) {
+      throw this.error('Map literal must have even number of forms', token);
+    }
+
+    // Qualify unqualified keys
+    if (ns) {
+      for (let i = 0; i < items.length; i += 2) {
+        const key = items[i]!;
+        if (key.data.type === 'keyword' && !(key.data.ns as string | null)) {
+          items[i] = makeKeyword(ns, key.data.name as string, key.line, key.col);
+        } else if (key.data.type === 'symbol' && !(key.data.ns as string | null)) {
+          items[i] = makeSymbol(ns, key.data.name as string, key.line, key.col);
+        }
+      }
     }
     return makeMap(items, token.line, token.col);
   }
