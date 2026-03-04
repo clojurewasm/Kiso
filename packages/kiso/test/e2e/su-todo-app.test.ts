@@ -67,11 +67,12 @@ describe('su todo-app dogfooding', () => {
   });
 
   describe('defstyle → full pipeline', () => {
-    it('compiles defstyle to create-stylesheet call', () => {
+    it('compiles defstyle to const with create-stylesheet', () => {
       const js = compileForm(`
         (defstyle counter-style
           [:.counter {:display "flex" :gap "8px"}])
       `);
+      expect(js).toContain('const counter_style');
       expect(js).toContain('create_stylesheet');
       expect(js).toContain('"counter-style"');
       expect(js).toContain('.counter');
@@ -106,17 +107,21 @@ describe('su todo-app dogfooding', () => {
       expect(items[0]!.data.name).toBe('define-component');
     });
 
-    it('defstyle expands to su.core/create-stylesheet', () => {
+    it('defstyle expands to (def name (su.core/create-stylesheet ...))', () => {
       const forms = readAllStr(`
         (defstyle my-style
           [:.foo {:color "red"}])
       `);
       const expanded = expandAll(forms[0]!);
       expect(expanded.data.type).toBe('list');
-      const items = (expanded.data as { items: unknown[] }).items as Array<{ data: { type: string; ns?: string; name?: string } }>;
-      expect(items[0]!.data.type).toBe('symbol');
-      expect(items[0]!.data.ns).toBe('su.core');
-      expect(items[0]!.data.name).toBe('create-stylesheet');
+      const outer = (expanded.data as { items: unknown[] }).items as Array<{ data: { type: string; ns?: string; name?: string; items?: unknown[] } }>;
+      // outer: (def my-style (su.core/create-stylesheet ...))
+      expect(outer[0]!.data.name).toBe('def');
+      expect(outer[1]!.data.name).toBe('my-style');
+      expect(outer[2]!.data.type).toBe('list');
+      const inner = outer[2]!.data.items as Array<{ data: { type: string; ns?: string; name?: string } }>;
+      expect(inner[0]!.data.ns).toBe('su.core');
+      expect(inner[0]!.data.name).toBe('create-stylesheet');
     });
 
     it('rejects defc without hyphen', () => {

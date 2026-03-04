@@ -922,7 +922,7 @@ function extractKeysFromDestructure(mapForm: Form): string[] {
 
 defmacro('defstyle', (items, form) => {
   // (defstyle name [...css-data...])
-  // → (su.core/create-stylesheet "name" "css-text")
+  // → (def name (su.core/create-stylesheet "name" "css-text"))
   const nameForm = nth(items, 1);
   if (nameForm.data.type !== 'symbol') {
     throw new Error('defstyle: name must be a symbol');
@@ -936,9 +936,13 @@ defmacro('defstyle', (items, form) => {
   const cssText = compileCssData(cssData);
 
   return makeList([
-    makeSymbol('su.core', 'create-stylesheet', ...loc(form)),
-    makeStr(nameForm.data.name),
-    makeStr(cssText),
+    makeSymbol(null, 'def', ...loc(form)),
+    nameForm,
+    makeList([
+      makeSymbol('su.core', 'create-stylesheet', ...loc(form)),
+      makeStr(nameForm.data.name),
+      makeStr(cssText),
+    ], ...loc(form)),
   ], ...loc(form));
 });
 
