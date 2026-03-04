@@ -232,11 +232,10 @@ su provides reactive Web Components using ClojureScript + Shadow DOM:
 
 (defc my-counter [{:keys [initial]}]
   (let [count (atom (or initial 0))]
-    (fn []
-      [:div.counter
-        [:span "Count: " @count]
-        [:button {:on-click #(swap! count inc)} "+"]
-        [:button {:on-click #(swap! count dec)} "-"]])))
+    [:div.counter
+      [:span "Count: " @count]
+      [:button {:on-click #(swap! count inc)} "+"]
+      [:button {:on-click #(swap! count dec)} "-"]]))
 
 (defstyle my-counter
   [:.counter {:display "flex" :gap "8px" :align-items "center"}]
