@@ -68,8 +68,8 @@ function emitNode(node: Node, ctx: EmitCtx): string {
     case 'throw': return emitThrow(node, ctx);
     case 'try': return emitTry(node, ctx);
     case 'new': return `new ${emitNode(node.ctor, ctx)}(${node.args.map((n) => emitNode(n, ctx)).join(', ')})`;
-    case 'interop-call': return `${emitNode(node.target, ctx)}.${node.method}(${node.args.map((n) => emitNode(n, ctx)).join(', ')})`;
-    case 'interop-field': return `${emitNode(node.target, ctx)}.${node.field}`;
+    case 'interop-call': return `${emitInteropTarget(node.target, ctx)}.${node.method}(${node.args.map((n) => emitNode(n, ctx)).join(', ')})`;
+    case 'interop-field': return `${emitInteropTarget(node.target, ctx)}.${node.field}`;
     case 'set!': return `(${emitNode(node.target, ctx)} = ${emitNode(node.value, ctx)})`;
     case 'js-raw': return node.code;
     case 'case*': return emitCase(node, ctx);
@@ -181,6 +181,13 @@ function emitTopLevelCtx(node: Node, ctx: EmitCtx): string {
 }
 
 // -- Emitters --
+
+function emitInteropTarget(target: Node, ctx: EmitCtx): string {
+  const code = emitNode(target, ctx);
+  // Numeric literals need parens to avoid `42.method()` ambiguity
+  if (target.type === 'literal' && typeof target.value === 'number') return `(${code})`;
+  return code;
+}
 
 function emitLiteral(node: { value: unknown; jsType: string }): string {
   if (node.value === null) return 'null';

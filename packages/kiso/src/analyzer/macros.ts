@@ -610,7 +610,17 @@ defmacro('..', (items, form) => {
   const calls = items.slice(2);
   return calls.reduce<Form>((acc, call) => {
     if (call.data.type === 'list') {
-      return makeList([sym('.'), acc, ...call.data.items], ...loc(form));
+      // (.method args) → (. acc method args)
+      const head = nth(call.data.items, 0);
+      const args = call.data.items.slice(1);
+      if (head.data.type === 'symbol' && head.data.name.startsWith('.') && !head.data.name.startsWith('.-')) {
+        return makeList([sym('.'), acc, sym(head.data.name.slice(1)), ...args], ...loc(form));
+      }
+      return makeList([sym('.'), acc, head, ...args], ...loc(form));
+    }
+    // bare .method → strip dot for (. acc method)
+    if (call.data.type === 'symbol' && call.data.name.startsWith('.') && !call.data.name.startsWith('.-')) {
+      return makeList([sym('.'), acc, sym(call.data.name.slice(1))], ...loc(form));
     }
     return makeList([sym('.'), acc, call], ...loc(form));
   }, target);
