@@ -1,20 +1,18 @@
 (ns task-manager.core
   (:require [su.core :as su :refer [defc defstyle]]))
 
-;; -- State --
-
-(def tasks (atom []))
-(def next-id (atom 0))
-(def filter-mode (atom :all))
+;; -- DevTools Trace --
+;; Enable atom state tracing in dev console
+(su/enable-trace)
 
 ;; -- Helpers --
 
-(defn add-task! [text]
+(defn add-task! [tasks next-id text]
   (when (not= text "")
     (let [id (swap! next-id inc)]
       (swap! tasks conj {:id id :text text :done false}))))
 
-(defn toggle-task! [id]
+(defn toggle-task! [tasks id]
   (swap! tasks
          (fn [ts]
            (map (fn [t]
@@ -23,12 +21,12 @@
                     t))
                 ts))))
 
-(defn remove-task! [id]
+(defn remove-task! [tasks id]
   (swap! tasks
          (fn [ts]
            (filter (fn [t] (not= (:id t) id)) ts))))
 
-(defn filtered-tasks []
+(defn filtered-tasks [tasks filter-mode]
   (let [mode @filter-mode
         ts @tasks]
     (cond
@@ -59,6 +57,8 @@
    [:div {:class "label"} label]])
 
 ;; -- task-item --
+;; Receives the tasks atom via Props Channeling (:atom prop type)
+;; and the task-id as a regular attribute prop.
 
 (defstyle task-item
   [:host {:display "block"}]
@@ -85,19 +85,22 @@
 (defc task-item
   {:props {:task-id "number" :text "string" :done "boolean"}}
   [{:keys [task-id text done]}]
-  [:div {:class "row"}
-   [:input {:type "checkbox"
-            :class "checkbox"
-            :on-click (fn [_] (toggle-task! task-id))}]
-   [:span {:class "text"
-           :style {:text-decoration (if done "line-through" "none")
-                   :color (if done "#94a3b8" "#1e293b")}}
-    text]
-   [:button {:class "delete"
-             :on-click (fn [_] (remove-task! task-id))}
-    "\u00D7"]])
+  (let [;; Context API: get tasks atom from ancestor component
+        tasks (su/use-context :tasks)]
+    [:div {:class "row"}
+     [:input {:type "checkbox"
+              :class "checkbox"
+              :on-click (fn [_] (toggle-task! tasks task-id))}]
+     [:span {:class "text"
+             :style {:text-decoration (if done "line-through" "none")
+                     :color (if done "#94a3b8" "#1e293b")}}
+      text]
+     [:button {:class "delete"
+               :on-click (fn [_] (remove-task! tasks task-id))}
+      "\u00D7"]]))
 
 ;; -- task-input --
+;; Uses Context API to get tasks and next-id atoms from ancestor.
 
 (defstyle task-input
   [:host {:display "block"}]
@@ -118,7 +121,11 @@
               :font-weight "500"}])
 
 (defc task-input []
-  (let [input-text (atom "")]
+  (let [;; Context API: get shared atoms from ancestor
+        tasks   (su/use-context :tasks)
+        next-id (su/use-context :next-id)
+        ;; Local state with label for DevTools
+        input-text (atom "" "input-text")]
     [:div {:class "row"}
      [:input {:class "text-input"
               :placeholder "Add a new task..."
@@ -126,16 +133,17 @@
                           (reset! input-text (.-value (.-target e))))
               :on-keydown (fn [e]
                             (when (= (.-key e) "Enter")
-                              (add-task! @input-text)
+                              (add-task! tasks next-id @input-text)
                               (set! (.-value (.-target e)) "")
                               (reset! input-text "")))}]
      [:button {:class "add-btn"
                :on-click (fn [_]
-                           (add-task! @input-text)
+                           (add-task! tasks next-id @input-text)
                            (reset! input-text ""))}
       "Add"]]))
 
 ;; -- filter-bar --
+;; Uses Context API to get filter-mode atom from ancestor.
 
 (defstyle filter-bar
   [:host {:display "block"}]
@@ -147,18 +155,22 @@
           :cursor "pointer"}])
 
 (defc filter-bar []
-  (fn []
-    (let [mode @filter-mode]
-      [:div {:class "filters"}
-       (map (fn [m]
-              [:button {:class "btn"
-                        :style {:background (if (= mode m) "#6366f1" "#fff")
-                                :color (if (= mode m) "#fff" "#374151")}
-                        :on-click (fn [_] (reset! filter-mode m))}
-               (name m)])
-            [:all :active :done])])))
+  (let [;; Context API: get filter-mode from ancestor
+        filter-mode (su/use-context :filter-mode)]
+    (fn []
+      (let [mode @filter-mode]
+        [:div {:class "filters"}
+         (map (fn [m]
+                [:button {:class "btn"
+                          :style {:background (if (= mode m) "#6366f1" "#fff")
+                                  :color (if (= mode m) "#fff" "#374151")}
+                          :on-click (fn [_] (reset! filter-mode m))}
+                 (name m)])
+              [:all :active :done])]))))
 
 ;; -- task-list --
+;; Receives tasks atom via Props Channeling (:atom prop type).
+;; Gets filter-mode from Context API.
 
 (defstyle task-list
   [:host {:display "block"}]
@@ -167,19 +179,26 @@
             :font-size "14px"
             :padding "24px 0"}])
 
-(defc task-list []
-  (fn []
-    (let [ts (filtered-tasks)]
-      [:div
-       (if (= 0 (count ts))
-         [:p {:class "empty"} "No tasks yet. Add one above!"]
-         (map (fn [t]
-                [::task-item {:task-id (:id t)
-                              :text (:text t)
-                              :done (:done t)}])
-              ts))])))
+(defc task-list
+  {:props {:tasks :atom}}
+  [{:keys [tasks]}]
+  (let [;; Context API: get filter-mode from ancestor
+        filter-mode (su/use-context :filter-mode)]
+    (fn []
+      (let [ts (filtered-tasks tasks filter-mode)]
+        [:div
+         (if (= 0 (count ts))
+           [:p {:class "empty"} "No tasks yet. Add one above!"]
+           (map (fn [t]
+                  [::task-item {:task-id (:id t)
+                                :text (:text t)
+                                :done (:done t)}])
+                ts))]))))
 
 ;; -- task-app (root) --
+;; Owns all state as labeled atoms.
+;; Provides atoms to descendants via Context API.
+;; Passes tasks atom to task-list via Props Channeling.
 
 (defstyle task-app
   [:host {:font-family "'Inter', system-ui, sans-serif"
@@ -200,23 +219,32 @@
   [:.stats {:display "flex" :gap "12px" :margin-bottom "20px"}])
 
 (defc task-app []
-  [:div {:class "container"}
-   [:div {:class "header"}
-    [:h1 {:class "header-title"} "Task Manager"]
-    [:p {:class "header-sub"} "Built with Kiso + su framework"]]
-   [:div {:class "body"}
-    (fn []
-      (let [ts @tasks
-            total (count ts)
-            done-count (count (filter :done ts))
-            active (- total done-count)]
-        [:div {:class "stats"}
-         [::stat-card {:label "Total" :count (str total) :color "#6366f1"}]
-         [::stat-card {:label "Active" :count (str active) :color "#f59e0b"}]
-         [::stat-card {:label "Done" :count (str done-count) :color "#10b981"}]]))
-    [::task-input]
-    [::filter-bar]
-    [::task-list]]])
+  (let [;; All state owned here, with DevTools labels
+        tasks       (atom [] "tasks")
+        next-id     (atom 0 "next-id")
+        filter-mode (atom :all "filter-mode")]
+    ;; Context API: provide state to all descendants (crosses Shadow DOM)
+    (su/provide :tasks tasks)
+    (su/provide :next-id next-id)
+    (su/provide :filter-mode filter-mode)
+    [:div {:class "container"}
+     [:div {:class "header"}
+      [:h1 {:class "header-title"} "Task Manager"]
+      [:p {:class "header-sub"} "Built with Kiso + su framework"]]
+     [:div {:class "body"}
+      (fn []
+        (let [ts @tasks
+              total (count ts)
+              done-count (count (filter :done ts))
+              active (- total done-count)]
+          [:div {:class "stats"}
+           [::stat-card {:label "Total" :count (str total) :color "#6366f1"}]
+           [::stat-card {:label "Active" :count (str active) :color "#f59e0b"}]
+           [::stat-card {:label "Done" :count (str done-count) :color "#10b981"}]]))
+      [::task-input]
+      [::filter-bar]
+      ;; Props Channeling: pass tasks atom as JS property (not stringified)
+      [::task-list {:tasks tasks}]]]))
 
 ;; Mount to page
 (su/mount (js/document.getElementById "app")
