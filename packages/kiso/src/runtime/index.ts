@@ -44,7 +44,7 @@ export {
   // Printing
   println, print_fn as print,
   // Collection access
-  second, last, butlast, peek, pop, subvec, not_empty, empty_p, concat,
+  nth, second, last, butlast, peek, pop, subvec, not_empty, empty_p, concat,
   // Seq batch 2
   mapcat, map_indexed, remove, keep,
   flatten, distinct, dedupe,

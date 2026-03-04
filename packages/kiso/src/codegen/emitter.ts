@@ -47,6 +47,12 @@ function emitNode(node: Node, ctx: EmitCtx): string {
         const local = node.name.slice(slashIdx + 1);
         const alias = ctx.nsAliases?.get(ns);
         if (alias) return `${alias}.${munge(local)}`;
+        // Check if ns is itself an alias (e.g. su/mount where su is alias for su.core)
+        if (ctx.nsAliases) {
+          for (const [, a] of ctx.nsAliases) {
+            if (a === ns) return `${munge(ns)}.${munge(local)}`;
+          }
+        }
         // No explicit alias: auto-generate namespace import
         if (ctx.autoImports) {
           if (!ctx.autoImports.has(ns)) {
@@ -200,6 +206,13 @@ function emitTopLevelCtx(node: Node, ctx: EmitCtx): string {
   }
   if (node.type === 'ns') {
     return emitNs(node);
+  }
+  // Flatten top-level do blocks (e.g. from defprotocol/defmulti macro expansion)
+  if (node.type === 'do') {
+    const parts = [...node.statements, node.ret]
+      .filter((n) => n.type !== 'literal' || n.value !== null)
+      .map((n) => emitTopLevelCtx(n, ctx));
+    return parts.join('\n');
   }
   return `${emitNode(node, ctx)};`;
 }
@@ -675,7 +688,7 @@ const RUNTIME_FUNCTIONS = new Set([
   // Printing
   'println', 'print',
   // Collection access
-  'second', 'last', 'butlast', 'peek', 'pop', 'subvec', 'not-empty',
+  'nth', 'second', 'last', 'butlast', 'peek', 'pop', 'subvec', 'not-empty',
   // Seq batch 2
   'mapcat', 'map-indexed', 'remove', 'keep',
   'flatten', 'distinct', 'dedupe',

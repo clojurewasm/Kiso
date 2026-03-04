@@ -1,5 +1,7 @@
 // clojure.string — String manipulation functions matching ClojureScript semantics.
 
+import { toArray } from './seq.js';
+
 /** Returns true if s is nil, empty, or contains only whitespace. */
 export function blank_p(s: string | null | undefined): boolean {
   if (s == null) return true;
@@ -37,13 +39,18 @@ export function index_of(s: string, value: string, fromIndex?: number): number {
 }
 
 /** Returns a string of all elements in coll separated by an optional separator. */
-export function join(separator: string | unknown[], coll?: unknown[]): string {
+export function join(separator: string | unknown, coll?: unknown): string {
   if (coll === undefined) {
     // join(coll) — no separator
-    const items = separator as unknown[];
-    return items.map(String).join('');
+    return seqToArray(separator).map(String).join('');
   }
-  return coll.map(String).join(separator as string);
+  return seqToArray(coll).map(String).join(separator as string);
+}
+
+/** Convert any seqable/iterable to a JS array for join. */
+function seqToArray(coll: unknown): unknown[] {
+  if (Array.isArray(coll)) return coll;
+  return toArray(coll);
 }
 
 /** Returns the last index of value in s. */

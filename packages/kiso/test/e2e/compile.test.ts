@@ -388,6 +388,13 @@ describe('ns require compilation', () => {
     expect(js).toContain('import');
     expect(js).toContain('vector');
   });
+
+  it('does not duplicate import when alias matches prefix in qualified call', () => {
+    const js = compileModule('(ns my.app (:require [su.core :as su])) (su/mount 1)');
+    const importCount = (js.match(/import \* as su/g) || []).length;
+    expect(importCount).toBe(1);
+    expect(js).toContain('su.mount');
+  });
 });
 
 // -- loop/recur --
@@ -634,6 +641,19 @@ describe('defprotocol + protocolFn', () => {
     const js = compileModule(code);
     expect(js).toContain('defprotocol');
     expect(js).toContain('protocolFn');
+  });
+
+  it('emits top-level export let statements (not comma expression)', () => {
+    const js = compileModule(`
+      (defprotocol IFoo
+        (foo [this])
+        (bar [this x]))
+    `);
+    expect(js).toContain('export let IFoo = defprotocol');
+    expect(js).toContain('export let foo = protocolFn');
+    expect(js).toContain('export let bar = protocolFn');
+    // Must not contain comma-expression style
+    expect(js).not.toMatch(/\(let /);
   });
 });
 

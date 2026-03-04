@@ -1,7 +1,11 @@
 import { describe, it, expect } from 'vitest';
 import { seq, first, rest, next, toArray, into } from '../../src/runtime/seq.js';
 import { list, EMPTY_LIST } from '../../src/runtime/list.js';
-import { vector, EMPTY_VECTOR } from '../../src/runtime/vector.js';
+import { vector, EMPTY_VECTOR, isVector } from '../../src/runtime/vector.js';
+import { hashMap, EMPTY_MAP } from '../../src/runtime/hash-map.js';
+import { hashSet, EMPTY_SET } from '../../src/runtime/hash-set.js';
+import { keyword } from '../../src/runtime/keyword.js';
+import { get } from '../../src/runtime/core.js';
 
 describe('seq on nil', () => {
   it('seq(null) returns null', () => {
@@ -106,5 +110,40 @@ describe('into', () => {
     expect(result.count).toBe(3);
     expect(result.nth(0)).toBe(1);
     expect(result.nth(2)).toBe(3);
+  });
+});
+
+describe('seq on hash-map', () => {
+  it('seq on empty map returns null', () => {
+    expect(seq(EMPTY_MAP)).toBe(null);
+  });
+
+  it('seq on map returns entries as [key val] vectors', () => {
+    const m = hashMap(keyword('a'), 1, keyword('b'), 2);
+    const s = seq(m);
+    expect(s).not.toBe(null);
+    const entry = first(s);
+    expect(isVector(entry)).toBe(true);
+    expect(get(entry, 0, null)).toEqual(keyword('a'));
+    expect(get(entry, 1, null)).toBe(1);
+  });
+
+  it('can iterate all map entries via seq', () => {
+    const m = hashMap(keyword('x'), 10, keyword('y'), 20);
+    const arr = toArray(m);
+    expect(arr.length).toBe(2);
+  });
+});
+
+describe('seq on hash-set', () => {
+  it('seq on empty set returns null', () => {
+    expect(seq(EMPTY_SET)).toBe(null);
+  });
+
+  it('seq on set returns elements', () => {
+    const s = hashSet(1, 2, 3);
+    const arr = toArray(s);
+    expect(arr.length).toBe(3);
+    expect(arr.sort()).toEqual([1, 2, 3]);
   });
 });

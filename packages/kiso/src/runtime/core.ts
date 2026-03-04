@@ -607,6 +607,43 @@ export function print_fn(...args: unknown[]): void {
 
 // -- Collection access --
 
+export function nth(coll: unknown, index: number, notFound?: unknown): unknown {
+  if (coll == null) {
+    if (notFound !== undefined) return notFound;
+    throw new Error('Index out of bounds');
+  }
+  if (isVector(coll)) {
+    const v = coll as PersistentVector;
+    if (index >= 0 && index < v.count) return v.nth(index);
+    if (notFound !== undefined) return notFound;
+    throw new Error('Index out of bounds');
+  }
+  if (Array.isArray(coll)) {
+    if (index >= 0 && index < coll.length) return coll[index];
+    if (notFound !== undefined) return notFound;
+    throw new Error('Index out of bounds');
+  }
+  if (typeof coll === 'string') {
+    if (index >= 0 && index < coll.length) return coll.charAt(index);
+    if (notFound !== undefined) return notFound;
+    throw new Error('Index out of bounds');
+  }
+  // Fall back to seq traversal
+  let s = seq(coll);
+  for (let i = 0; i < index; i++) {
+    if (s === null) {
+      if (notFound !== undefined) return notFound;
+      throw new Error('Index out of bounds');
+    }
+    s = seqNext(s);
+  }
+  if (s === null) {
+    if (notFound !== undefined) return notFound;
+    throw new Error('Index out of bounds');
+  }
+  return seqFirst(s);
+}
+
 export function second(coll: unknown): unknown {
   const s = seq(coll);
   if (s === null) return null;

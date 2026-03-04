@@ -4,7 +4,12 @@
 // This is the foundation for all sequence operations in Clojure.
 
 import { isList, EMPTY_LIST, first as listFirst, rest as listRest, count as listCount } from './list.js';
-import { isVector, PersistentVector } from './vector.js';
+import { isVector, PersistentVector, vector } from './vector.js';
+import { isHashMap, PersistentHashMap } from './hash-map.js';
+import { isArrayMap } from './array-map.js';
+import { isHashSet } from './hash-set.js';
+import { isSortedMap } from './sorted-map.js';
+import { isSortedSet } from './sorted-set.js';
 import { LazySeq } from './lazy-seq.js';
 
 // IndexedSeq: seq over a vector or array by index
@@ -52,6 +57,24 @@ export function seq(coll: Seqable): unknown {
 
   if (Array.isArray(coll)) {
     return coll.length === 0 ? null : new IndexedSeq(coll, 0);
+  }
+
+  // Maps: convert to array of [key, val] vectors
+  if (isHashMap(coll) || isArrayMap(coll) || isSortedMap(coll)) {
+    const m = coll as PersistentHashMap;
+    if (m.count === 0) return null;
+    const entries: unknown[] = [];
+    m.forEach((k: unknown, v: unknown) => entries.push(vector(k, v)));
+    return new IndexedSeq(entries, 0);
+  }
+
+  // Sets: convert to array of elements
+  if (isHashSet(coll) || isSortedSet(coll)) {
+    const s = coll as { count: number; forEach: (fn: (k: unknown) => void) => void };
+    if (s.count === 0) return null;
+    const items: unknown[] = [];
+    s.forEach((k: unknown) => items.push(k));
+    return new IndexedSeq(items, 0);
   }
 
   return null;
