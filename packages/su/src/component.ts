@@ -4,9 +4,13 @@
 // In Node.js (tests), provides a testable abstraction.
 // In browser, registers with customElements.define().
 
-import { Atom, atom } from '@clojurewasm/kiso/runtime';
+import { Atom, atom, cljToJs } from '@clojurewasm/kiso/runtime';
 import { renderHiccup } from './hiccup.js';
 import { collectLifecycleHooks, type LifecycleHooks } from './lifecycle.js';
+import { initReactiveTracking } from './reactive.js';
+
+// Auto-init reactive tracking (idempotent)
+initReactiveTracking();
 
 export type ComponentConfig = {
   observedAttrs: string[];
@@ -51,7 +55,7 @@ export function defineComponent(
     throw new Error(`Custom Element names require a hyphen: "${tagName}"`);
   }
 
-  return {
+  const def: ComponentDef = {
     tagName,
     observedAttrs: config.observedAttrs,
     formAssociated: config.formAssociated ?? false,
@@ -70,7 +74,7 @@ export function defineComponent(
           if (container) {
             // Browser path: render hiccup to DOM, collect lifecycle hooks
             hooks = collectLifecycleHooks(() => {
-              const hiccup = renderFn(propsAtom);
+              const hiccup = cljToJs(renderFn(propsAtom));
               const dom = renderHiccup(hiccup as Parameters<typeof renderHiccup>[0]);
               container.appendChild(dom);
             });
@@ -95,6 +99,13 @@ export function defineComponent(
       };
     },
   };
+
+  // Auto-register as Custom Element in browser
+  if (typeof customElements !== 'undefined' && !customElements.get(tagName)) {
+    registerComponent(def, config, renderFn);
+  }
+
+  return def;
 }
 
 // -- Browser registration --
@@ -136,4 +147,28 @@ export function registerComponent(def: ComponentDef, config: ComponentConfig, _r
   }
 
   customElements.define(def.tagName, SuComponent);
+}
+
+// -- Standalone mount --
+
+/** Mount hiccup to a container element. Returns a cleanup function. */
+export function mount(container: Element, hiccup: unknown): () => void {
+  const converted = cljToJs(hiccup);
+  let hooks: LifecycleHooks | null = null;
+
+  hooks = collectLifecycleHooks(() => {
+    const dom = renderHiccup(converted as Parameters<typeof renderHiccup>[0]);
+    container.appendChild(dom);
+  });
+  for (const fn of hooks.mounts) fn();
+
+  return () => {
+    if (hooks) {
+      for (const fn of hooks.unmounts) fn();
+      hooks = null;
+    }
+    while (container.firstChild) {
+      container.removeChild(container.firstChild);
+    }
+  };
 }

@@ -4,6 +4,7 @@
 // renderHiccup: convert hiccup vectors to DOM nodes (browser only)
 // bind: reactive DOM fragment that re-renders on atom changes
 
+import { cljToJs } from '@clojurewasm/kiso/runtime';
 import { effect } from './reactive.js';
 
 export type ParsedTag = {
@@ -127,7 +128,7 @@ function applyAttrs(el: HTMLElement, attrs: Record<string, unknown>): void {
       }
     } else if (key === 'style' && typeof val === 'object' && val !== null) {
       for (const [prop, sval] of Object.entries(val as Record<string, string>)) {
-        (el.style as unknown as Record<string, string>)[prop] = sval;
+        el.style.setProperty(prop, sval);
       }
     } else if (key.startsWith('on-')) {
       const event = key.slice(3);
@@ -150,7 +151,7 @@ export function bind(fn: () => HiccupNode): Node {
   // Use queueMicrotask to defer initial effect until anchor is in DOM
   queueMicrotask(() => {
     dispose = effect(() => {
-      const hiccup = fn();
+      const hiccup = cljToJs(fn()) as HiccupNode;
       const newNode = renderHiccup(hiccup);
 
       if (currentNode && anchor.parentNode) {

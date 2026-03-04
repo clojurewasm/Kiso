@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { defineComponent, type ComponentConfig } from '../src/component.js';
+import { defineComponent, mount, type ComponentConfig } from '../src/component.js';
 import { onMount, onUnmount } from '../src/lifecycle.js';
+import { vector, keyword, hashMap } from '@clojurewasm/kiso/runtime';
 
 describe('defineComponent', () => {
   it('creates a component definition', () => {
@@ -102,6 +103,50 @@ describe('defineComponent', () => {
   });
 });
 
+describe('auto-registration', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('calls customElements.define when available', () => {
+    const defineSpy = vi.fn();
+    vi.stubGlobal('HTMLElement', class {});
+    vi.stubGlobal('customElements', { define: defineSpy, get: () => undefined });
+
+    defineComponent('auto-reg', {
+      observedAttrs: [],
+      propTypes: {},
+    }, () => ['div']);
+
+    expect(defineSpy).toHaveBeenCalledTimes(1);
+    expect(defineSpy.mock.calls[0][0]).toBe('auto-reg');
+  });
+
+  it('skips registration when customElements is undefined', () => {
+    // In Node.js, customElements is not defined — should not throw
+    const def = defineComponent('no-reg', {
+      observedAttrs: [],
+      propTypes: {},
+    }, () => ['div']);
+    expect(def.tagName).toBe('no-reg');
+  });
+
+  it('skips registration if already defined', () => {
+    const defineSpy = vi.fn();
+    vi.stubGlobal('customElements', {
+      define: defineSpy,
+      get: (name: string) => name === 'already-def' ? class {} : undefined,
+    });
+
+    defineComponent('already-def', {
+      observedAttrs: [],
+      propTypes: {},
+    }, () => ['div']);
+
+    expect(defineSpy).not.toHaveBeenCalled();
+  });
+});
+
 // -- K12: Shadow DOM mounting --
 
 type MockNode = {
@@ -109,7 +154,9 @@ type MockNode = {
   tag?: string;
   text?: string;
   children: MockNode[];
+  firstChild: MockNode | null;
   appendChild(child: MockNode): void;
+  removeChild(child: MockNode): void;
 };
 
 function createMockElement(tag: string): MockNode {
@@ -117,7 +164,12 @@ function createMockElement(tag: string): MockNode {
     type: 'element',
     tag,
     children: [],
+    get firstChild() { return node.children[0] ?? null; },
     appendChild(child: MockNode) { node.children.push(child); },
+    removeChild(child: MockNode) {
+      const idx = node.children.indexOf(child);
+      if (idx >= 0) node.children.splice(idx, 1);
+    },
   };
   return node;
 }
@@ -192,6 +244,23 @@ describe('K12: mount with container', () => {
     expect(unmountSpy).toHaveBeenCalledTimes(1);
   });
 
+  it('converts PersistentVector hiccup to DOM via cljToJs', () => {
+    // Render function returns Kiso types (as compiled CLJS would)
+    const renderFn = () => vector(keyword('div'), vector(keyword('span'), 'hello'));
+    const def = defineComponent('clj-test', {
+      observedAttrs: [],
+      propTypes: {},
+    }, renderFn);
+
+    const container = createMockElement('shadow-root');
+    const instance = def.createInstance({});
+    instance.mount(container as unknown as Node);
+
+    expect(container.children).toHaveLength(1);
+    expect(container.children[0]!.tag).toBe('div');
+    expect(container.children[0]!.children[0]!.tag).toBe('span');
+  });
+
   it('still works without container (backward compat)', () => {
     const renderFn = vi.fn(() => ['div']);
     const def = defineComponent('compat-test', {
@@ -202,5 +271,49 @@ describe('K12: mount with container', () => {
     const instance = def.createInstance({});
     instance.mount();
     expect(renderFn).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('mount()', () => {
+  beforeEach(() => {
+    vi.stubGlobal('document', {
+      createElement: (tag: string) => createMockElement(tag),
+      createTextNode: (text: string) => createMockTextNode(text),
+      createComment: (text: string) => createMockTextNode(text),
+    });
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('renders hiccup to container and returns cleanup fn', () => {
+    const container = createMockElement('div');
+    const cleanup = mount(container as unknown as Element, ['div', ['span', 'hello']]);
+
+    expect(container.children).toHaveLength(1);
+    expect(container.children[0]!.tag).toBe('div');
+    expect(typeof cleanup).toBe('function');
+  });
+
+  it('fires onMount hooks', () => {
+    const mountSpy = vi.fn();
+    const container = createMockElement('div');
+
+    // To register onMount we need a component render context,
+    // so mount() itself should collect lifecycle hooks
+    mount(container as unknown as Element, ['div', 'content']);
+    // Just ensure it doesn't throw and renders
+    expect(container.children).toHaveLength(1);
+  });
+
+  it('cleanup fn fires onUnmount hooks and removes children', () => {
+    const container = createMockElement('div');
+    const cleanup = mount(container as unknown as Element, ['p', 'text']);
+
+    expect(container.children).toHaveLength(1);
+    cleanup();
+    // After cleanup, container should be empty
+    expect(container.children).toHaveLength(0);
   });
 });

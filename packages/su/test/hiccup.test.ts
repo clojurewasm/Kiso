@@ -38,7 +38,7 @@ type MockNode = {
   id?: string;
   className?: string;
   attrs: Record<string, string>;
-  style: Record<string, string>;
+  style: Record<string, string> & { setProperty?(prop: string, val: string): void };
   children: MockNode[];
   listeners: Record<string, unknown>;
   parentNode: MockNode | null;
@@ -51,13 +51,15 @@ type MockNode = {
 };
 
 function createMockElement(tag: string): MockNode {
+  const styleObj = {} as Record<string, string> & { setProperty(prop: string, val: string): void };
+  styleObj.setProperty = function(prop: string, val: string) { styleObj[prop] = val; };
   const node: MockNode = {
     type: 'element',
     tag,
     id: undefined,
     className: undefined,
     attrs: {},
-    style: {},
+    style: styleObj,
     children: [],
     listeners: {},
     parentNode: null,
@@ -245,5 +247,22 @@ describe('renderHiccup', () => {
     const node = renderHiccup(['div', { style: { '--su-color': 'red', color: 'var(--su-color)' } }]) as unknown as MockNode;
     expect(node.style['--su-color']).toBe('red');
     expect(node.style['color']).toBe('var(--su-color)');
+  });
+
+  it('handles kebab-case style properties via setProperty', () => {
+    const setPropertySpy = vi.fn();
+    vi.stubGlobal('document', {
+      createElement: (tag: string) => {
+        const el = createMockElement(tag);
+        el.style = { setProperty: setPropertySpy } as any;
+        return el;
+      },
+      createTextNode: (text: string) => createMockTextNode(text),
+      createComment: (text: string) => createMockComment(text),
+    });
+
+    renderHiccup(['div', { style: { 'font-size': '14px', 'background-color': '#fff' } }]);
+    expect(setPropertySpy).toHaveBeenCalledWith('font-size', '14px');
+    expect(setPropertySpy).toHaveBeenCalledWith('background-color', '#fff');
   });
 });

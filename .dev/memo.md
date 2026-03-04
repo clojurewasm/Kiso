@@ -12,7 +12,7 @@ Session handover document. Read at session start.
 - @clojurewasm/su: reactive, component (formAssociated, delegatesFocus), hiccup, css, lifecycle, hmr.
 - Vite plugin: .cljs transform + HMR + alias resolution.
 - Demo: examples/hello-counter (working counter app in browser).
-- Total: 834 tests passing (781 cljs + 53 su), types clean.
+- Total: 846 tests passing (781 cljs + 65 su), types clean.
 - **All checklist items (K01-K11) resolved.**
 
 ## Current Task
