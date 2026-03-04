@@ -17,10 +17,11 @@ Session handover document. Read at session start.
 
 ## Current Task
 
-**State Management** — DONE. 3 commits:
-1. ~~Props Channeling~~ — JS property channel for atoms on custom elements, richProps config, defc :atom type
-2. ~~Context API~~ — provide/useContext via CustomEvent, host element tracking
-3. ~~DevTools Trace~~ — atom labels, _globalOnChange hook, enableTrace/disableTrace
+**Phase 12: CI + Multi-File Validation**
+1. GitHub Actions CI workflow
+2. Multi-namespace example app
+3. Cross-file require/refer validation
+4. Fix any bugs discovered
 
 ## Task Queue
 

@@ -17,9 +17,15 @@ Monorepo: `@clojurewasm/kiso` (compiler + runtime), `@clojurewasm/su` (component
 | 8     | Codegen Quality        | DONE   | Pretty-print, constructor fix, munge fix, truthy, srcmap |
 | 9     | Codegen Readability    | DONE   | Readable munging, destructuring, IIFE cond, codegen hooks |
 | 10    | CLI                    | DONE   | kiso compile command, source map, out-dir, file/dir resolve |
-| 11    | State Management       | DONE   | Props channeling, context API, devtools trace                |
+| 11    | State Management       | DONE   | Props channeling, context API, devtools trace             |
+| 12    | CI + Multi-File        | TODO   | GitHub Actions, multi-ns example, cross-file validation   |
+| 13    | Conformance Tests      | TODO   | Language spec tests, edge cases, complex patterns         |
+| 14    | Standard Library       | TODO   | clojure.string, var coverage tracking                     |
+| 15    | Browser E2E            | TODO   | Playwright, real browser validation                       |
+| 16    | JS Interop Layer       | TODO   | bean, js-obj, library interop ergonomics                  |
 
-All 11 phases complete. 938 tests passing (846 kiso + 92 su). Types clean.
+Phases 1-11 complete. 938 tests passing (846 kiso + 92 su). Types clean.
+Design: `.dev/design/08-quality-and-ecosystem.md` (Q1-Q7 details).
 
 ## Phase 1: Reader — DONE
 
@@ -138,9 +144,54 @@ Cross-component state sharing and debugging tools for su framework.
 - 11.2 ~~Context API: provide/useContext via CustomEvent (Lit Context pattern)~~ DONE
 - 11.3 ~~DevTools Trace: atom labels + global onChange hook + enableTrace/disableTrace~~ DONE
 
+## Phase 12: CI + Multi-File Validation — TODO
+
+CI pipeline and real-world multi-file project validation.
+
+- 12.1 GitHub Actions CI (typecheck + test, Node 20/22)
+- 12.2 Multi-namespace example app (`examples/multi-ns-app/`)
+- 12.3 Cross-file require/refer validation
+- 12.4 Nested directory → namespace mapping test
+- 12.5 Build validation (vite build succeeds)
+
+## Phase 13: Conformance Tests — TODO
+
+Language specification conformance tests for edge cases.
+
+- 13.1 Threading macro edge cases (some->/some->> nil, as-> complex)
+- 13.2 JS interop advanced (chained calls, type coercion)
+- 13.3 Deep nested destructuring (combined :or + :as + &)
+- 13.4 Protocol edge cases (extend-type, multi-protocol reify)
+- 13.5 Multi-arity + variadic + destructuring combined
+- 13.6 Complex case/cond patterns
+- 13.7 letfn mutual recursion edge cases
+
+## Phase 14: Standard Library — TODO
+
+ClojureScript standard library namespaces and var coverage.
+
+- 14.1 `clojure.string` namespace (TS runtime module)
+- 14.2 Var coverage YAML (`.dev/status/vars.yaml`)
+- 14.3 `for` / `doseq` macros
+- 14.4 `defmulti` / `defmethod`
+
+## Phase 15: Browser E2E — TODO
+
+Playwright-based browser integration tests.
+
+- 15.1 Playwright setup + config
+- 15.2 Task-manager browser tests
+- 15.3 Multi-ns-app browser tests
+
+## Phase 16: JS Interop Layer — TODO
+
+Ergonomic JavaScript library interoperability.
+
+- 16.1 `bean` (shallow JS→CLJ conversion)
+- 16.2 `js-obj` / `js-array` helpers
+- 16.3 Library adapter patterns documentation
+
 ## Known Gaps / Future Work
 
 - Transient collections (4.12) — deferred, not needed yet
-- `for`, `doseq` macros — require seq/first/next runtime wiring
-- `defmulti`/`defmethod` — dispatch infrastructure
 - Monorepo structured as npm workspaces (`packages/kiso`, `packages/su`)

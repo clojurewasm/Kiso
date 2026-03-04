@@ -1,0 +1,403 @@
+# Kiso ClojureScript Coverage
+#
+# Tracks implementation status of ClojureScript vars and features.
+# Based on ClojureWasm var tracking approach.
+#
+# Fields:
+#   type: special-form | macro | function | dynamic-var | protocol
+#   status: done | partial | todo | skip | n/a
+#   note: (optional) implementation context
+#
+# Query examples (yq):
+#   yq '.vars.cljs_core | to_entries | map(select(.value.status == "done")) | length' vars.yaml
+#   yq '.vars.cljs_core | to_entries[] | select(.value.status == "todo") | .key' vars.yaml
+
+vars:
+  cljs_core:
+    # === Special Forms ===
+    "def":            {type: special-form, status: done}
+    "if":             {type: special-form, status: done}
+    "do":             {type: special-form, status: done}
+    "let*":           {type: special-form, status: done}
+    "letfn*":         {type: special-form, status: done}
+    "fn*":            {type: special-form, status: done}
+    "loop*":          {type: special-form, status: done}
+    "recur":          {type: special-form, status: done}
+    "quote":          {type: special-form, status: done}
+    "var":            {type: special-form, status: done}
+    "throw":          {type: special-form, status: done}
+    "try":            {type: special-form, status: done}
+    "catch":          {type: special-form, status: done, note: "inside try"}
+    "finally":        {type: special-form, status: done, note: "inside try"}
+    ".":              {type: special-form, status: done, note: "method + field access"}
+    "new":            {type: special-form, status: done}
+    "set!":           {type: special-form, status: done}
+    "ns":             {type: special-form, status: done, note: ":require :as :refer"}
+    "js*":            {type: special-form, status: done}
+    "case*":          {type: special-form, status: done}
+    "deftype*":       {type: special-form, status: done}
+    "defrecord*":     {type: special-form, status: done}
+    "extend-type*":   {type: special-form, status: done}
+    "reify":          {type: special-form, status: done}
+
+    # === Macros — Control Flow ===
+    "when":           {type: macro, status: done}
+    "when-not":       {type: macro, status: done}
+    "if-not":         {type: macro, status: done}
+    "if-let":         {type: macro, status: done}
+    "when-let":       {type: macro, status: done}
+    "if-some":        {type: macro, status: done}
+    "when-some":      {type: macro, status: done}
+    "when-first":     {type: macro, status: done}
+    "cond":           {type: macro, status: done}
+    "condp":          {type: macro, status: done}
+    "cond->":         {type: macro, status: done}
+    "cond->>":        {type: macro, status: done}
+    "case":           {type: macro, status: done}
+    "and":            {type: macro, status: done}
+    "or":             {type: macro, status: done}
+    "comment":        {type: macro, status: done}
+
+    # === Macros — Threading ===
+    "->":             {type: macro, status: done}
+    "->>":            {type: macro, status: done}
+    "as->":           {type: macro, status: done}
+    "doto":           {type: macro, status: done}
+    "some->":         {type: macro, status: done}
+    "some->>":        {type: macro, status: done}
+    "..":             {type: macro, status: done}
+
+    # === Macros — Definition ===
+    "defn":           {type: macro, status: done}
+    "defn-":          {type: macro, status: done}
+    "defonce":        {type: macro, status: done}
+    "fn":             {type: macro, status: done}
+    "let":            {type: macro, status: done}
+    "loop":           {type: macro, status: done}
+    "letfn":          {type: macro, status: done}
+    "declare":        {type: macro, status: done}
+
+    # === Macros — Protocol & Type ===
+    "defprotocol":    {type: macro, status: done}
+    "extend-type":    {type: macro, status: done}
+    "deftype":        {type: macro, status: done}
+    "defrecord":      {type: macro, status: done}
+
+    # === Macros — Iteration & Misc ===
+    "dotimes":        {type: macro, status: done}
+    "lazy-seq":       {type: macro, status: done}
+    "assert":         {type: macro, status: done}
+    "time":           {type: macro, status: done}
+    "syntax-quote":   {type: macro, status: done}
+    "for":            {type: macro, status: todo, note: "needs list comprehension codegen"}
+    "doseq":          {type: macro, status: todo, note: "needs seq/first/next wiring"}
+    "defmulti":       {type: macro, status: todo, note: "dispatch infrastructure needed"}
+    "defmethod":      {type: macro, status: todo, note: "depends on defmulti"}
+    "defmacro":       {type: macro, status: done, note: "via mini evaluator"}
+    "binding":        {type: macro, status: todo}
+    "with-redefs":    {type: macro, status: todo}
+    "while":          {type: macro, status: todo}
+
+    # === Functions — Arithmetic ===
+    "+":              {type: function, status: done}
+    "-":              {type: function, status: done}
+    "*":              {type: function, status: done}
+    "/":              {type: function, status: done}
+    "mod":            {type: function, status: done}
+    "rem":            {type: function, status: todo}
+    "inc":            {type: function, status: done}
+    "dec":            {type: function, status: done}
+    "max":            {type: function, status: todo}
+    "min":            {type: function, status: todo}
+    "abs":            {type: function, status: todo}
+    "quot":           {type: function, status: todo}
+    "rand":           {type: function, status: todo}
+    "rand-int":       {type: function, status: todo}
+
+    # === Functions — Comparison ===
+    "=":              {type: function, status: done, note: "structural equality via equiv"}
+    "not=":           {type: function, status: done}
+    "==":             {type: function, status: todo, note: "numeric equality"}
+    "<":              {type: function, status: done}
+    ">":              {type: function, status: done}
+    "<=":             {type: function, status: done}
+    ">=":             {type: function, status: done}
+    "compare":        {type: function, status: todo}
+    "identical?":     {type: function, status: todo}
+
+    # === Functions — Logic ===
+    "not":            {type: function, status: done}
+    "true?":          {type: function, status: done, note: "evaluator built-in"}
+    "false?":         {type: function, status: done, note: "evaluator built-in"}
+
+    # === Functions — Type Predicates ===
+    "nil?":           {type: function, status: done}
+    "some?":          {type: function, status: done}
+    "number?":        {type: function, status: done}
+    "string?":        {type: function, status: done}
+    "boolean?":       {type: function, status: done}
+    "symbol?":        {type: function, status: done, note: "evaluator built-in"}
+    "keyword?":       {type: function, status: done, note: "evaluator built-in"}
+    "fn?":            {type: function, status: todo}
+    "ifn?":           {type: function, status: todo}
+    "integer?":       {type: function, status: todo}
+    "float?":         {type: function, status: todo}
+    "zero?":          {type: function, status: done}
+    "pos?":           {type: function, status: done}
+    "neg?":           {type: function, status: done}
+    "even?":          {type: function, status: todo}
+    "odd?":           {type: function, status: todo}
+    "empty?":         {type: function, status: done, note: "evaluator built-in"}
+    "coll?":          {type: function, status: todo}
+    "seq?":           {type: function, status: done, note: "evaluator built-in"}
+    "list?":          {type: function, status: done, note: "evaluator built-in"}
+    "vector?":        {type: function, status: done, note: "evaluator built-in"}
+    "map?":           {type: function, status: done, note: "evaluator built-in"}
+    "set?":           {type: function, status: done, note: "evaluator built-in"}
+    "associative?":   {type: function, status: todo}
+    "sequential?":    {type: function, status: todo}
+    "counted?":       {type: function, status: todo}
+    "reversible?":    {type: function, status: todo}
+    "sorted?":        {type: function, status: todo}
+
+    # === Functions — Collection Core ===
+    "count":          {type: function, status: done}
+    "conj":           {type: function, status: done}
+    "get":            {type: function, status: done}
+    "assoc":          {type: function, status: done}
+    "dissoc":         {type: function, status: done}
+    "get-in":         {type: function, status: todo}
+    "assoc-in":       {type: function, status: todo}
+    "update":         {type: function, status: todo}
+    "update-in":      {type: function, status: todo}
+    "select-keys":    {type: function, status: todo}
+    "find":           {type: function, status: todo}
+    "keys":           {type: function, status: todo}
+    "vals":           {type: function, status: todo}
+    "contains?":      {type: function, status: done, note: "evaluator built-in"}
+    "into":           {type: function, status: done}
+    "merge":          {type: function, status: todo}
+    "merge-with":     {type: function, status: todo}
+    "zipmap":         {type: function, status: todo}
+    "frequencies":    {type: function, status: todo}
+    "group-by":       {type: function, status: todo}
+    "empty":          {type: function, status: todo}
+    "not-empty":      {type: function, status: todo}
+
+    # === Functions — Sequence Core ===
+    "seq":            {type: function, status: done}
+    "first":          {type: function, status: done}
+    "rest":           {type: function, status: done}
+    "next":           {type: function, status: done}
+    "cons":           {type: function, status: done}
+    "list":           {type: function, status: done}
+    "list*":          {type: function, status: done, note: "evaluator built-in"}
+    "vec":            {type: function, status: done, note: "evaluator built-in"}
+    "vector":         {type: function, status: done}
+    "hash-map":       {type: function, status: done}
+    "hash-set":       {type: function, status: done}
+    "set":            {type: function, status: todo}
+    "sorted-map":     {type: function, status: todo}
+    "sorted-set":     {type: function, status: todo}
+    "subvec":         {type: function, status: todo}
+    "nth":            {type: function, status: done, note: "evaluator built-in"}
+    "peek":           {type: function, status: todo}
+    "pop":            {type: function, status: todo}
+    "last":           {type: function, status: todo}
+    "butlast":        {type: function, status: todo}
+    "second":         {type: function, status: todo}
+    "ffirst":         {type: function, status: todo}
+    "nfirst":         {type: function, status: todo}
+    "fnext":          {type: function, status: todo}
+    "nnext":          {type: function, status: todo}
+
+    # === Functions — Sequence Operations ===
+    "map":            {type: function, status: done}
+    "filter":         {type: function, status: done}
+    "reduce":         {type: function, status: done}
+    "apply":          {type: function, status: done}
+    "concat":         {type: function, status: done, note: "evaluator built-in"}
+    "mapcat":         {type: function, status: todo}
+    "map-indexed":    {type: function, status: todo}
+    "keep":           {type: function, status: todo}
+    "keep-indexed":   {type: function, status: todo}
+    "remove":         {type: function, status: todo}
+    "take":           {type: function, status: todo}
+    "take-while":     {type: function, status: todo}
+    "take-last":      {type: function, status: todo}
+    "take-nth":       {type: function, status: todo}
+    "drop":           {type: function, status: todo}
+    "drop-while":     {type: function, status: todo}
+    "drop-last":      {type: function, status: todo}
+    "some":           {type: function, status: todo}
+    "every?":         {type: function, status: todo}
+    "not-every?":     {type: function, status: todo}
+    "not-any?":       {type: function, status: todo}
+    "sort":           {type: function, status: todo}
+    "sort-by":        {type: function, status: todo}
+    "reverse":        {type: function, status: todo}
+    "distinct":       {type: function, status: todo}
+    "dedupe":         {type: function, status: todo}
+    "flatten":        {type: function, status: todo}
+    "interleave":     {type: function, status: todo}
+    "interpose":      {type: function, status: todo}
+    "partition":      {type: function, status: todo}
+    "partition-by":   {type: function, status: todo}
+    "partition-all":  {type: function, status: todo}
+    "iterate":        {type: function, status: todo}
+    "repeat":         {type: function, status: todo}
+    "repeatedly":     {type: function, status: todo}
+    "range":          {type: function, status: todo}
+    "cycle":          {type: function, status: todo}
+    "doall":          {type: function, status: todo}
+    "dorun":          {type: function, status: todo}
+    "realized?":      {type: function, status: todo}
+    "reduce-kv":      {type: function, status: todo}
+    "reductions":     {type: function, status: todo}
+
+    # === Functions — Higher-Order ===
+    "identity":       {type: function, status: done}
+    "constantly":     {type: function, status: done}
+    "comp":           {type: function, status: done}
+    "partial":        {type: function, status: done}
+    "complement":     {type: function, status: todo}
+    "juxt":           {type: function, status: todo}
+    "every-pred":     {type: function, status: todo}
+    "some-fn":        {type: function, status: todo}
+    "fnil":           {type: function, status: todo}
+    "memoize":        {type: function, status: todo}
+    "trampoline":     {type: function, status: todo}
+
+    # === Functions — String ===
+    "str":            {type: function, status: done}
+    "name":           {type: function, status: done}
+    "namespace":      {type: function, status: done, note: "evaluator built-in"}
+    "pr-str":         {type: function, status: done, note: "evaluator built-in"}
+    "prn-str":        {type: function, status: todo}
+    "print-str":      {type: function, status: todo}
+    "println-str":    {type: function, status: todo}
+    "subs":           {type: function, status: done, note: "evaluator built-in"}
+    "re-find":        {type: function, status: todo}
+    "re-matches":     {type: function, status: todo}
+    "re-seq":         {type: function, status: todo}
+    "re-pattern":     {type: function, status: todo}
+
+    # === Functions — Atom / State ===
+    "atom":           {type: function, status: done}
+    "deref":          {type: function, status: done}
+    "reset!":         {type: function, status: done}
+    "swap!":          {type: function, status: done}
+    "compare-and-set!": {type: function, status: skip, note: "single-threaded JS"}
+    "add-watch":      {type: function, status: done}
+    "remove-watch":   {type: function, status: done}
+
+    # === Functions — Symbol / Keyword ===
+    "symbol":         {type: function, status: done}
+    "keyword":        {type: function, status: done}
+    "gensym":         {type: function, status: done, note: "evaluator built-in"}
+
+    # === Functions — Interop ===
+    "clj->js":        {type: function, status: done}
+    "js->clj":        {type: function, status: done}
+    "bean":           {type: function, status: todo}
+    "array":          {type: function, status: todo}
+    "aclone":         {type: function, status: todo}
+    "aget":           {type: function, status: todo}
+    "aset":           {type: function, status: todo}
+    "alength":        {type: function, status: todo}
+    "js-obj":         {type: function, status: todo}
+    "js-keys":        {type: function, status: todo}
+    "js-delete":      {type: function, status: todo}
+
+    # === Functions — Metadata ===
+    "meta":           {type: function, status: partial, note: "stub in evaluator"}
+    "with-meta":      {type: function, status: partial, note: "stub in evaluator"}
+    "vary-meta":      {type: function, status: partial, note: "stub in evaluator"}
+    "alter-meta!":    {type: function, status: todo}
+    "reset-meta!":    {type: function, status: todo}
+
+    # === Functions — Printing ===
+    "println":        {type: function, status: todo}
+    "print":          {type: function, status: todo}
+    "prn":            {type: function, status: todo}
+    "pr":             {type: function, status: todo}
+
+    # === Functions — Misc ===
+    "equiv":          {type: function, status: done}
+    "hash":           {type: function, status: todo}
+    "type":           {type: function, status: todo}
+    "instance?":      {type: function, status: todo}
+    "satisfies?":     {type: function, status: todo}
+    "implements?":    {type: function, status: todo}
+
+    # === Dynamic Vars ===
+    "*print-fn*":     {type: dynamic-var, status: todo}
+    "*print-err-fn*": {type: dynamic-var, status: todo}
+    "*print-newline*": {type: dynamic-var, status: todo}
+    "*print-readably*": {type: dynamic-var, status: todo}
+    "*print-length*": {type: dynamic-var, status: todo}
+    "*print-level*":  {type: dynamic-var, status: todo}
+    "*1":             {type: dynamic-var, status: skip, note: "REPL only"}
+    "*2":             {type: dynamic-var, status: skip, note: "REPL only"}
+    "*3":             {type: dynamic-var, status: skip, note: "REPL only"}
+    "*e":             {type: dynamic-var, status: skip, note: "REPL only"}
+
+    # === Protocols (core) ===
+    "ISeq":           {type: protocol, status: done}
+    "ICounted":       {type: protocol, status: done}
+    "ILookup":        {type: protocol, status: todo}
+    "IAssociative":   {type: protocol, status: todo}
+    "ICollection":    {type: protocol, status: todo}
+    "IStack":         {type: protocol, status: todo}
+    "IEquiv":         {type: protocol, status: todo, note: "equiv uses structural equality"}
+    "IHash":          {type: protocol, status: todo, note: "hash uses Murmur3 directly"}
+    "IFn":            {type: protocol, status: todo}
+    "ISeqable":       {type: protocol, status: todo}
+    "IReduce":        {type: protocol, status: todo}
+    "IDeref":         {type: protocol, status: todo}
+    "IWatchable":     {type: protocol, status: todo}
+    "IPrintWithWriter": {type: protocol, status: todo}
+
+  cljs_string:
+    "blank?":         {type: function, status: todo}
+    "capitalize":     {type: function, status: todo}
+    "ends-with?":     {type: function, status: todo}
+    "escape":         {type: function, status: todo}
+    "includes?":      {type: function, status: todo}
+    "index-of":       {type: function, status: todo}
+    "join":           {type: function, status: todo}
+    "last-index-of":  {type: function, status: todo}
+    "lower-case":     {type: function, status: todo}
+    "replace":        {type: function, status: todo}
+    "replace-first":  {type: function, status: todo}
+    "reverse":        {type: function, status: todo}
+    "split":          {type: function, status: todo}
+    "split-lines":    {type: function, status: todo}
+    "starts-with?":   {type: function, status: todo}
+    "trim":           {type: function, status: todo}
+    "trim-newline":   {type: function, status: todo}
+    "triml":          {type: function, status: todo}
+    "trimr":          {type: function, status: todo}
+    "upper-case":     {type: function, status: todo}
+
+  cljs_set:
+    "union":          {type: function, status: todo}
+    "intersection":   {type: function, status: todo}
+    "difference":     {type: function, status: todo}
+    "select":         {type: function, status: todo}
+    "project":        {type: function, status: todo}
+    "rename-keys":    {type: function, status: todo}
+    "rename":         {type: function, status: todo}
+    "index":          {type: function, status: todo}
+    "map-invert":     {type: function, status: todo}
+    "subset?":        {type: function, status: todo}
+    "superset?":      {type: function, status: todo}
+
+  cljs_walk:
+    "walk":           {type: function, status: todo}
+    "prewalk":        {type: function, status: todo}
+    "postwalk":       {type: function, status: todo}
+    "prewalk-replace": {type: function, status: todo}
+    "postwalk-replace": {type: function, status: todo}
+    "stringify-keys": {type: function, status: todo}
+    "keywordize-keys": {type: function, status: todo}
