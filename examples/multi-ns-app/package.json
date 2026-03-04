@@ -1,0 +1,16 @@
+{
+  "name": "multi-ns-app",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build"
+  },
+  "dependencies": {
+    "@clojurewasm/kiso": "file:../../packages/kiso",
+    "@clojurewasm/su": "file:../../packages/su"
+  },
+  "devDependencies": {
+    "vite": "^6.0.0"
+  }
+}
