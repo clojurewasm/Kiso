@@ -26,12 +26,12 @@ Monorepo: `@clojurewasm/kiso` (compiler + runtime), `@clojurewasm/su` (component
 | 17    | Var Coverage Expansion | DONE   | 328/338 vars (~97%), clojure.set, clojure.walk            |
 | 18    | Sorted Collections     | DONE   | PersistentTreeMap (LLRB), PersistentTreeSet, 100% vars    |
 | 19    | def Mutability         | DONE   | def→let, binding/with-redefs on def vars                  |
-| 20    | Transient Collections  | TODO   | TransientVector/HashMap/HashSet, conj!/assoc!             |
-| 21    | Metadata Propagation   | TODO   | with-meta/vary-meta on all collections                    |
+| 20    | Transient Collections  | DONE   | TransientVector/HashMap/HashSet, conj!/assoc!             |
+| 21    | Metadata Propagation   | DONE   | meta, with-meta, vary-meta via WeakMap                    |
 | 22    | Performance Benchmarks | TODO   | Benchmark suite, hot path optimization                    |
 | 23    | npm Publish Prep       | TODO   | Package metadata, export validation, bundle analysis      |
 
-Phases 1-19 complete. 1366 vitest + 14 Playwright E2E tests. Types clean.
+Phases 1-21 complete. 1388 vitest + 14 Playwright E2E tests. Types clean.
 Var coverage: 330/330 (100%). All vars implemented.
 Design: `.dev/design/08-quality-and-ecosystem.md` (Q1-Q7 details).
 
@@ -231,22 +231,23 @@ Enable `set!` on `def`-bound vars for proper `binding`/`with-redefs`.
 - 19.3 ~~`binding` working with `def`-bound vars~~ DONE (verified with conformance tests)
 - 19.4 `^:dynamic` metadata — no behavioral change needed (all defs are mutable)
 
-## Phase 20: Transient Collections — TODO
+## Phase 20: Transient Collections — DONE
 
 Mutable transient variants for batch operations.
 
-- 20.1 TransientVector
-- 20.2 TransientHashMap
-- 20.3 TransientHashSet
-- 20.4 `transient`, `persistent!`, `conj!`, `assoc!`, `dissoc!`, `disj!`
+- 20.1 ~~TransientVector~~ DONE
+- 20.2 ~~TransientHashMap~~ DONE
+- 20.3 ~~TransientHashSet~~ DONE
+- 20.4 ~~`transient`, `persistent!`, `conj!`, `assoc!`, `dissoc!`, `disj!`~~ DONE
 
-## Phase 21: Metadata Propagation — TODO
+## Phase 21: Metadata Propagation — DONE
 
-Full metadata support across collection operations.
+Metadata support via WeakMap store on collection copies.
 
-- 21.1 `with-meta` / `vary-meta` on all collection types
-- 21.2 Metadata preservation through map/filter/reduce operations
-- 21.3 `meta` returns attached metadata
+- 21.1 ~~`meta` returns attached metadata~~ DONE
+- 21.2 ~~`with-meta` on vectors, maps, sets, lists (shallow copy + WeakMap)~~ DONE
+- 21.3 ~~`vary-meta` applies function to current metadata~~ DONE
+- 21.4 Metadata preservation through map/filter/reduce — deferred (requires collection-level integration)
 
 ## Phase 22: Performance Benchmarks — TODO
 
@@ -269,7 +270,7 @@ Prepare packages for npm registry.
 ## Known Gaps / Future Work
 
 - `alter-var-root` not implemented (set! is sufficient for current model)
-- Transient collections (Phase 20) — deferred, not needed yet
-- Metadata propagation incomplete (Phase 21)
+- Transient collections use copy-on-transient model (Phase 20), not COW in HAMT
+- Metadata not auto-propagated through map/filter/reduce (Phase 21.4)
 - cljs.spec — may add later as optional
 - core.async — may add later as optional
