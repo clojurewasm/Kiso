@@ -5,7 +5,7 @@ Session handover document. Read at session start.
 ## Current State
 
 - **Monorepo**: npm workspaces with `packages/kiso` (@clojurewasm/kiso) and `packages/su` (@clojurewasm/su).
-- Phases 1-11 complete (reader, macros, analyzer, codegen, runtime, evaluator, vite, su, CLI, state mgmt).
+- Phases 1-17 complete (reader → macros → analyzer → codegen → runtime → evaluator → vite → su → CLI → state mgmt → CI → conformance → stdlib → E2E → interop → var coverage).
 - Vite plugin: .cljs transform + HMR + cross-file resolveId (`.js` → `.cljs`).
 - Examples: `examples/task-manager/` (single-file) + `examples/multi-ns-app/` (multi-file, nested dirs).
 - Total: 1327 vitest + 14 Playwright E2E, types clean.
@@ -15,29 +15,24 @@ Session handover document. Read at session start.
 
 ## Current Task
 
-**Expanding var coverage.** Implementing remaining cljs.core vars, cljs.set, cljs.walk namespaces.
+**Phase 18: Sorted Collections.** Implementing sorted-map (PersistentTreeMap) and sorted-set (PersistentTreeSet) using red-black tree. This completes the final 2 deferred vars.
 
 ## Task Queue
 
-Phases 12-16 in roadmap. All complete. Now expanding var coverage.
+Phases 18-23 in roadmap. See `.dev/roadmap.md` for details.
 
-1. ~~Core batch 1~~ DONE (46 fns: map ops, seq, numeric, predicates, higher-order)
-2. ~~Core batch 2~~ DONE (27 fns: collection ops, seq, regex, misc)
-3. ~~Core batch 3~~ DONE (25 fns: navigation, generators, empty/set, predicates, interop)
-4. ~~cljs.set namespace~~ DONE (11 fns)
-5. ~~cljs.walk namespace~~ DONE (7 fns)
-6. ~~Core batch 4-6~~ DONE (while, ==, printing, hash, type, instance?, prn, pr, dynamic vars, metadata, protocols marked done)
-
-## Next Steps
-
-- 2 remaining todos: sorted-map, sorted-set (new data structures — deferred)
-- All other vars, macros, dynamic vars, and protocols are done
+1. Phase 18: Sorted Collections (sorted-map, sorted-set, comparator, subseq/rsubseq)
+2. Phase 19: def Mutability + Full Dynamic Vars (def→let, alter-var-root, ^:dynamic)
+3. Phase 20: Transient Collections (TransientVector/HashMap/HashSet)
+4. Phase 21: Metadata Propagation (with-meta/vary-meta on all collections)
+5. Phase 22: Performance Benchmarks
+6. Phase 23: npm Publish Preparation
 
 ## Key Design References
 
 - Quality & Ecosystem (Q1-Q7): `.dev/design/08-quality-and-ecosystem.md`
 - Var coverage: `.dev/status/vars.yaml`
-- Roadmap phases 12-16: `.dev/roadmap.md`
+- Roadmap: `.dev/roadmap.md` (phases 1-23)
 - Protocol + LazySeq: `.dev/design/06-protocol-lazyseq.md`
 - su Framework: `.dev/design/07-su-framework.md`
 - Decisions: `.dev/decisions.md` (D1-D10)

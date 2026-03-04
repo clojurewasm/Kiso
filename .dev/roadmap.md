@@ -23,8 +23,16 @@ Monorepo: `@clojurewasm/kiso` (compiler + runtime), `@clojurewasm/su` (component
 | 14    | Standard Library       | DONE   | clojure.string, for/doseq, defmulti/defmethod            |
 | 15    | Browser E2E            | DONE   | Playwright, real browser validation                       |
 | 16    | JS Interop Layer       | DONE   | bean, js-obj, js-array interop helpers                    |
+| 17    | Var Coverage Expansion | DONE   | 328/338 vars (~97%), clojure.set, clojure.walk            |
+| 18    | Sorted Collections     | TODO   | sorted-map, sorted-set, red-black tree                    |
+| 19    | def Mutability         | TODO   | def→let, alter-var-root, ^:dynamic binding                |
+| 20    | Transient Collections  | TODO   | TransientVector/HashMap/HashSet, conj!/assoc!             |
+| 21    | Metadata Propagation   | TODO   | with-meta/vary-meta on all collections                    |
+| 22    | Performance Benchmarks | TODO   | Benchmark suite, hot path optimization                    |
+| 23    | npm Publish Prep       | TODO   | Package metadata, export validation, bundle analysis      |
 
-Phases 1-16 complete. 1162 vitest + 12 Playwright E2E tests. Types clean.
+Phases 1-16 complete. 1327 vitest + 14 Playwright E2E tests. Types clean.
+Var coverage: 328/338 (~97%). 2 deferred: sorted-map, sorted-set.
 Design: `.dev/design/08-quality-and-ecosystem.md` (Q1-Q7 details).
 
 ## Phase 1: Reader — DONE
@@ -144,54 +152,125 @@ Cross-component state sharing and debugging tools for su framework.
 - 11.2 ~~Context API: provide/useContext via CustomEvent (Lit Context pattern)~~ DONE
 - 11.3 ~~DevTools Trace: atom labels + global onChange hook + enableTrace/disableTrace~~ DONE
 
-## Phase 12: CI + Multi-File Validation — TODO
+## Phase 12: CI + Multi-File Validation — DONE
 
 CI pipeline and real-world multi-file project validation.
 
-- 12.1 GitHub Actions CI (typecheck + test, Node 20/22)
-- 12.2 Multi-namespace example app (`examples/multi-ns-app/`)
-- 12.3 Cross-file require/refer validation
-- 12.4 Nested directory → namespace mapping test
-- 12.5 Build validation (vite build succeeds)
+- 12.1 ~~GitHub Actions CI (typecheck + test, Node 20/22)~~ DONE
+- 12.2 ~~Multi-namespace example app (`examples/multi-ns-app/`)~~ DONE
+- 12.3 ~~Cross-file require/refer validation~~ DONE
+- 12.4 ~~Nested directory → namespace mapping test~~ DONE
+- 12.5 ~~Build validation (vite build succeeds)~~ DONE
 
-## Phase 13: Conformance Tests — TODO
+## Phase 13: Conformance Tests — DONE
 
 Language specification conformance tests for edge cases.
 
-- 13.1 Threading macro edge cases (some->/some->> nil, as-> complex)
-- 13.2 JS interop advanced (chained calls, type coercion)
-- 13.3 Deep nested destructuring (combined :or + :as + &)
-- 13.4 Protocol edge cases (extend-type, multi-protocol reify)
-- 13.5 Multi-arity + variadic + destructuring combined
-- 13.6 Complex case/cond patterns
-- 13.7 letfn mutual recursion edge cases
+- 13.1 ~~Threading macro edge cases (some->/some->> nil, as-> complex)~~ DONE
+- 13.2 ~~JS interop advanced (chained calls, type coercion)~~ DONE
+- 13.3 ~~Deep nested destructuring (combined :or + :as + &)~~ DONE
+- 13.4 ~~Protocol edge cases (extend-type, multi-protocol reify)~~ DONE
+- 13.5 ~~Multi-arity + variadic + destructuring combined~~ DONE
+- 13.6 ~~Complex case/cond patterns~~ DONE
+- 13.7 ~~letfn mutual recursion edge cases~~ DONE
 
-## Phase 14: Standard Library — TODO
+## Phase 14: Standard Library — DONE
 
 ClojureScript standard library namespaces and var coverage.
 
-- 14.1 `clojure.string` namespace (TS runtime module)
-- 14.2 Var coverage YAML (`.dev/status/vars.yaml`)
-- 14.3 `for` / `doseq` macros
-- 14.4 `defmulti` / `defmethod`
+- 14.1 ~~`clojure.string` namespace (TS runtime module)~~ DONE
+- 14.2 ~~Var coverage YAML (`.dev/status/vars.yaml`)~~ DONE
+- 14.3 ~~`for` / `doseq` macros~~ DONE
+- 14.4 ~~`defmulti` / `defmethod`~~ DONE
 
-## Phase 15: Browser E2E — TODO
+## Phase 15: Browser E2E — DONE
 
 Playwright-based browser integration tests.
 
-- 15.1 Playwright setup + config
-- 15.2 Task-manager browser tests
-- 15.3 Multi-ns-app browser tests
+- 15.1 ~~Playwright setup + config~~ DONE
+- 15.2 ~~Task-manager browser tests~~ DONE
+- 15.3 ~~Multi-ns-app browser tests~~ DONE
 
-## Phase 16: JS Interop Layer — TODO
+## Phase 16: JS Interop Layer — DONE
 
 Ergonomic JavaScript library interoperability.
 
-- 16.1 `bean` (shallow JS→CLJ conversion)
-- 16.2 `js-obj` / `js-array` helpers
-- 16.3 Library adapter patterns documentation
+- 16.1 ~~`bean` (shallow JS→CLJ conversion)~~ DONE
+- 16.2 ~~`js-obj` / `js-array` helpers~~ DONE
+- 16.3 ~~Library adapter patterns documentation~~ DONE
+
+## Phase 17: Var Coverage Expansion — DONE
+
+Systematic implementation of cljs.core vars, clojure.set, clojure.walk. 328/338 vars (~97%).
+
+- 17.1 ~~Core batch 1 (46 fns: map ops, seq, numeric, predicates, higher-order)~~ DONE
+- 17.2 ~~Core batch 2 (27 fns: collection ops, seq, regex, misc)~~ DONE
+- 17.3 ~~Core batch 3 (25 fns: navigation, generators, empty/set, predicates, interop)~~ DONE
+- 17.4 ~~clojure.set namespace (11 fns: union, intersection, difference, etc.)~~ DONE
+- 17.5 ~~clojure.walk namespace (7 fns: walk, postwalk, prewalk, etc.)~~ DONE
+- 17.6 ~~Core batch 4-6 (while macro, ==, printing, hash, type, instance?, prn, pr, dynamic vars, metadata, protocols)~~ DONE
+- 17.7 ~~binding / with-redefs macros~~ DONE
+
+## Phase 18: Sorted Collections — TODO
+
+New data structures for sorted-map and sorted-set.
+
+- 18.1 Red-black tree or skip-list implementation
+- 18.2 sorted-map (PersistentTreeMap)
+- 18.3 sorted-set (PersistentTreeSet)
+- 18.4 Comparator support (compare, custom comparators)
+- 18.5 subseq / rsubseq
+
+## Phase 19: def Mutability + Full Dynamic Vars — TODO
+
+Enable `set!` on `def`-bound vars for proper `binding`/`alter-var-root`.
+
+- 19.1 Emit `let` instead of `const` for `def` (update emitter + tests)
+- 19.2 `alter-var-root` function
+- 19.3 `binding` working with `def`-bound vars (currently only `let`-bound)
+- 19.4 `^:dynamic` metadata support in reader → analyzer chain
+
+## Phase 20: Transient Collections — TODO
+
+Mutable transient variants for batch operations.
+
+- 20.1 TransientVector
+- 20.2 TransientHashMap
+- 20.3 TransientHashSet
+- 20.4 `transient`, `persistent!`, `conj!`, `assoc!`, `dissoc!`, `disj!`
+
+## Phase 21: Metadata Propagation — TODO
+
+Full metadata support across collection operations.
+
+- 21.1 `with-meta` / `vary-meta` on all collection types
+- 21.2 Metadata preservation through map/filter/reduce operations
+- 21.3 `meta` returns attached metadata
+
+## Phase 22: Performance Benchmarks — TODO
+
+Establish baselines and optimize hot paths.
+
+- 22.1 Benchmark suite (vitest bench or custom)
+- 22.2 PersistentVector / PersistentHashMap read/write benchmarks
+- 22.3 Compiler throughput (forms/sec)
+- 22.4 Runtime startup cost measurement
+
+## Phase 23: npm Publish Preparation — TODO
+
+Prepare packages for npm registry.
+
+- 23.1 Package metadata (README, LICENSE, keywords, repository)
+- 23.2 Export map validation (`package.json` exports field)
+- 23.3 Bundle size analysis (tree-shaking verification)
+- 23.4 Publish dry-run + CI publish workflow
 
 ## Known Gaps / Future Work
 
-- Transient collections (4.12) — deferred, not needed yet
-- Monorepo structured as npm workspaces (`packages/kiso`, `packages/su`)
+- Sorted collections (Phase 18) — new data structures required
+- `def` emits `const` — `binding`/`with-redefs` only work with `let`-bound vars (Phase 19)
+- Transient collections (Phase 20) — deferred, not needed yet
+- Metadata propagation incomplete (Phase 21)
+- 2 remaining vars: sorted-map, sorted-set (blocked on Phase 18)
+- cljs.spec — may add later as optional
+- core.async — may add later as optional
