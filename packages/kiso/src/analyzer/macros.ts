@@ -1066,8 +1066,11 @@ defmacro('defc', (items, form) => {
     throw new Error(`defc: Custom Element names require a hyphen: "${name}"`);
   }
 
-  // Skip optional docstring
-  if (idx < items.length && items[idx]!.data.type === 'string') {
+  // Optional docstring
+  let docstring: string | null = null;
+  const docForm = items[idx];
+  if (idx < items.length && docForm && docForm.data.type === 'string') {
+    docstring = docForm.data.value;
     idx++;
   }
 
@@ -1160,6 +1163,10 @@ defmacro('defc', (items, form) => {
     }
   }
   // No :style → no styles in config (no auto-lookup)
+  if (docstring) {
+    configItems.push(makeKeyword(null, 'doc'));
+    configItems.push(makeStr(docstring));
+  }
 
   // Build render fn: (fn* [props-atom] (let* [{:keys [...]} @props-atom] body...))
   const propsAtomSym = sym('props-atom__auto');

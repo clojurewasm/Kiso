@@ -41,6 +41,27 @@ function emitStatic(node: Node, helpers: CodegenHelpers): string {
   return helpers.emit(node);
 }
 
+// Extract and remove :doc from a map node, returning [doc, cleanedNode].
+function extractDoc(configNode: Node): [string | null, Node] {
+  if (configNode.type !== 'map') return [null, configNode];
+  let doc: string | null = null;
+  const keys: Node[] = [];
+  const vals: Node[] = [];
+  for (let i = 0; i < configNode.keys.length; i++) {
+    const k = configNode.keys[i]!;
+    if (k.type === 'keyword' && k.name === 'doc') {
+      const v = configNode.vals[i]!;
+      if (v.type === 'literal' && typeof v.value === 'string') {
+        doc = v.value;
+        continue;
+      }
+    }
+    keys.push(k);
+    vals.push(configNode.vals[i]!);
+  }
+  return [doc, { ...configNode, keys, vals }];
+}
+
 // Hook for su.core/define-component(name, config, renderFn)
 const defineComponentHook: CodegenHook = (args, helpers) => {
   const [nameNode, configNode, renderFnNode] = args;
@@ -48,10 +69,23 @@ const defineComponentHook: CodegenHook = (args, helpers) => {
 
   const su = helpers.nsRef('su.core');
   const name = helpers.emit(nameNode);
-  const config = configNode ? emitStatic(configNode, helpers) : '{}';
+
+  // Extract docstring from config, emit as JSDoc
+  let jsdoc = '';
+  let cleanConfig = configNode;
+  if (configNode) {
+    const [doc, cleaned] = extractDoc(configNode);
+    cleanConfig = cleaned;
+    if (doc) {
+      const safe = doc.replace(/\*\//g, '*\\/');
+      jsdoc = `/** ${safe} */\n${helpers.indent}`;
+    }
+  }
+
+  const config = cleanConfig ? emitStatic(cleanConfig, helpers) : '{}';
   const renderFn = helpers.emit(renderFnNode);
 
-  return `${su}.defineComponent(${name}, ${config}, ${renderFn})`;
+  return `${jsdoc}${su}.defineComponent(${name}, ${config}, ${renderFn})`;
 };
 
 // Format CSS string: add newlines between rule blocks for readability.
