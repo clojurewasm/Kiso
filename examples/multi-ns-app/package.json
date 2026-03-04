@@ -8,8 +8,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@clojurewasm/kiso": "^0.1.0",
-    "@clojurewasm/su": "^0.1.0"
+    "@clojurewasm/kiso": "^0.1.1",
+    "@clojurewasm/su": "^0.1.1"
   },
   "devDependencies": {
     "vite": "^6.0.0"

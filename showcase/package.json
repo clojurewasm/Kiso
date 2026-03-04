@@ -8,8 +8,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@clojurewasm/kiso": "^0.1.0",
-    "@clojurewasm/su": "^0.1.0",
+    "@clojurewasm/kiso": "^0.1.1",
+    "@clojurewasm/su": "^0.1.1",
     "highlight.js": "^11.11.1"
   },
   "devDependencies": {

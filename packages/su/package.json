@@ -16,10 +16,10 @@
     ".": "./dist/index.js"
   },
   "dependencies": {
-    "@clojurewasm/kiso": "^0.1.0"
+    "@clojurewasm/kiso": "^0.1.1"
   },
   "peerDependencies": {
-    "@clojurewasm/kiso": "^0.1.0"
+    "@clojurewasm/kiso": "^0.1.1"
   },
   "scripts": {
     "build": "tsc --build",
