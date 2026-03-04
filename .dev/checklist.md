@@ -4,7 +4,7 @@ Track blockers and deferred work items. Format: K## (Kiso item number).
 
 ## Open
 
-- K12: registerComponent shadow DOM attachment — renderFn output not attached to shadow root (component.ts:109 TODO)
+(none)
 
 ## Resolved
 
@@ -19,3 +19,4 @@ Track blockers and deferred work items. Format: K## (Kiso item number).
 - K09: DONE — formAssociated in ComponentConfig + defc, ElementInternals in registerComponent
 - K10: DONE — CSS custom properties, :part attr, :host selector, var() all verified
 - K11: DONE — delegatesFocus in ComponentConfig + defc, ARIA via setAttribute
+- K12: DONE — mount(container) renders hiccup to shadow DOM, collects/fires lifecycle hooks

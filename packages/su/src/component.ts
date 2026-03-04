@@ -5,6 +5,8 @@
 // In browser, registers with customElements.define().
 
 import { Atom, atom } from '@kiso/cljs/runtime';
+import { renderHiccup } from './hiccup.js';
+import { collectLifecycleHooks, type LifecycleHooks } from './lifecycle.js';
 
 export type ComponentConfig = {
   observedAttrs: string[];
@@ -25,7 +27,7 @@ export type ComponentDef = {
 
 export type ComponentInstance = {
   propsAtom: Atom;
-  mount: () => void;
+  mount: (container?: Node) => void;
   unmount: () => void;
   setAttr: (name: string, value: string | null) => void;
 };
@@ -57,15 +59,32 @@ export function defineComponent(
     createInstance(initialProps: Record<string, unknown>): ComponentInstance {
       const propsAtom = atom(initialProps);
       let mounted = false;
+      let hooks: LifecycleHooks | null = null;
 
       return {
         propsAtom,
-        mount() {
+        mount(container?: Node) {
           if (mounted) return;
           mounted = true;
-          renderFn(propsAtom);
+
+          if (container) {
+            // Browser path: render hiccup to DOM, collect lifecycle hooks
+            hooks = collectLifecycleHooks(() => {
+              const hiccup = renderFn(propsAtom);
+              const dom = renderHiccup(hiccup as Parameters<typeof renderHiccup>[0]);
+              container.appendChild(dom);
+            });
+            for (const fn of hooks.mounts) fn();
+          } else {
+            // Test path: just call renderFn
+            renderFn(propsAtom);
+          }
         },
         unmount() {
+          if (hooks) {
+            for (const fn of hooks.unmounts) fn();
+            hooks = null;
+          }
           mounted = false;
         },
         setAttr(name: string, value: string | null) {
@@ -91,9 +110,7 @@ export function registerComponent(def: ComponentDef, config: ComponentConfig, _r
     _internals: ElementInternals | null = null;
 
     connectedCallback() {
-      if (!this.shadowRoot) {
-        this.attachShadow({ mode: 'open', delegatesFocus: def.delegatesFocus });
-      }
+      const shadow = this.shadowRoot ?? this.attachShadow({ mode: 'open', delegatesFocus: def.delegatesFocus });
       if (def.formAssociated) {
         this._internals = this.attachInternals();
       }
@@ -105,8 +122,7 @@ export function registerComponent(def: ComponentDef, config: ComponentConfig, _r
         );
       }
       this._instance = def.createInstance(initialProps);
-      this._instance.mount();
-      // TODO: renderHiccup and attach to shadow
+      this._instance.mount(shadow);
     }
 
     attributeChangedCallback(name: string, _old: string | null, val: string | null) {

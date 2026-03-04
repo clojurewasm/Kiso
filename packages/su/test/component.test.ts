@@ -1,5 +1,6 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { defineComponent, type ComponentConfig } from '../src/component.js';
+import { onMount, onUnmount } from '../src/lifecycle.js';
 
 describe('defineComponent', () => {
   it('creates a component definition', () => {
@@ -98,5 +99,108 @@ describe('defineComponent', () => {
       delegatesFocus: true,
     }, () => ['input']);
     expect(def.delegatesFocus).toBe(true);
+  });
+});
+
+// -- K12: Shadow DOM mounting --
+
+type MockNode = {
+  type: 'element' | 'text';
+  tag?: string;
+  text?: string;
+  children: MockNode[];
+  appendChild(child: MockNode): void;
+};
+
+function createMockElement(tag: string): MockNode {
+  const node: MockNode = {
+    type: 'element',
+    tag,
+    children: [],
+    appendChild(child: MockNode) { node.children.push(child); },
+  };
+  return node;
+}
+
+function createMockTextNode(text: string): MockNode {
+  return { type: 'text', text, children: [], appendChild() { /* noop */ } };
+}
+
+describe('K12: mount with container', () => {
+  beforeEach(() => {
+    vi.stubGlobal('document', {
+      createElement: (tag: string) => createMockElement(tag),
+      createTextNode: (text: string) => createMockTextNode(text),
+      createComment: (text: string) => createMockTextNode(text),
+    });
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('renders hiccup to container when mount receives one', () => {
+    const renderFn = () => ['div', 'hello'];
+    const def = defineComponent('mount-test', {
+      observedAttrs: [],
+      propTypes: {},
+    }, renderFn);
+
+    const container = createMockElement('shadow-root');
+    const instance = def.createInstance({});
+    instance.mount(container as unknown as Node);
+
+    expect(container.children).toHaveLength(1);
+    expect(container.children[0]!.tag).toBe('div');
+  });
+
+  it('collects and fires onMount hooks', () => {
+    const mountSpy = vi.fn();
+    const renderFn = () => {
+      onMount(mountSpy);
+      return ['span', 'content'];
+    };
+    const def = defineComponent('hook-test', {
+      observedAttrs: [],
+      propTypes: {},
+    }, renderFn);
+
+    const container = createMockElement('shadow-root');
+    const instance = def.createInstance({});
+    instance.mount(container as unknown as Node);
+
+    expect(mountSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('fires onUnmount hooks on unmount', () => {
+    const unmountSpy = vi.fn();
+    const renderFn = () => {
+      onUnmount(unmountSpy);
+      return ['div'];
+    };
+    const def = defineComponent('unmount-test', {
+      observedAttrs: [],
+      propTypes: {},
+    }, renderFn);
+
+    const container = createMockElement('shadow-root');
+    const instance = def.createInstance({});
+    instance.mount(container as unknown as Node);
+    expect(unmountSpy).not.toHaveBeenCalled();
+
+    instance.unmount();
+    expect(unmountSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('still works without container (backward compat)', () => {
+    const renderFn = vi.fn(() => ['div']);
+    const def = defineComponent('compat-test', {
+      observedAttrs: [],
+      propTypes: {},
+    }, renderFn);
+
+    const instance = def.createInstance({});
+    instance.mount();
+    expect(renderFn).toHaveBeenCalledTimes(1);
   });
 });
