@@ -1,8 +1,11 @@
 // Vite Plugin — Transform .cljs/.cljc files to JavaScript.
 
 import { compile } from './compiler.js';
+import type { CodegenHook } from '../codegen/emitter.js';
 
-export type CljsPluginOptions = Record<string, never>;
+export type CljsPluginOptions = {
+  codegenHooks?: Record<string, CodegenHook>;
+};
 
 type HotUpdateCtx = {
   file: string;
@@ -25,7 +28,7 @@ function isCljsFile(id: string): boolean {
 }
 
 /** Create a Vite plugin for compiling ClojureScript. */
-export function cljs(_options?: CljsPluginOptions): VitePlugin {
+export function cljs(options?: CljsPluginOptions): VitePlugin {
   return {
     name: 'vite-plugin-clojurescript',
     config() {
@@ -39,7 +42,11 @@ export function cljs(_options?: CljsPluginOptions): VitePlugin {
     },
     transform(code: string, id: string) {
       if (!isCljsFile(id)) return null;
-      const result = compile(code, { filename: id, sourceMap: true });
+      const result = compile(code, {
+        filename: id,
+        sourceMap: true,
+        codegenHooks: options?.codegenHooks,
+      });
       return { code: result.code, map: result.map };
     },
     handleHotUpdate(ctx: HotUpdateCtx) {
