@@ -989,3 +989,50 @@ describe('instance?', () => {
     expect(core.instance_p(RegExp, 'abc')).toBe(false);
   });
 });
+
+describe('prn and pr', () => {
+  it('prn outputs pr-str + newline to console', () => {
+    const logs: string[] = [];
+    const origLog = console.log;
+    console.log = (...args: unknown[]) => logs.push(args.join(' '));
+    core.prn('hello', 42);
+    console.log = origLog;
+    expect(logs[0]).toBe('"hello" 42');
+  });
+
+  it('pr outputs pr-str to console (no newline)', () => {
+    const logs: string[] = [];
+    const origWrite = process.stdout.write;
+    (process.stdout as any).write = (s: string) => { logs.push(s); return true; };
+    core.pr('hello', 42);
+    (process.stdout as any).write = origWrite;
+    expect(logs[0]).toBe('"hello" 42');
+  });
+});
+
+describe('reversible?', () => {
+  it('vectors are reversible', () => {
+    expect(core.reversible_p(vector(1, 2))).toBe(true);
+  });
+  it('lists are not reversible', () => {
+    expect(core.reversible_p(list(1, 2))).toBe(false);
+  });
+  it('nil is not reversible', () => {
+    expect(core.reversible_p(null)).toBe(false);
+  });
+});
+
+describe('sorted?', () => {
+  it('returns false for hash-map', () => {
+    expect(core.sorted_p(hashMap(1, 2))).toBe(false);
+  });
+  it('returns false for nil', () => {
+    expect(core.sorted_p(null)).toBe(false);
+  });
+});
+
+describe('satisfies?', () => {
+  it('returns false for unknown protocol', () => {
+    expect(core.satisfies_p({}, 42)).toBe(false);
+  });
+});

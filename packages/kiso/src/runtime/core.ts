@@ -1072,3 +1072,39 @@ export function instance_p(ctor: unknown, x: unknown): boolean {
   if (x === null || x === undefined) return false;
   return x instanceof (ctor as new (...args: unknown[]) => unknown);
 }
+
+// -- prn / pr --
+
+export function prn(...args: unknown[]): void {
+  console.log(args.map(prStr).join(' '));
+}
+
+export function pr(...args: unknown[]): void {
+  if (typeof process !== 'undefined' && process.stdout) {
+    process.stdout.write(args.map(prStr).join(' '));
+  } else {
+    console.log(args.map(prStr).join(' '));
+  }
+}
+
+// -- Collection predicates --
+
+export function reversible_p(x: unknown): boolean {
+  return isVector(x);
+}
+
+export function sorted_p(_x: unknown): boolean {
+  // We don't have sorted collections yet
+  return false;
+}
+
+// -- Protocol predicates --
+
+export function satisfies_p(_protocol: unknown, _x: unknown): boolean {
+  // Placeholder: our protocols use defprotocol/extend-type which is structural
+  return false;
+}
+
+export function implements_p(_protocol: unknown, _x: unknown): boolean {
+  return false;
+}

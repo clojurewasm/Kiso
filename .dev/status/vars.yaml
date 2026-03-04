@@ -157,8 +157,8 @@ vars:
     "associative?":   {type: function, status: done}
     "sequential?":    {type: function, status: done}
     "counted?":       {type: function, status: done}
-    "reversible?":    {type: function, status: todo}
-    "sorted?":        {type: function, status: todo}
+    "reversible?":    {type: function, status: done}
+    "sorted?":        {type: function, status: done, note: "no sorted collections yet"}
 
     # === Functions — Collection Core ===
     "count":          {type: function, status: done}
@@ -320,16 +320,16 @@ vars:
     # === Functions — Printing ===
     "println":        {type: function, status: done}
     "print":          {type: function, status: done}
-    "prn":            {type: function, status: todo}
-    "pr":             {type: function, status: todo}
+    "prn":            {type: function, status: done}
+    "pr":             {type: function, status: done}
 
     # === Functions — Misc ===
     "equiv":          {type: function, status: done}
     "hash":           {type: function, status: done}
     "type":           {type: function, status: done}
     "instance?":      {type: function, status: done}
-    "satisfies?":     {type: function, status: todo}
-    "implements?":    {type: function, status: todo}
+    "satisfies?":     {type: function, status: done, note: "placeholder, protocols are structural"}
+    "implements?":    {type: function, status: done, note: "placeholder, protocols are structural"}
 
     # === Dynamic Vars ===
     "*print-fn*":     {type: dynamic-var, status: todo}

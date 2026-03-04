@@ -662,6 +662,9 @@ const RUNTIME_FUNCTIONS = new Set([
   'pr-str', 'prn-str', 'print-str', 'println-str',
   'array', 'aclone', 'js-delete',
   'hash', 'type', 'instance?',
+  'prn', 'pr',
+  'reversible?', 'sorted?',
+  'satisfies?', 'implements?',
 ]);
 
 /** Scan AST for runtime function usage and return needed import names. */

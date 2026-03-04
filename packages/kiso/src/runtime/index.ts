@@ -75,4 +75,8 @@ export {
   array, aclone, js_delete,
   hash,
   type_fn, instance_p,
+  // Batch 5: prn, pr, predicates
+  prn, pr,
+  reversible_p, sorted_p,
+  satisfies_p, implements_p,
 } from './core.js';
