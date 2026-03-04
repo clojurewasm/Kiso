@@ -6,7 +6,7 @@
 
 import { Atom, atom, cljToJs, jsToClj, keyword as kw, assoc, isHashMap } from '@clojurewasm/kiso/runtime';
 import { renderHiccup } from './hiccup.js';
-import { collectLifecycleHooks, type LifecycleHooks } from './lifecycle.js';
+import { collectLifecycleHooks, setHost, type LifecycleHooks } from './lifecycle.js';
 import { initReactiveTracking } from './reactive.js';
 
 // Auto-init reactive tracking (idempotent)
@@ -179,8 +179,10 @@ export function registerComponent(def: ComponentDef, config: ComponentConfig, _r
         this._pendingProps = null;
       }
       // Convert to Kiso HashMap with keyword keys for compiled CLJS access
+      setHost(this);
       this._instance = def.createInstance(jsToClj(initialProps) as Record<string, unknown>);
       this._instance.mount(shadow);
+      setHost(null);
     }
 
     attributeChangedCallback(name: string, _old: string | null, val: string | null) {

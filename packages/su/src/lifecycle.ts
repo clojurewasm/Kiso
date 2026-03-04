@@ -12,6 +12,15 @@ export type LifecycleHooks = {
 
 let currentHooks: LifecycleHooks | null = null;
 
+// -- Host element context (for provide/useContext) --
+let currentHost: HTMLElement | null = null;
+
+/** Set the current host element (used during component init). */
+export function setHost(el: HTMLElement | null): void { currentHost = el; }
+
+/** Get the current host element. */
+export function getHost(): HTMLElement | null { return currentHost; }
+
 /** Register a callback to run after the component mounts. */
 export function onMount(fn: HookFn): void {
   if (!currentHooks) {
