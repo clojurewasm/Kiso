@@ -8,22 +8,19 @@ Session handover document. Read at session start.
 - Reader complete: form, tokenizer, reader, syntax-quote, namespaced maps, nesting depth limit.
 - Macros: ~24 core macros (incl. syntax-quote, defc, defstyle).
 - Analyzer + Codegen: 16 special forms, ns-alias resolution, runtime auto-imports.
-- Runtime: full data structures + atom (deref/reset!/swap! standalone fns) + barrel export.
-- @clojurewasm/su: reactive, component (formAssociated, delegatesFocus), hiccup, css, lifecycle, hmr.
+- Runtime: full data structures + atom (deref/reset!/swap!/label standalone fns) + barrel export.
+- @clojurewasm/su: reactive, component (formAssociated, delegatesFocus, richProps), hiccup, css, lifecycle, hmr, context, devtools.
 - Vite plugin: .cljs transform + HMR + alias resolution.
 - Demo: examples/task-manager (task manager app in browser).
-- Total: 916 tests passing (840 kiso + 76 su), types clean.
+- Total: 938 tests passing (846 kiso + 92 su), types clean.
 - **All checklist items (K01-K11) resolved.**
 
 ## Current Task
 
-**Codegen Readability** — DONE. 6 commits:
-1. ~~Readable operator names~~ — standalone operators (+→add, *→multiply, =→eq, etc.)
-2. ~~Clean character munging~~ — ?→_p, !→_m, *x*→_x_, ->→_to_
-3. ~~Cleaner destructuring gensyms~~ — _sc0/_ss1/_m2 format, skip redundant temps
-4. ~~Cond as if-else chain~~ — deep if-chains emit IIFE with early returns
-5. ~~Codegen hooks API~~ — codegenHooks in CompileOptions, intercept ns-qualified calls
-6. ~~su codegen hooks~~ — define-component/create-stylesheet emit JS object literals
+**State Management** — DONE. 3 commits:
+1. ~~Props Channeling~~ — JS property channel for atoms on custom elements, richProps config, defc :atom type
+2. ~~Context API~~ — provide/useContext via CustomEvent, host element tracking
+3. ~~DevTools Trace~~ — atom labels, _globalOnChange hook, enableTrace/disableTrace
 
 ## Task Queue
 

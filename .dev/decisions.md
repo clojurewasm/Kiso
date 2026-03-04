@@ -194,3 +194,31 @@ runtime function calls.
 **Affected**: `packages/kiso/src/codegen/emitter.ts`, `packages/kiso/src/api/compiler.ts`,
 `packages/kiso/src/api/codegen-hooks.ts` (new), `packages/su/src/codegen-hooks.ts` (new).
 See `docs/codegen-hooks.md` for API documentation.
+
+## D10: State Management — Props Channeling + Context + DevTools
+
+**Date**: 2026-03-04
+
+Three features for cross-component state sharing in su:
+
+**Props Channeling**: Non-primitive values (atoms, objects) on custom elements are set as
+JS properties instead of HTML attributes (which stringify to `"[object Object]"`).
+`richProps` config separates atom-type props from observed attributes. `defc` macro
+routes `:atom` prop type to `richProps` array.
+
+**Context API**: `provide(key, value)` and `useContext(key)` using `CustomEvent` with
+`composed: true` to cross Shadow DOM boundaries. Follows Lit Context Protocol pattern.
+Host element tracking via `setHost/getHost` in lifecycle.ts.
+
+**DevTools Trace**: Optional `label` on atoms, `_globalOnChange` static hook on Atom class.
+`enableTrace()` / `disableTrace()` in su/devtools.ts console-log state changes with
+optional filter function.
+
+**Rationale**: Global `(def x (atom ...))` is the only way to share atoms between components.
+Props channeling enables ownership patterns. Context API avoids props drilling across
+Shadow DOM. DevTools trace helps debug reactive state flows.
+
+**Affected**: `packages/su/src/hiccup.ts`, `packages/su/src/component.ts`,
+`packages/su/src/context.ts` (new), `packages/su/src/devtools.ts` (new),
+`packages/su/src/lifecycle.ts`, `packages/kiso/src/runtime/atom.ts`,
+`packages/kiso/src/analyzer/macros.ts`.

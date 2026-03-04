@@ -17,8 +17,9 @@ Monorepo: `@clojurewasm/kiso` (compiler + runtime), `@clojurewasm/su` (component
 | 8     | Codegen Quality        | DONE   | Pretty-print, constructor fix, munge fix, truthy, srcmap |
 | 9     | Codegen Readability    | DONE   | Readable munging, destructuring, IIFE cond, codegen hooks |
 | 10    | CLI                    | DONE   | kiso compile command, source map, out-dir, file/dir resolve |
+| 11    | State Management       | DONE   | Props channeling, context API, devtools trace                |
 
-All 10 phases complete. 916 tests passing (840 kiso + 76 su). Types clean.
+All 11 phases complete. 938 tests passing (846 kiso + 92 su). Types clean.
 
 ## Phase 1: Reader — DONE
 
@@ -128,6 +129,14 @@ Command-line interface for standalone compilation.
 - 10.2 ~~File/directory target resolver~~ DONE
 - 10.3 ~~compile command with source map and out-dir support~~ DONE
 - 10.4 ~~bin wrapper (npx kiso compile ...)~~ DONE
+
+## Phase 11: State Management — DONE
+
+Cross-component state sharing and debugging tools for su framework.
+
+- 11.1 ~~Props Channeling: JS property channel for non-primitive attrs on Custom Elements~~ DONE
+- 11.2 ~~Context API: provide/useContext via CustomEvent (Lit Context pattern)~~ DONE
+- 11.3 ~~DevTools Trace: atom labels + global onChange hook + enableTrace/disableTrace~~ DONE
 
 ## Known Gaps / Future Work
 
