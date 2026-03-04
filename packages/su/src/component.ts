@@ -17,6 +17,7 @@ export type ComponentConfig = {
   propTypes: Record<string, string>;
   formAssociated?: boolean;
   delegatesFocus?: boolean;
+  styles?: unknown[];
 };
 
 type RenderFn = (propsAtom: Atom) => unknown;
@@ -26,6 +27,7 @@ export type ComponentDef = {
   observedAttrs: string[];
   formAssociated: boolean;
   delegatesFocus: boolean;
+  styles: unknown[];
   createInstance: (initialProps: Record<string, unknown>) => ComponentInstance;
 };
 
@@ -53,7 +55,8 @@ function normalizeConfig(raw: unknown): ComponentConfig {
   const propTypes = (config.propTypes ?? config['prop-types'] ?? {}) as Record<string, string>;
   const formAssociated = (config.formAssociated ?? config['form-associated'] ?? false) as boolean;
   const delegatesFocus = (config.delegatesFocus ?? config['delegates-focus'] ?? false) as boolean;
-  return { observedAttrs, propTypes, formAssociated, delegatesFocus };
+  const styles = (config.styles ?? []) as unknown[];
+  return { observedAttrs, propTypes, formAssociated, delegatesFocus, styles };
 }
 
 /** Define a component. Returns a definition that can create instances. */
@@ -73,6 +76,7 @@ export function defineComponent(
     observedAttrs: config.observedAttrs,
     formAssociated: config.formAssociated ?? false,
     delegatesFocus: config.delegatesFocus ?? false,
+    styles: config.styles ?? [],
     createInstance(initialProps: Record<string, unknown>): ComponentInstance {
       const propsAtom = atom(initialProps);
       let mounted = false;
@@ -141,6 +145,9 @@ export function registerComponent(def: ComponentDef, config: ComponentConfig, _r
       const shadow = this.shadowRoot ?? this.attachShadow({ mode: 'open', delegatesFocus: def.delegatesFocus });
       if (def.formAssociated) {
         this._internals = this.attachInternals();
+      }
+      if (def.styles.length > 0) {
+        shadow.adoptedStyleSheets = [...def.styles as CSSStyleSheet[]];
       }
       const initialProps: Record<string, unknown> = {};
       for (const attr of def.observedAttrs) {

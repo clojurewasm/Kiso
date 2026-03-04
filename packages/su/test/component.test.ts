@@ -101,6 +101,24 @@ describe('defineComponent', () => {
     }, () => ['input']);
     expect(def.delegatesFocus).toBe(true);
   });
+
+  it('stores styles array from config', () => {
+    const fakeSheet = { cssRules: [] };
+    const def = defineComponent('styled-comp', {
+      observedAttrs: [],
+      propTypes: {},
+      styles: [fakeSheet],
+    } as ComponentConfig & { styles: unknown[] }, () => ['div']);
+    expect(def.styles).toEqual([fakeSheet]);
+  });
+
+  it('defaults styles to empty array', () => {
+    const def = defineComponent('no-style-comp', {
+      observedAttrs: [],
+      propTypes: {},
+    }, () => ['div']);
+    expect(def.styles).toEqual([]);
+  });
 });
 
 describe('auto-registration', () => {

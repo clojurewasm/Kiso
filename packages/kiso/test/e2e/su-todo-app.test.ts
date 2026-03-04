@@ -149,6 +149,17 @@ describe('su todo-app dogfooding', () => {
       expect(js).toContain('keyword("delegates-focus")');
       expect(js).toContain(', true)');
     });
+
+    it('defc :style option adds styles vector to config', () => {
+      const js = compileForm(`
+        (defc my-card
+          {:style card-styles}
+          [{:keys [title]}]
+          [:div title])
+      `);
+      expect(js).toContain('keyword("styles")');
+      expect(js).toContain('card_styles');
+    });
   });
 
   describe('K10: CSS theming', () => {
