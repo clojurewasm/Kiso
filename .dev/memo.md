@@ -12,13 +12,17 @@ Session handover document. Read at session start.
 - @clojurewasm/su: reactive, component (formAssociated, delegatesFocus), hiccup, css, lifecycle, hmr.
 - Vite plugin: .cljs transform + HMR + alias resolution.
 - Demo: examples/task-manager (task manager app in browser).
-- Total: 846 tests passing (781 cljs + 65 su), types clean.
+- Total: 879 tests passing (807 cljs + 72 su), types clean.
 - **All checklist items (K01-K11) resolved.**
 
 ## Current Task
 
-**All task queue items and checklist items complete.** Batches A-H fully done.
-Monorepo restructuring complete (packages/cljs + packages/su).
+**Phase 8: Codegen Quality** — DONE. All 5 items resolved:
+1. ~~Fix constructor emit~~ — namespaced Ctor. (js/Error.) now emits `new`
+2. ~~Fix arithmetic munge~~ — `-`→`subtract`, `/`→`divide`
+3. ~~Reduce truthiness verbosity~~ — `truthy(x)` runtime helper
+4. ~~Pretty-print~~ — multi-line with 2-space indentation
+5. ~~Line-level source maps~~ — per-form mapping via `emitModuleWithMappings`
 
 ## Task Queue
 

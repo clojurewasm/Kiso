@@ -5,17 +5,18 @@ Monorepo: `@clojurewasm/kiso` (compiler + runtime), `@clojurewasm/su` (component
 
 ## Phase Tracker
 
-| Phase | Name                  | Status | Notes |
-|-------|-----------------------|--------|-------|
-| 1     | Reader                | DONE   | Full Clojure reader, syntax-quote, namespaced maps |
-| 2     | Core Macros + Analyzer| DONE   | ~24 core macros, 16+ SFs, destructuring, interop |
-| 3     | Codegen + Source Map  | DONE   | Emitter + Source Map V3 (VLQ encoding) |
-| 4     | Runtime               | DONE   | Full data structures, protocols, LazySeq, ArrayMap, interop |
-| 5     | Mini Evaluator        | DONE   | Evaluator core + ~30 built-ins + macro expander |
-| 6     | Vite Integration      | DONE   | compile API + Vite plugin + HMR |
-| 7     | su Framework          | DONE   | reactive, component, hiccup, css, lifecycle, HMR, defc/defstyle |
+| Phase | Name                   | Status | Notes                                                    |
+|-------|------------------------|--------|----------------------------------------------------------|
+| 1     | Reader                 | DONE   | Full Clojure reader, syntax-quote, namespaced maps       |
+| 2     | Core Macros + Analyzer | DONE   | ~24 core macros, 16+ SFs, destructuring, interop         |
+| 3     | Codegen + Source Map   | DONE   | Emitter + Source Map V3 (VLQ encoding)                   |
+| 4     | Runtime                | DONE   | Full data structures, protocols, LazySeq, ArrayMap       |
+| 5     | Mini Evaluator         | DONE   | Evaluator core + ~30 built-ins + macro expander          |
+| 6     | Vite Integration       | DONE   | compile API + Vite plugin + HMR                          |
+| 7     | su Framework           | DONE   | reactive, component, hiccup, css, lifecycle, HMR         |
+| 8     | Codegen Quality        | DONE   | Pretty-print, constructor fix, munge fix, truthy, srcmap |
 
-All 7 phases complete. 834 tests passing. Types clean.
+All 8 phases complete. 879 tests passing. Types clean.
 
 ## Phase 1: Reader — DONE
 
@@ -92,10 +93,19 @@ All 7 phases complete. 834 tests passing. Types clean.
 - 7.8 ~~HMR for components + styles~~ DONE
 - 7.9 ~~Dogfooding: todo-app~~ DONE
 
+## Phase 8: Codegen Quality — DONE
+
+Improve generated JS readability and fix codegen bugs discovered during review.
+
+- 8.1 ~~Pretty-print: multi-line output with indentation~~ DONE
+- 8.2 ~~Fix constructor emit: `(js/Error. "msg")` → `new Error("msg")`~~ DONE
+- 8.3 ~~Fix arithmetic munge: `-` → `subtract`, `/` → `divide`~~ DONE
+- 8.4 ~~Reduce truthiness verbosity: `truthy(x)` runtime helper~~ DONE
+- 8.5 ~~Line-level source map mappings (per-form positions)~~ DONE
+
 ## Known Gaps / Future Work
 
 - Transient collections (4.12) — deferred, not needed yet
 - `for`, `doseq` macros — require seq/first/next runtime wiring
 - `defmulti`/`defmethod` — dispatch infrastructure
-- `registerComponent` shadow DOM attachment — TODO in component.ts:109
 - Monorepo structured as npm workspaces (`packages/kiso`, `packages/su`)
