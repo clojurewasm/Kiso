@@ -84,6 +84,7 @@ export {
   _print_newline_, _print_readably_,
   _print_length_, _print_level_,
   alter_meta_m, reset_meta_m,
+  meta, with_meta, vary_meta,
   // Sorted collections
   sorted_map, sorted_map_p,
   sorted_set, sorted_set_p,

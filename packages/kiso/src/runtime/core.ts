@@ -1189,6 +1189,48 @@ export let _print_level_: number | null = null;
 
 const metaStore = new WeakMap<object, unknown>();
 
+export function meta(obj: unknown): unknown {
+  if (obj === null || obj === undefined || typeof obj !== 'object' && typeof obj !== 'function') return null;
+  return metaStore.get(obj as object) ?? null;
+}
+
+export function with_meta(obj: unknown, m: unknown): unknown {
+  if (obj === null || obj === undefined) throw new Error('with-meta requires a non-nil value');
+  // For collections, create a shallow copy so metadata doesn't affect original
+  let copy: unknown;
+  if (isVector(obj)) {
+    // Rebuild vector
+    const arr: unknown[] = [];
+    for (let i = 0; i < (obj as PersistentVector).count; i++) arr.push((obj as PersistentVector).nth(i));
+    copy = vector(...arr);
+  } else if (isHashMap(obj)) {
+    const kvs: unknown[] = [];
+    (obj as PersistentHashMap).forEach((k, v) => kvs.push(k, v));
+    copy = hm(...kvs);
+  } else if (isHashSet(obj)) {
+    const items: unknown[] = [];
+    (obj as PersistentHashSet).forEach((item) => items.push(item));
+    copy = hashSet(...items);
+  } else if (isList(obj)) {
+    // Rebuild list
+    const items: unknown[] = [];
+    let s = seq(obj);
+    while (s !== null) { items.push(seqFirst(s)); s = seqNext(s); }
+    copy = list(...items);
+  } else {
+    // For other objects/functions, attach directly
+    copy = obj;
+  }
+  metaStore.set(copy as object, m);
+  return copy;
+}
+
+export function vary_meta(obj: unknown, f: (...args: unknown[]) => unknown, ...args: unknown[]): unknown {
+  const currentMeta = meta(obj);
+  const newMeta = f(currentMeta, ...args);
+  return with_meta(obj, newMeta);
+}
+
 export function alter_meta_m(ref: unknown, f: (...args: unknown[]) => unknown, ...args: unknown[]): unknown {
   if (ref === null || ref === undefined || typeof ref !== 'object') return null;
   const current = metaStore.get(ref as object) ?? null;
