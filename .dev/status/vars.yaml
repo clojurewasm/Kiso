@@ -359,26 +359,26 @@ vars:
     "IPrintWithWriter": {type: protocol, status: todo}
 
   cljs_string:
-    "blank?":         {type: function, status: todo}
-    "capitalize":     {type: function, status: todo}
-    "ends-with?":     {type: function, status: todo}
-    "escape":         {type: function, status: todo}
-    "includes?":      {type: function, status: todo}
-    "index-of":       {type: function, status: todo}
-    "join":           {type: function, status: todo}
-    "last-index-of":  {type: function, status: todo}
-    "lower-case":     {type: function, status: todo}
-    "replace":        {type: function, status: todo}
-    "replace-first":  {type: function, status: todo}
-    "reverse":        {type: function, status: todo}
-    "split":          {type: function, status: todo}
-    "split-lines":    {type: function, status: todo}
-    "starts-with?":   {type: function, status: todo}
-    "trim":           {type: function, status: todo}
-    "trim-newline":   {type: function, status: todo}
-    "triml":          {type: function, status: todo}
-    "trimr":          {type: function, status: todo}
-    "upper-case":     {type: function, status: todo}
+    "blank?":         {type: function, status: done}
+    "capitalize":     {type: function, status: done}
+    "ends-with?":     {type: function, status: done}
+    "escape":         {type: function, status: done}
+    "includes?":      {type: function, status: done}
+    "index-of":       {type: function, status: done}
+    "join":           {type: function, status: done}
+    "last-index-of":  {type: function, status: done}
+    "lower-case":     {type: function, status: done}
+    "replace":        {type: function, status: done}
+    "replace-first":  {type: function, status: done}
+    "reverse":        {type: function, status: done}
+    "split":          {type: function, status: done}
+    "split-lines":    {type: function, status: done}
+    "starts-with?":   {type: function, status: done}
+    "trim":           {type: function, status: done}
+    "trim-newline":   {type: function, status: done}
+    "triml":          {type: function, status: done}
+    "trimr":          {type: function, status: done}
+    "upper-case":     {type: function, status: done}
 
   cljs_set:
     "union":          {type: function, status: todo}

@@ -368,6 +368,11 @@ describe('ns require compilation', () => {
     expect(js).toContain('./sub_ns/foo_bar.js');
   });
 
+  it('maps clojure.string ns to clojure/string.js', () => {
+    const js = compileModule('(ns my.app (:require [clojure.string :as str]))');
+    expect(js).toContain("import * as str from 'clojure/string.js'");
+  });
+
   it('auto-imports runtime when collection literals are used', () => {
     const js = compileModule('(ns my.app) (def v [1 2])');
     expect(js).toContain('import');

@@ -8,6 +8,7 @@
   "exports": {
     ".": "./dist/index.js",
     "./runtime": "./dist/runtime/index.js",
+    "./runtime/string": "./dist/runtime/string.js",
     "./vite": "./dist/api/vite-plugin.js",
     "./compiler": "./dist/api/compiler.js",
     "./codegen": "./dist/api/codegen-hooks.js"
