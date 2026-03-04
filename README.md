@@ -238,7 +238,7 @@ su provides reactive Web Components using ClojureScript + Shadow DOM:
         [:button {:on-click #(swap! count inc)} "+"]
         [:button {:on-click #(swap! count dec)} "-"]])))
 
-(defstyle counter-style
+(defstyle my-counter
   [:.counter {:display "flex" :gap "8px" :align-items "center"}]
   [:button {:padding "4px 12px"}])
 
