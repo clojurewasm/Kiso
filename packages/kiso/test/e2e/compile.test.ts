@@ -199,9 +199,9 @@ describe('fn compilation', () => {
 // -- def --
 
 describe('def compilation', () => {
-  it('compiles def as const', () => {
+  it('compiles def as let', () => {
     const js = compile('(def x 42)');
-    expect(js).toContain('const x = 42');
+    expect(js).toContain('let x = 42');
   });
 });
 
@@ -210,7 +210,7 @@ describe('def compilation', () => {
 describe('defn compilation', () => {
   it('compiles defn to function', () => {
     const js = compile('(defn greet [name] name)');
-    expect(js).toContain('const greet');
+    expect(js).toContain('let greet');
     expect(js).toContain('function');
   });
 });
@@ -312,13 +312,13 @@ describe('pretty-print', () => {
 describe('module compilation', () => {
   it('compiles multiple defs as exports', () => {
     const js = compileModule('(def x 1) (def y 2)');
-    expect(js).toContain('export const x = 1;');
-    expect(js).toContain('export const y = 2;');
+    expect(js).toContain('export let x = 1;');
+    expect(js).toContain('export let y = 2;');
   });
 
   it('compiles defn in module', () => {
     const js = compileModule('(defn add [a b] a)');
-    expect(js).toContain('export const add');
+    expect(js).toContain('export let add');
   });
 });
 

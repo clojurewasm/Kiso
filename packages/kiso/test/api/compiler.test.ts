@@ -40,7 +40,7 @@ describe('compile', () => {
     // The body should use _rt_add for +, not the user's add
     expect(result.code).toContain('_rt_add(a, b)');
     // The user's function should still be named add
-    expect(result.code).toContain('export const add =');
+    expect(result.code).toContain('export let add =');
   });
 
   it('maps each top-level form to its generated line', () => {

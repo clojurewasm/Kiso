@@ -161,7 +161,7 @@ export function emitModuleWithMappings(nodes: Node[], hooks?: Map<string, Codege
 function emitTopLevelCtx(node: Node, ctx: EmitCtx): string {
   if (node.type === 'def') {
     const init = node.init ? emitNode(node.init, ctx) : 'null';
-    return `export const ${munge(node.name)} = ${init};`;
+    return `export let ${munge(node.name)} = ${init};`;
   }
   if (node.type === 'deftype') {
     const code = emitDeftype(node, ctx);
@@ -445,7 +445,7 @@ function emitThrow(node: { expr: Node }, ctx: EmitCtx): string {
 
 function emitDef(node: { name: string; init: Node | null }, ctx: EmitCtx): string {
   const init = node.init ? emitNode(node.init, ctx) : 'null';
-  return `const ${munge(node.name)} = ${init}`;
+  return `let ${munge(node.name)} = ${init}`;
 }
 
 function emitLoop(node: { bindings: LetBinding[]; body: Node }, ctx: EmitCtx): string {

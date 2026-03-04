@@ -40,17 +40,17 @@ function runModule(source: string): unknown {
     if (node.type === 'def') {
       const init = emit(node);
       // def at top level — use var for Function context
-      stmts.push(`var ${init.replace(/^const /, '')}`);
+      stmts.push(`var ${init.replace(/^let /, '')}`);
     } else if (node.type === 'do') {
       // defprotocol expands to (do (def ...) (def ...))
       // Flatten the do into separate var statements
       const doJs = emit(node);
-      // The do emits as (const X = ..., const Y = ...)
+      // The do emits as (let X = ..., let Y = ...)
       // Split and convert to var statements
       const inner = doJs.slice(1, -1); // strip outer parens
-      const parts = inner.split(/,\s*const\s+/);
+      const parts = inner.split(/,\s*let\s+/);
       for (const part of parts) {
-        const cleaned = part.replace(/^const\s+/, '');
+        const cleaned = part.replace(/^let\s+/, '');
         stmts.push(`var ${cleaned};`);
       }
     } else if (node.type === 'deftype' || node.type === 'defrecord') {

@@ -40,9 +40,9 @@ function runModule(source: string): unknown {
     const isLast = i === nodes.length - 1;
     if (node.type === 'def') {
       const init = emit(node);
-      stmts.push(`var ${init.replace(/^const /, '')}`);
+      stmts.push(`var ${init.replace(/^let /, '')}`);
     } else if (node.type === 'defmulti') {
-      stmts.push(`var ${emit(node).replace(/^const /, '')}`);
+      stmts.push(`var ${emit(node).replace(/^let /, '')}`);
     } else if (node.type === 'defmethod') {
       stmts.push(`${emit(node)};`);
     } else if (isLast) {
