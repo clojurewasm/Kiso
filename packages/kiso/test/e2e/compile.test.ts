@@ -270,6 +270,7 @@ describe('name munging', () => {
     expect(munge('*foo*')).toBe('_foo_');
     expect(munge('->Person')).toBe('_to_Person');
     expect(munge('foo->bar')).toBe('foo_to_bar');
+    expect(munge('%1')).toBe('_PCT_1');
   });
 
   it('munges standalone operators to readable names', () => {

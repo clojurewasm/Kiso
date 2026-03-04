@@ -767,5 +767,6 @@ export function munge(name: string): string {
     .replace(/</g, '_LT_')
     .replace(/=/g, '_eq_')
     .replace(/'/g, '_SINGLEQUOTE_')
-    .replace(/&/g, '_AMPERSAND_');
+    .replace(/&/g, '_AMPERSAND_')
+    .replace(/%/g, '_PCT_');
 }
