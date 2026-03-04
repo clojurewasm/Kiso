@@ -4,7 +4,8 @@ Track blockers and deferred work items. Format: K## (Kiso item number).
 
 ## Open
 
-(none)
+- K13: Nested map-in-map destructuring `{{:keys [x]} :key}` and vector-in-map `{[a b] :key}` not codegen'd
+- K14: `:or` defaults don't apply when key exists with nil value (CLJS uses `or` on get result)
 
 ## Resolved
 
