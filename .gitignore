@@ -4,5 +4,6 @@ packages/*/dist/
 *.tsbuildinfo
 .DS_Store
 coverage/
+test-results/
 .lsp/.cache/
 .clj-kondo/.cache/
