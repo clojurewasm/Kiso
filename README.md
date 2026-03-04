@@ -250,6 +250,13 @@ Each `defc` component becomes a native Custom Element with Shadow DOM isolation.
 
 ---
 
+## Documentation
+
+See the [full documentation](docs/index.md) for guides, cookbook examples,
+and API reference covering the su framework.
+
+---
+
 ## Project Structure
 
 ```
