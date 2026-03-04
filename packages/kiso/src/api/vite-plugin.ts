@@ -40,6 +40,7 @@ export function cljs(options?: CljsPluginOptions): VitePlugin {
           alias: {
             'su/core.js': '@clojurewasm/su',
             'clojure/string.js': '@clojurewasm/kiso/runtime/string',
+            'clojure/set.js': '@clojurewasm/kiso/runtime/set',
           },
         },
       };

@@ -373,6 +373,11 @@ describe('ns require compilation', () => {
     expect(js).toContain("import * as str from 'clojure/string.js'");
   });
 
+  it('maps clojure.set ns to clojure/set.js', () => {
+    const js = compileModule('(ns my.app (:require [clojure.set :as set]))');
+    expect(js).toContain("import * as set from 'clojure/set.js'");
+  });
+
   it('auto-imports runtime when collection literals are used', () => {
     const js = compileModule('(ns my.app) (def v [1 2])');
     expect(js).toContain('import');

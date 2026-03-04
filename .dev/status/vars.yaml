@@ -382,17 +382,17 @@ vars:
     "upper-case":     {type: function, status: done}
 
   cljs_set:
-    "union":          {type: function, status: todo}
-    "intersection":   {type: function, status: todo}
-    "difference":     {type: function, status: todo}
-    "select":         {type: function, status: todo}
-    "project":        {type: function, status: todo}
-    "rename-keys":    {type: function, status: todo}
-    "rename":         {type: function, status: todo}
-    "index":          {type: function, status: todo}
-    "map-invert":     {type: function, status: todo}
-    "subset?":        {type: function, status: todo}
-    "superset?":      {type: function, status: todo}
+    "union":          {type: function, status: done}
+    "intersection":   {type: function, status: done}
+    "difference":     {type: function, status: done}
+    "select":         {type: function, status: done}
+    "project":        {type: function, status: done}
+    "rename-keys":    {type: function, status: done}
+    "rename":         {type: function, status: done}
+    "index":          {type: function, status: done}
+    "map-invert":     {type: function, status: done}
+    "subset?":        {type: function, status: done}
+    "superset?":      {type: function, status: done}
 
   cljs_walk:
     "walk":           {type: function, status: todo}
