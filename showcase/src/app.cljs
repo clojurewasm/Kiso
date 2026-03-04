@@ -1,10 +1,31 @@
 (ns showcase.app
   (:require [clojure.string]
-            [showcase.registry :as reg]
-            [showcase.highlight :as hl]))
+            [showcase.registry :as reg]))
 
 ;; Helpers: source loading via JS module
 (def sources-mod (js/await (js/import "./helpers/sources.js")))
+
+;; highlight.js (loaded lazily)
+(def hljs-ref (atom nil))
+
+(defn- ensure-hljs [callback]
+  (if @hljs-ref
+    (callback @hljs-ref)
+    (-> (js/import "highlight.js/lib/core")
+        (.then (fn [core-mod]
+                 (let [hljs (.-default core-mod)]
+                   ;; Register languages
+                   (-> (js/Promise.all
+                        (js/Array.
+                         (js/import "highlight.js/lib/languages/clojure")
+                         (js/import "highlight.js/lib/languages/javascript")))
+                       (.then (fn [langs]
+                                (.registerLanguage hljs "clojure" (.-default (aget langs 0)))
+                                (.registerLanguage hljs "javascript" (.-default (aget langs 1)))
+                                (reset! hljs-ref hljs)
+                                (callback hljs)))))))
+        (.catch (fn [err]
+                  (js/console.error "Failed to load highlight.js:" err))))))
 
 (defn- get-source [id]
   (let [key (clojure.string/replace id "-" "_")]
@@ -45,20 +66,20 @@
           (.appendChild el c))))
     el))
 
-;; Render highlighted code
-(defn- render-highlighted [container source]
+;; Render highlighted code with highlight.js
+(defn- render-highlighted [container source lang]
   (set! (.-innerHTML container) "")
-  (let [pre (js/document.createElement "pre")]
+  (let [pre (js/document.createElement "pre")
+        code (js/document.createElement "code")]
     (set! (.-className pre) "code-block")
-    (doseq [part (hl/highlight source)]
-      (if (string? part)
-        (.appendChild pre (js/document.createTextNode part))
-        (let [[_ attrs text] part
-              span (js/document.createElement "span")]
-          (set! (.-className span) (:class attrs))
-          (.appendChild span (js/document.createTextNode text))
-          (.appendChild pre span))))
-    (.appendChild container pre)))
+    (set! (.-textContent code) source)
+    (.appendChild pre code)
+    (.appendChild container pre)
+    ;; Apply highlight.js asynchronously
+    (ensure-hljs
+     (fn [hljs]
+       (let [result (.highlight hljs source (js-obj "language" lang))]
+         (set! (.-innerHTML code) (.-value result)))))))
 
 ;; Compile and render JS
 (defn- render-js [container source]
@@ -67,10 +88,7 @@
       (.then (fn [mod]
                (let [result (.-code (.compile mod source))]
                  (set! (.-innerHTML container) "")
-                 (let [pre (js/document.createElement "pre")]
-                   (set! (.-className pre) "code-block")
-                   (set! (.-textContent pre) result)
-                   (.appendChild container pre)))))
+                 (render-highlighted container result "javascript"))))
       (.catch (fn [err]
                 (set! (.-innerHTML container)
                       (str "<pre class='code-block error'>" err "</pre>"))))))
@@ -90,6 +108,15 @@
                 (set! (.-innerHTML container)
                       (str "<pre class='error'>" err "</pre>"))))))
 
+;; Check if a sample is live
+(defn- live-sample? [id]
+  (let [sample (reg/sample-by-id id)]
+    (:live sample)))
+
+;; Get the default tab for a sample
+(defn- default-tab [id]
+  (if (live-sample? id) "preview" "cljs"))
+
 ;; Update content area
 (defn- update-content []
   (let [id     @current
@@ -106,12 +133,13 @@
             (set! (.-className mount-div) "preview-mount")
             (.appendChild el mount-div)
             (mount-sample! mount-div id))
+          ;; Non-live: should not reach here, but just in case
           (set! (.-innerHTML el)
                 "<div class='placeholder'>This is a code-only sample. Switch to the CLJS or JS tab to view the code.</div>"))
 
         (= tab "cljs")
         (when source
-          (render-highlighted el source))
+          (render-highlighted el source "clojure"))
 
         (= tab "js")
         (when source
@@ -126,14 +154,27 @@
           (.add (.-classList btn) "active")
           (.remove (.-classList btn) "active"))))))
 
-;; Update tab bar active state
+;; Update tab bar: hide Preview for non-live samples, update active state
 (defn- update-tabs []
-  (let [tab @active-tab]
+  (let [tab @active-tab
+        live? (live-sample? @current)]
     (doseq [btn (js/Array.from (js/document.querySelectorAll ".tab-btn"))]
       (let [tab-id (.getAttribute btn "data-tab")]
+        ;; Hide/show Preview tab based on live?
+        (when (= tab-id "preview")
+          (set! (.-style.display btn) (if live? "" "none")))
+        ;; Active state
         (if (= tab-id tab)
           (.add (.-classList btn) "tab-active")
           (.remove (.-classList btn) "tab-active"))))))
+
+;; Navigate to a sample
+(defn- navigate-to [id]
+  (reset! current id)
+  (reset! active-tab (default-tab id))
+  (update-sidebar)
+  (update-tabs)
+  (update-content))
 
 ;; Build the shell DOM
 (defn init! [root]
@@ -142,7 +183,8 @@
     (set! (.-textContent style) "
       .shell { display: grid; grid-template-columns: 220px 1fr; grid-template-rows: 56px 1fr; height: 100%; }
       .header { grid-column: 1 / -1; display: flex; align-items: center; padding: 0 20px; background: #1e293b; border-bottom: 1px solid #334155; gap: 12px; }
-      .logo { font-size: 18px; font-weight: 700; color: #e2e8f0; }
+      .logo { font-size: 18px; font-weight: 700; color: #e2e8f0; cursor: pointer; }
+      .logo:hover { opacity: 0.85; }
       .logo-accent { color: #818cf8; }
       .badge { font-size: 11px; color: #94a3b8; background: #334155; padding: 2px 8px; border-radius: 4px; }
       .sidebar { background: #1e293b; border-right: 1px solid #334155; overflow-y: auto; padding: 12px; }
@@ -159,18 +201,33 @@
       .preview-mount { height: calc(100vh - 120px); background: #1e293b; border-radius: 8px; padding: 16px; overflow: auto; display: flex; align-items: center; justify-content: center; }
       .placeholder { color: #64748b; font-size: 14px; text-align: center; padding: 60px 20px; }
       .code-block { font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.6; white-space: pre-wrap; word-break: break-word; color: #e2e8f0; margin: 0; background: #1e293b; border-radius: 8px; padding: 16px; }
-      .comment { color: #64748b; } .string { color: #a5d6ff; } .keyword { color: #7dd3fc; }
-      .number { color: #fbbf24; } .special { color: #c084fc; } .boolean { color: #f472b6; }
+      .code-block code { font-family: inherit; font-size: inherit; background: transparent; }
       .loading { color: #94a3b8; font-style: italic; } .error { color: #f87171; }
+      /* highlight.js overrides for dark theme */
+      .hljs { background: transparent; color: #e2e8f0; }
+      .hljs-comment { color: #64748b; }
+      .hljs-string { color: #a5d6ff; }
+      .hljs-keyword, .hljs-built_in { color: #c084fc; }
+      .hljs-number { color: #fbbf24; }
+      .hljs-literal { color: #f472b6; }
+      .hljs-symbol { color: #7dd3fc; }
+      .hljs-name { color: #c084fc; }
+      .hljs-title { color: #e2e8f0; }
+      .hljs-attr { color: #7dd3fc; }
+      .hljs-params { color: #e2e8f0; }
+      .hljs-function { color: #e2e8f0; }
+      .hljs-meta { color: #94a3b8; }
     ")
     (.appendChild js/document.head style))
 
   (set! (.-innerHTML root) "")
   (let [shell (create-el "div" {:class "shell"})]
-    ;; Header
+    ;; Header — logo is clickable, navigates to default sample
     (let [header (create-el "div" {:class "header"})]
       (.appendChild header
-                    (create-el "span" {:class "logo"}
+                    (create-el "span" {:class "logo"
+                                       :on-click (fn [_]
+                                                   (set! js/location.hash reg/default-sample))}
                                (create-el "span" {:class "logo-accent"} "Kiso")
                                " Showcase"))
       (.appendChild header
@@ -218,7 +275,9 @@
     (.appendChild root shell))
 
   ;; Initialize
-  (reset! current (get-hash))
+  (let [id (get-hash)]
+    (reset! current id)
+    (reset! active-tab (default-tab id)))
   (update-sidebar)
   (update-tabs)
   (update-content)
@@ -226,8 +285,4 @@
   ;; Hash change listener
   (.addEventListener js/window "hashchange"
                      (fn [_]
-                       (reset! current (get-hash))
-                       (reset! active-tab "preview")
-                       (update-sidebar)
-                       (update-tabs)
-                       (update-content))))
+                       (navigate-to (get-hash)))))

@@ -1,0 +1,9 @@
+{:lint-as {defc clojure.core/defn
+           defstyle clojure.core/comment
+           su.core/defc clojure.core/defn
+           su.core/defstyle clojure.core/comment}
+ :linters {:namespace-name-mismatch {:level :off}
+           :unresolved-namespace {:exclude [su.core]}
+           :unresolved-symbol {:exclude [(defc) (defstyle)]}
+           :clojure-lsp/unused-public-var
+           {:exclude-when-defined-by [defc su.core/defc]}}}

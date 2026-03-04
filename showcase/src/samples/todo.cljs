@@ -55,24 +55,30 @@
     [:div
      [:h2 "My Tasks"]
      [:div.header
-      [:input {:value @input-val
-               :on-input (fn [e] (reset! input-val (.-value (.-target e))))}]
-      [:button {:on-click (fn [_]
-                            (swap! items conj @input-val)
-                            (reset! input-val ""))}
+      [:input {:on-input (fn [e] (reset! input-val (.-value (.-target e))))}]
+      [:button {:on-click (fn [e]
+                            (let [text @input-val]
+                              (when (not= text "")
+                                (swap! items conj text)
+                                (reset! input-val "")
+                                ;; Clear the input element
+                                (let [root (.getRootNode (.-target e))
+                                      input (.querySelector root "input")]
+                                  (set! (.-value input) "")))))}
        "Add"]]
-     (if (empty? @items)
-       [:p.empty "No tasks yet"]
-       [:div
-        (map-indexed
-         (fn [i item]
-           [::todo-item {:text item
-                         :on-delete (fn [_]
-                                      (swap! items
-                                             (fn [xs]
-                                               (into [] (concat (subvec xs 0 i)
-                                                                (subvec xs (inc i)))))))}])
-         @items)])]))
+     (fn []
+       (if (empty? @items)
+         [:p.empty "No tasks yet"]
+         [:div
+          (map-indexed
+           (fn [i item]
+             [::todo-item {:text item
+                           :on-delete (fn [_]
+                                        (swap! items
+                                               (fn [xs]
+                                                 (into [] (concat (subvec xs 0 i)
+                                                                  (subvec xs (inc i)))))))}])
+           @items)]))]))
 
 (defn mount! [container]
   (su/mount container [::todo-app]))

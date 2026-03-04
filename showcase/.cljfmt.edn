@@ -1,0 +1,5 @@
+{:indent-line-comments? true
+ :remove-multiple-non-indenting-spaces? true
+ :extra-indents
+ {defc [[:block 1]]
+  defstyle [[:block 1]]}}
