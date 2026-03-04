@@ -19,11 +19,16 @@
     "./codegen": "./dist/api/codegen-hooks.js"
   },
   "keywords": [
-    "clojurescript", "compiler", "clojure", "cljs",
-    "persistent-data-structures", "vite", "typescript"
+    "clojurescript",
+    "compiler",
+    "clojure",
+    "cljs",
+    "persistent-data-structures",
+    "vite",
+    "typescript"
   ],
   "bin": {
-    "kiso": "./bin/kiso.mjs"
+    "kiso": "bin/kiso.js"
   },
   "scripts": {
     "build": "tsc",
@@ -39,7 +44,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/clojurewasm/Kiso.git",
+    "url": "git+https://github.com/clojurewasm/Kiso.git",
     "directory": "packages/kiso"
   },
   "homepage": "https://github.com/clojurewasm/Kiso",

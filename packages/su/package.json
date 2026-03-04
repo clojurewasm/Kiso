@@ -3,7 +3,11 @@
   "version": "0.1.0",
   "description": "Su — ClojureScript Web Component framework with fine-grained reactivity",
   "keywords": [
-    "clojurescript", "web-components", "reactive", "shadow-dom", "signals"
+    "clojurescript",
+    "web-components",
+    "reactive",
+    "shadow-dom",
+    "signals"
   ],
   "type": "module",
   "main": "./dist/index.js",
@@ -25,8 +29,14 @@
   "files": [
     "dist/"
   ],
-  "publishConfig": { "access": "public" },
-  "repository": { "type": "git", "url": "https://github.com/clojurewasm/Kiso.git", "directory": "packages/su" },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/clojurewasm/Kiso.git",
+    "directory": "packages/su"
+  },
   "homepage": "https://github.com/clojurewasm/Kiso",
   "author": "chaploud",
   "license": "MIT"
