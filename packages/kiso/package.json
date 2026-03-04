@@ -9,7 +9,8 @@
     ".": "./dist/index.js",
     "./runtime": "./dist/runtime/index.js",
     "./vite": "./dist/api/vite-plugin.js",
-    "./compiler": "./dist/api/compiler.js"
+    "./compiler": "./dist/api/compiler.js",
+    "./codegen": "./dist/api/codegen-hooks.js"
   },
   "bin": {
     "kiso": "./bin/kiso.mjs"

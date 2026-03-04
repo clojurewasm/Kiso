@@ -9,10 +9,20 @@
 import type { Node, FnArity, LetBinding, CatchClause, CaseNode, DeftypeNode, DefrecordNode, ExtendTypeNode, ReifyNode } from '../analyzer/node.js';
 import { isMacro } from '../analyzer/macros.js';
 
+export type CodegenHelpers = {
+  emit: (node: Node) => string;
+  indent: string;
+  deeper: () => CodegenHelpers;
+  extractLiteral: (node: Node) => unknown | null;
+};
+
+export type CodegenHook = (args: Node[], helpers: CodegenHelpers) => string;
+
 type EmitCtx = {
   loopBindings: string[] | null; // current loop/fn binding names for recur
   nsAliases?: Map<string, string>; // ns → alias (e.g. "su.core" → "su")
   indent: number; // indentation level (0 = top-level)
+  hooks?: Map<string, CodegenHook>;
 };
 
 const DEFAULT_CTX: EmitCtx = { loopBindings: null, nsAliases: new Map(), indent: 0 };
@@ -73,12 +83,12 @@ export function emit(node: Node): string {
 export type TopLevelMapping = { genLine: number; nodeIndex: number };
 
 /** Emit a complete module from a list of top-level nodes. */
-export function emitModule(nodes: Node[]): string {
-  return emitModuleWithMappings(nodes).code;
+export function emitModule(nodes: Node[], hooks?: Map<string, CodegenHook>): string {
+  return emitModuleWithMappings(nodes, hooks).code;
 }
 
 /** Emit module and return per-node generated line positions. */
-export function emitModuleWithMappings(nodes: Node[]): { code: string; mappings: TopLevelMapping[] } {
+export function emitModuleWithMappings(nodes: Node[], hooks?: Map<string, CodegenHook>): { code: string; mappings: TopLevelMapping[] } {
   // Extract ns aliases for resolving qualified names
   const nsAliases = new Map<string, string>();
   for (const node of nodes) {
@@ -88,7 +98,7 @@ export function emitModuleWithMappings(nodes: Node[]): { code: string; mappings:
       }
     }
   }
-  const ctx: EmitCtx = { loopBindings: null, nsAliases, indent: 0 };
+  const ctx: EmitCtx = { loopBindings: null, nsAliases, indent: 0, hooks };
 
   const allSegments = nodes.map(n => emitTopLevelCtx(n, ctx));
   // Track which node indices produced non-empty output
@@ -170,7 +180,21 @@ function emitMap(node: { keys: Node[]; vals: Node[] }, ctx: EmitCtx): string {
   return `hashMap(${kvs.join(', ')})`;
 }
 
+function makeHelpers(ctx: EmitCtx): CodegenHelpers {
+  return {
+    emit: (node: Node) => emitNode(node, ctx),
+    indent: ind(ctx),
+    deeper: () => makeHelpers(deeper(ctx)),
+    extractLiteral: (node: Node) => node.type === 'literal' ? node.value : null,
+  };
+}
+
 function emitInvoke(node: { fn: Node; args: Node[] }, ctx: EmitCtx): string {
+  // Check codegen hooks for namespace-qualified invocations
+  if (ctx.hooks && node.fn.type === 'var-ref') {
+    const hook = ctx.hooks.get(node.fn.name);
+    if (hook) return hook(node.args, makeHelpers(ctx));
+  }
   return `${emitNode(node.fn, ctx)}(${node.args.map((n) => emitNode(n, ctx)).join(', ')})`;
 }
 
