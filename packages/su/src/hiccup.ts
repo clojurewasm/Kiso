@@ -15,6 +15,12 @@ export type ParsedTag = {
 
 /** Parse a hiccup tag string into tag name, id, and classes. */
 export function parseTag(s: string): ParsedTag {
+  // Strip namespace prefix (e.g. "my.ns/widget" → "widget")
+  const slashIdx = s.indexOf('/');
+  if (slashIdx !== -1) {
+    s = s.slice(slashIdx + 1);
+  }
+
   let tag = '';
   let id: string | null = null;
   const classes: string[] = [];

@@ -27,6 +27,24 @@ describe('parseTag', () => {
   it('defaults to div when only classes', () => {
     expect(parseTag('.main.dark')).toEqual({ tag: 'div', id: null, classes: ['main', 'dark'] });
   });
+
+  it('strips namespace prefix from tag', () => {
+    expect(parseTag('task-manager.core/stat-card')).toEqual({
+      tag: 'stat-card', id: null, classes: [],
+    });
+  });
+
+  it('strips namespace prefix with id and classes', () => {
+    expect(parseTag('my.ns/widget#main.active')).toEqual({
+      tag: 'widget', id: 'main', classes: ['active'],
+    });
+  });
+
+  it('keeps plain tags without slash unchanged', () => {
+    expect(parseTag('my-component')).toEqual({
+      tag: 'my-component', id: null, classes: [],
+    });
+  });
 });
 
 // -- Minimal DOM mock for renderHiccup tests --
