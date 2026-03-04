@@ -31,6 +31,17 @@ describe('compile', () => {
     const result = compile('(def x 42)');
     expect(result.map).toBeUndefined();
   });
+
+  it('maps each top-level form to its generated line', () => {
+    const src = '(def x 1)\n(def y 2)\n(def z 3)';
+    const result = compile(src, { sourceMap: true });
+    expect(result.map).toBeDefined();
+    // Should have more than just "AAAA" — multiple semicolons for multiple lines
+    expect(result.map!.mappings).toContain(';');
+    // Each def should produce a separate mapping segment
+    const segments = result.map!.mappings.split(';').filter(s => s.length > 0);
+    expect(segments.length).toBeGreaterThanOrEqual(3);
+  });
 });
 
 describe('read', () => {

@@ -4,7 +4,7 @@
 
 import { readStr, readAllStr } from '../reader/reader.js';
 import { Analyzer } from '../analyzer/analyzer.js';
-import { emit, emitModule } from '../codegen/emitter.js';
+import { emit, emitModuleWithMappings } from '../codegen/emitter.js';
 import { SourceMapBuilder, type SourceMapV3 } from '../codegen/sourcemap.js';
 import type { Form } from '../reader/form.js';
 import type { Node } from '../analyzer/node.js';
@@ -82,16 +82,18 @@ export function compile(source: string, options?: CompileOptions): CompileResult
     forms = resolveAutoKeywords(forms, nsName);
   }
   const nodes = forms.map((f) => analyzer.analyze(f));
-  const code = emitModule(nodes);
+  const { code, mappings } = emitModuleWithMappings(nodes);
 
   let map: SourceMapV3 | undefined;
   if (options?.sourceMap) {
     const filename = options.filename ?? 'input.cljs';
     const builder = new SourceMapBuilder(filename.replace(/\.cljs$/, '.js'), filename, source);
-    // Basic mapping: first form → line 0, col 0
-    // Full source mapping requires emitter position tracking (deferred)
-    if (forms.length > 0) {
-      builder.addMapping(0, 0, forms[0]!.line, forms[0]!.col);
+    // Map each top-level form to its generated line
+    for (const m of mappings) {
+      const form = forms[m.nodeIndex];
+      if (form) {
+        builder.addMapping(m.genLine, 0, form.line, form.col);
+      }
     }
     map = builder.toJSON();
   }

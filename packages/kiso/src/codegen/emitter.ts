@@ -70,8 +70,15 @@ export function emit(node: Node): string {
   return emitNode(node, DEFAULT_CTX);
 }
 
+export type TopLevelMapping = { genLine: number; nodeIndex: number };
+
 /** Emit a complete module from a list of top-level nodes. */
 export function emitModule(nodes: Node[]): string {
+  return emitModuleWithMappings(nodes).code;
+}
+
+/** Emit module and return per-node generated line positions. */
+export function emitModuleWithMappings(nodes: Node[]): { code: string; mappings: TopLevelMapping[] } {
   // Extract ns aliases for resolving qualified names
   const nsAliases = new Map<string, string>();
   for (const node of nodes) {
@@ -83,14 +90,26 @@ export function emitModule(nodes: Node[]): string {
   }
   const ctx: EmitCtx = { loopBindings: null, nsAliases, indent: 0 };
 
-  const lines = nodes.map(n => emitTopLevelCtx(n, ctx));
+  const segments = nodes.map(n => emitTopLevelCtx(n, ctx));
   // Auto-import runtime functions used by collection literals
   const runtimeImports = collectRuntimeImports(nodes);
+  let importOffset = 0;
   if (runtimeImports.length > 0) {
     const importLine = `import { ${runtimeImports.join(', ')} } from '@clojurewasm/kiso/runtime';`;
-    lines.unshift(importLine);
+    segments.unshift(importLine);
+    importOffset = 2; // import line + blank line
   }
-  return lines.join('\n');
+
+  // Compute line offsets for each top-level node
+  const mappings: TopLevelMapping[] = [];
+  let genLine = importOffset;
+  for (let i = 0; i < nodes.length; i++) {
+    mappings.push({ genLine, nodeIndex: i });
+    const segIdx = runtimeImports.length > 0 ? i + 1 : i;
+    genLine += segments[segIdx]!.split('\n').length;
+  }
+
+  return { code: segments.join('\n'), mappings };
 }
 
 function emitTopLevelCtx(node: Node, ctx: EmitCtx): string {
