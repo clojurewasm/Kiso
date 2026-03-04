@@ -1,0 +1,2 @@
+{:lint-as {defc clojure.core/defn
+           defstyle clojure.core/def}}
