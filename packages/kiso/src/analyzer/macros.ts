@@ -1152,14 +1152,14 @@ defmacro('defc', (items, form) => {
   }
   if (styleForm) {
     configItems.push(makeKeyword(null, 'styles'));
-    configItems.push(makeVector([styleForm]));
-  } else {
-    // Auto-lookup stylesheet by component name
-    configItems.push(makeKeyword(null, 'styles'));
-    configItems.push(makeVector([
-      makeList([makeSymbol('su.core', 'get-stylesheet'), makeStr(name)]),
-    ]));
+    // :style [a b c] → vector as-is; :style x → wrap in vector
+    if (styleForm.data.type === 'vector') {
+      configItems.push(styleForm);
+    } else {
+      configItems.push(makeVector([styleForm]));
+    }
   }
+  // No :style → no styles in config (no auto-lookup)
 
   // Build render fn: (fn* [props-atom] (let* [{:keys [...]} @props-atom] body...))
   const propsAtomSym = sym('props-atom__auto');
@@ -1312,12 +1312,13 @@ defmacro('defstyle', (items, form) => {
     ? compileCssData(cssRules[0]!)
     : compileCssRulesFromMultipleVectors(cssRules);
 
-  // Bare call — no def wrapper. Registers sheet in cache as side-effect.
-  return makeList([
+  // Wrap in def: (def name (su.core/create-stylesheet "name" "css"))
+  const createCall = makeList([
     makeSymbol('su.core', 'create-stylesheet', ...loc(form)),
     makeStr(nameForm.data.name),
     makeStr(cssText),
   ], ...loc(form));
+  return makeList([sym('def'), nameForm, createCall], ...loc(form));
 });
 
 function compileCssRulesFromMultipleVectors(vecs: Form[]): string {

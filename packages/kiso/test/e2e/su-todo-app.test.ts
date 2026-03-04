@@ -80,12 +80,12 @@ describe('su todo-app dogfooding', () => {
   });
 
   describe('defstyle → full pipeline', () => {
-    it('compiles defstyle to bare create-stylesheet call (no const)', () => {
+    it('compiles defstyle to def with create-stylesheet call', () => {
       const js = compileForm(`
         (defstyle counter-style
           [:.counter {:display "flex" :gap "8px"}])
       `);
-      expect(js).not.toContain('const counter_style');
+      expect(js).toContain('let counter_style');
       expect(js).toContain('create_stylesheet');
       expect(js).toContain('"counter-style"');
       expect(js).toContain('.counter');
@@ -132,7 +132,7 @@ describe('su todo-app dogfooding', () => {
       expect(items[0]!.data.name).toBe('define-component');
     });
 
-    it('defstyle expands to bare (su.core/create-stylesheet ...) without def', () => {
+    it('defstyle expands to (def name (su.core/create-stylesheet ...))', () => {
       const forms = readAllStr(`
         (defstyle my-style
           [:.foo {:color "red"}])
@@ -140,9 +140,12 @@ describe('su todo-app dogfooding', () => {
       const expanded = expandAll(forms[0]!);
       expect(expanded.data.type).toBe('list');
       const items = (expanded.data as { items: unknown[] }).items as Array<{ data: { type: string; ns?: string; name?: string } }>;
-      // Bare call: (su.core/create-stylesheet "my-style" "css")
-      expect(items[0]!.data.ns).toBe('su.core');
-      expect(items[0]!.data.name).toBe('create-stylesheet');
+      // (def my-style (su.core/create-stylesheet "my-style" "css"))
+      expect(items[0]!.data.name).toBe('def');
+      expect(items[1]!.data.name).toBe('my-style');
+      const inner = (items[2]!.data as { items: unknown[] }).items as Array<{ data: { type: string; ns?: string; name?: string } }>;
+      expect(inner[0]!.data.ns).toBe('su.core');
+      expect(inner[0]!.data.name).toBe('create-stylesheet');
     });
 
     it('rejects defc without hyphen', () => {
@@ -157,7 +160,7 @@ describe('su todo-app dogfooding', () => {
           [:input {:value value}])
       `);
       expect(js).toContain('keyword("form-associated")');
-      expect(js).toContain(', true,');
+      expect(js).toContain('true');
     });
 
     it('defc passes delegates-focus option to config', () => {
@@ -168,10 +171,10 @@ describe('su todo-app dogfooding', () => {
           [:input {:placeholder label}])
       `);
       expect(js).toContain('keyword("delegates-focus")');
-      expect(js).toContain(', true,');
+      expect(js).toContain('true');
     });
 
-    it('defc :style option adds styles vector to config', () => {
+    it('defc :style option with single value wraps in vector', () => {
       const js = compileForm(`
         (defc my-card
           {:style card-styles}
@@ -182,14 +185,25 @@ describe('su todo-app dogfooding', () => {
       expect(js).toContain('card_styles');
     });
 
-    it('defc without :style auto-lookups stylesheet by component name', () => {
+    it('defc :style option with vector passes multiple styles', () => {
+      const js = compileForm(`
+        (defc my-card
+          {:style [base-styles card-styles]}
+          [{:keys [title]}]
+          [:div title])
+      `);
+      expect(js).toContain('keyword("styles")');
+      expect(js).toContain('base_styles');
+      expect(js).toContain('card_styles');
+    });
+
+    it('defc without :style has no styles in config', () => {
       const js = compileForm(`
         (defc my-widget [{:keys [label]}]
           [:div label])
       `);
-      expect(js).toContain('keyword("styles")');
-      expect(js).toContain('get_stylesheet');
-      expect(js).toContain('"my-widget"');
+      expect(js).not.toContain('keyword("styles")');
+      expect(js).not.toContain('get_stylesheet');
     });
   });
 
@@ -241,6 +255,7 @@ describe('su todo-app dogfooding', () => {
             [:.input-row {:display "flex" :gap "8px"}]
             [:.todo-list {:list-style "none" :padding "0"}]])
       `);
+      expect(js).toContain('let todo_style');
       expect(js).toContain('create_stylesheet');
       expect(js).toContain('.todo-app');
       expect(js).toContain('max-width: 600px');

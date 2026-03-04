@@ -20,3 +20,11 @@ export function createSheet(name: string, cssText: string): CSSStyleSheet {
 export function getSheet(name: string): CSSStyleSheet | null {
   return sheetCache.get(name) ?? null;
 }
+
+/** Apply a stylesheet globally to document.adoptedStyleSheets. */
+export function globalStyle(sheet: CSSStyleSheet): void {
+  const sheets = document.adoptedStyleSheets;
+  if (!sheets.includes(sheet)) {
+    document.adoptedStyleSheets = [...sheets, sheet];
+  }
+}

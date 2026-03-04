@@ -222,3 +222,19 @@ Shadow DOM. DevTools trace helps debug reactive state flows.
 `packages/su/src/context.ts` (new), `packages/su/src/devtools.ts` (new),
 `packages/su/src/lifecycle.ts`, `packages/kiso/src/runtime/atom.ts`,
 `packages/kiso/src/analyzer/macros.ts`.
+
+## D11: Explicit Style Binding for su Components
+
+**Date**: 2026-03-04
+
+**Decision**: `defstyle` emits `(def name (create-sheet ...))` instead of a bare side-effect call.
+`defc` no longer auto-lookups stylesheets by component name. Styles must be explicitly passed
+via `:style` option (single value or vector for composition). `global-style!` applies stylesheets
+to `document.adoptedStyleSheets` for document-level styling.
+
+**Rationale**: The original auto-lookup by name was implicit and un-Clojure-like. Making defstyle
+a def allows stylesheets to be first-class values: composable, testable, and explicitly referenced.
+The vector `:style [a b c]` pattern enables style composition across multiple sheets.
+
+**Affected**: `packages/kiso/src/analyzer/macros.ts` (defstyle, defc),
+`packages/su/src/css.ts` (globalStyle), `packages/su/src/index.ts` (exports).

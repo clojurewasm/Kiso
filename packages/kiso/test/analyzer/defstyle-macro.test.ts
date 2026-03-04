@@ -25,24 +25,28 @@ function formToString(form: { data: { type: string; [key: string]: unknown } }):
 
 function extractCssStr(src: string): string {
   const result = expandStr(src);
-  // (su.core/create-stylesheet "name" "css-text")
+  // (def name (su.core/create-stylesheet "name" "css-text"))
   if (result.data.type === 'list') {
     const items = result.data.items;
-    if (items.length >= 3 && items[2]!.data.type === 'string') {
-      return (items[2]!.data as { value: string }).value;
+    // items[0]=def, items[1]=name, items[2]=(su.core/create-stylesheet "name" "css")
+    if (items.length >= 3 && items[2]!.data.type === 'list') {
+      const inner = items[2]!.data.items;
+      if (inner.length >= 3 && inner[2]!.data.type === 'string') {
+        return (inner[2]!.data as { value: string }).value;
+      }
     }
   }
-  throw new Error('Expected (su.core/create-stylesheet "name" "css"): ' + formToString(result));
+  throw new Error('Expected (def name (su.core/create-stylesheet "name" "css")): ' + formToString(result));
 }
 
 describe('defstyle macro', () => {
-  it('expands to bare (su.core/create-stylesheet ...)', () => {
+  it('expands to (def name (su.core/create-stylesheet ...))', () => {
     const result = expandStr(`
       (defstyle my-style
         [:.foo {:color "red"}])
     `);
     const s = formToString(result);
-    expect(s).toMatch(/^\(su\.core\/create-stylesheet/);
+    expect(s).toMatch(/^\(def my-style \(su\.core\/create-stylesheet/);
     expect(s).toContain('"my-style"');
   });
 

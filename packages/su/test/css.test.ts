@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { createSheet, getSheet } from '../src/css.js';
+import { createSheet, getSheet, globalStyle } from '../src/css.js';
 
 describe('createSheet', () => {
   let mockSheet: { replaceSync: ReturnType<typeof vi.fn> };
@@ -58,5 +58,46 @@ describe('getSheet', () => {
 
   it('returns null for unknown names', () => {
     expect(getSheet('nonexistent')).toBeNull();
+  });
+});
+
+describe('globalStyle', () => {
+  let mockSheet: { replaceSync: ReturnType<typeof vi.fn> };
+
+  beforeEach(() => {
+    mockSheet = { replaceSync: vi.fn() };
+    vi.stubGlobal('CSSStyleSheet', class {
+      replaceSync = mockSheet.replaceSync;
+    });
+    vi.stubGlobal('document', {
+      adoptedStyleSheets: [] as unknown[],
+    });
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('adds a stylesheet to document.adoptedStyleSheets', () => {
+    const sheet = createSheet('global-test', '.body { margin: 0; }');
+    globalStyle(sheet);
+    expect(document.adoptedStyleSheets).toContain(sheet);
+  });
+
+  it('does not add the same stylesheet twice', () => {
+    const sheet = createSheet('global-dup', '.x { }');
+    globalStyle(sheet);
+    globalStyle(sheet);
+    expect(document.adoptedStyleSheets.filter((s: unknown) => s === sheet)).toHaveLength(1);
+  });
+
+  it('supports multiple different stylesheets', () => {
+    const sheet1 = createSheet('g1', '.a { }');
+    const sheet2 = createSheet('g2', '.b { }');
+    globalStyle(sheet1);
+    globalStyle(sheet2);
+    expect(document.adoptedStyleSheets).toContain(sheet1);
+    expect(document.adoptedStyleSheets).toContain(sheet2);
+    expect(document.adoptedStyleSheets).toHaveLength(2);
   });
 });

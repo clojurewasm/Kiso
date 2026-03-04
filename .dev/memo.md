@@ -6,11 +6,11 @@ Session handover document. Read at session start.
 
 - **Monorepo**: npm workspaces with `packages/kiso` (@clojurewasm/kiso) and `packages/su` (@clojurewasm/su).
 - **All 23 phases complete** (reader → codegen → runtime → su → CLI → CI → conformance → stdlib → E2E → interop → var coverage → sorted collections → def mutability → transient → metadata → benchmarks → publish prep).
-- Total: 1396 vitest + 14 Playwright E2E, types clean.
+- Total: 1403 vitest + 14 Playwright E2E, types clean.
 - Var coverage: 330/330 (100%).
 - Build: kiso 136KB, su 16KB. npm pack dry-run verified.
 - Docstring support: `def` 4-arg form, `defn`/`defc`/`defstyle` docstring tolerance, JSDoc output.
-- `.gitignore` has `test-results/` added (uncommitted).
+- Style architecture D11: defstyle is def-based, defc uses explicit `:style`, `global-style!` for document-level.
 
 ## Current Task
 
