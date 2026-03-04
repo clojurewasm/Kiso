@@ -1,6 +1,6 @@
 (ns markdown-editor.core
   (:require [su.core :as su :refer [defc defstyle]]
-            [clojure.string :as str]))
+            [clojure.string :as string]))
 
 ;; -- Simple markdown to hiccup --
 
@@ -11,16 +11,16 @@
 
 (defn md-line->hiccup [line]
   (cond
-    (str/starts-with? line "### ") [:h3 (subs line 4)]
-    (str/starts-with? line "## ")  [:h2 (subs line 3)]
-    (str/starts-with? line "# ")   [:h1 (subs line 2)]
-    (str/starts-with? line "- ")   [:li (subs line 2)]
-    (str/starts-with? line "> ")   [:blockquote (subs line 2)]
-    (str/blank? line)              [:br]
+    (string/starts-with? line "### ") [:h3 (subs line 4)]
+    (string/starts-with? line "## ")  [:h2 (subs line 3)]
+    (string/starts-with? line "# ")   [:h1 (subs line 2)]
+    (string/starts-with? line "- ")   [:li (subs line 2)]
+    (string/starts-with? line "> ")   [:blockquote (subs line 2)]
+    (string/blank? line)              [:br]
     :else                          [:p line]))
 
 (defn markdown->hiccup [text]
-  (let [lines (str/split text #"\n")]
+  (let [lines (string/split text #"\n")]
     (map md-line->hiccup lines)))
 
 ;; -- Styles --

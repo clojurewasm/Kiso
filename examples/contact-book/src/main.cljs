@@ -1,6 +1,6 @@
 (ns contact-book.core
   (:require [su.core :as su :refer [defc defstyle]]
-            [clojure.string :as str]))
+            [clojure.string :as string]))
 
 ;; -- Sample data --
 
@@ -14,9 +14,9 @@
 ;; -- Helpers --
 
 (defn matches-search? [contact query]
-  (let [q (str/lower-case query)]
-    (or (str/includes? (str/lower-case (:name contact)) q)
-        (str/includes? (str/lower-case (:email contact)) q))))
+  (let [q (string/lower-case query)]
+    (or (string/includes? (string/lower-case (:name contact)) q)
+        (string/includes? (string/lower-case (:email contact)) q))))
 
 (defn all-tags [contacts]
   (reduce (fn [acc c] (into acc (:tags c))) #{} contacts))
@@ -124,7 +124,7 @@
        (let [q @search
              tf @tag-filter
              filtered (filter (fn [c]
-                                (and (or (str/blank? q) (matches-search? c q))
+                                (and (or (string/blank? q) (matches-search? c q))
                                      (or (nil? tf) (contains? (:tags c) tf))))
                               @contacts)
              sorted (sort-by :name filtered)]

@@ -1,6 +1,6 @@
 (ns expense-tracker.core
   (:require [su.core :as su :refer [defc defstyle]]
-            [clojure.string :as str]))
+            [clojure.string :as string]))
 
 ;; -- Helpers --
 
@@ -124,7 +124,7 @@
                 :on-click (fn [e]
                             (let [n @name-val
                                   a (js/parseFloat @amount-val)]
-                              (when (and (not (str/blank? n)) (not (js/isNaN a)) (> a 0))
+                              (when (and (not (string/blank? n)) (not (js/isNaN a)) (> a 0))
                                 (let [id (swap! next-id inc)]
                                   (swap! items conj {:id id :name n :amount a
                                                      :type @type-val :category @cat-val})
