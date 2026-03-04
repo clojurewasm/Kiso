@@ -23,6 +23,7 @@ type EmitCtx = {
   nsAliases?: Map<string, string>; // ns → alias (e.g. "su.core" → "su")
   indent: number; // indentation level (0 = top-level)
   hooks?: Map<string, CodegenHook>;
+  runtimeAliases?: Map<string, string>; // munged-name → alias for collided imports
 };
 
 const DEFAULT_CTX: EmitCtx = { loopBindings: null, nsAliases: new Map(), indent: 0 };
@@ -45,7 +46,12 @@ function emitNode(node: Node, ctx: EmitCtx): string {
         const alias = ctx.nsAliases?.get(ns);
         if (alias) return `${alias}.${munge(local)}`;
       }
-      return munge(node.name);
+      const munged = munge(node.name);
+      // Use aliased import for runtime functions that collide with user defs
+      if (!node.local && RUNTIME_FUNCTIONS.has(node.name) && ctx.runtimeAliases?.has(munged)) {
+        return ctx.runtimeAliases.get(munged)!;
+      }
+      return munged;
     }
     case 'vector': return `vector(${node.items.map((n) => emitNode(n, ctx)).join(', ')})`;
     case 'map': return emitMap(node, ctx);
@@ -98,7 +104,24 @@ export function emitModuleWithMappings(nodes: Node[], hooks?: Map<string, Codege
       }
     }
   }
-  const ctx: EmitCtx = { loopBindings: null, nsAliases, indent: 0, hooks };
+  // Collect user-defined top-level names to detect collisions with runtime imports
+  const userDefs = new Set<string>();
+  for (const node of nodes) {
+    if (node.type === 'def') userDefs.add(munge(node.name));
+    if (node.type === 'deftype') { userDefs.add(node.name); userDefs.add(`_to_${node.name}`); }
+    if (node.type === 'defrecord') { userDefs.add(node.name); userDefs.add(`_to_${node.name}`); userDefs.add(`map_to_${node.name}`); }
+  }
+
+  // Detect runtime import collisions and build alias map
+  const runtimeImports = collectRuntimeImports(nodes);
+  const runtimeAliases = new Map<string, string>();
+  for (const name of runtimeImports) {
+    if (userDefs.has(name)) {
+      runtimeAliases.set(name, `_rt_${name}`);
+    }
+  }
+
+  const ctx: EmitCtx = { loopBindings: null, nsAliases, indent: 0, hooks, runtimeAliases };
 
   const allSegments = nodes.map(n => emitTopLevelCtx(n, ctx));
   // Track which node indices produced non-empty output
@@ -111,11 +134,13 @@ export function emitModuleWithMappings(nodes: Node[], hooks?: Map<string, Codege
     }
   }
 
-  // Auto-import runtime functions used by collection literals
-  const runtimeImports = collectRuntimeImports(nodes);
+  // Auto-import runtime functions (with aliases for collisions)
   let importOffset = 0;
   if (runtimeImports.length > 0) {
-    const importLine = `import { ${runtimeImports.join(', ')} } from '@clojurewasm/kiso/runtime';`;
+    const importParts = runtimeImports.map(name =>
+      runtimeAliases.has(name) ? `${name} as ${runtimeAliases.get(name)!}` : name,
+    );
+    const importLine = `import { ${importParts.join(', ')} } from '@clojurewasm/kiso/runtime';`;
     segments.unshift(importLine);
     importOffset = 2; // import line + blank line from \n\n join
   }

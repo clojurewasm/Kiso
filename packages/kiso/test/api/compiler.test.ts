@@ -32,6 +32,17 @@ describe('compile', () => {
     expect(result.map).toBeUndefined();
   });
 
+  it('aliases runtime import when user def collides', () => {
+    // User defines `add` which collides with munge('+') = 'add'
+    const result = compile('(ns test)\n(defn add [a b] (+ a b))');
+    // Runtime `add` should be imported with alias
+    expect(result.code).toContain('add as _rt_add');
+    // The body should use _rt_add for +, not the user's add
+    expect(result.code).toContain('_rt_add(a, b)');
+    // The user's function should still be named add
+    expect(result.code).toContain('export const add =');
+  });
+
   it('maps each top-level form to its generated line', () => {
     const src = '(def x 1)\n(def y 2)\n(def z 3)';
     const result = compile(src, { sourceMap: true });
