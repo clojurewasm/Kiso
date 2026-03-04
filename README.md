@@ -29,10 +29,12 @@ ClojureScript's power to the modern JavaScript ecosystem.
 
 ## Packages
 
-| Package      | Description                                                     |
-|--------------|-----------------------------------------------------------------|
-| `@clojurewasm/kiso` | Compiler + runtime (reader, analyzer, codegen, data structures) |
-| `@clojurewasm/su`   | Component framework built on Kiso (see [su](#su) below)         |
+| Package             | Description                                                     | Packed  |
+|---------------------|-----------------------------------------------------------------|---------|
+| `@clojurewasm/kiso` | Compiler + runtime (reader, analyzer, codegen, data structures) | ~134 KB |
+| `@clojurewasm/su`   | Component framework built on Kiso (see [su](#su) below)         | ~17 KB  |
+
+Runtime is tree-shakeable — a typical app using vectors, maps, and atoms imports ~60 KB unminified.
 
 ---
 
