@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { readStr, readAllStr } from '../../src/reader/reader.js';
 import { Analyzer } from '../../src/analyzer/analyzer.js';
 import { emit, emitModule, munge } from '../../src/codegen/emitter.js';
+import { compile as compilePublic } from '../../src/api/compiler.js';
 import { vector, PersistentVector } from '../../src/runtime/vector.js';
 import { keyword, isKeyword, Keyword } from '../../src/runtime/keyword.js';
 import { hashMap, PersistentHashMap } from '../../src/runtime/hash-map.js';
@@ -607,5 +608,31 @@ describe('runtime auto-imports', () => {
       (def x (get m :key))
     `);
     expect(js).toContain('get');
+  });
+});
+
+// -- Auto-resolve keywords --
+
+describe('auto-resolve keywords (::)', () => {
+  it('resolves ::foo to current ns in compiled output', () => {
+    const { code } = compilePublic('(ns my.app) (def x ::foo)');
+    expect(code).toContain('keyword("foo", "my.app")');
+  });
+
+  it('does not resolve bare :foo keywords', () => {
+    const { code } = compilePublic('(ns my.app) (def x :foo)');
+    expect(code).toContain('keyword("foo")');
+    expect(code).not.toContain('keyword("foo", "my.app")');
+  });
+
+  it('preserves explicitly namespaced :ns/foo keywords', () => {
+    const { code } = compilePublic('(ns my.app) (def x :other/foo)');
+    expect(code).toContain('keyword("foo", "other")');
+  });
+
+  it('resolves :: in nested forms', () => {
+    const { code } = compilePublic('(ns my.app) (def x [::a {:key ::b}])');
+    expect(code).toContain('keyword("a", "my.app")');
+    expect(code).toContain('keyword("b", "my.app")');
   });
 });

@@ -41,9 +41,46 @@ export function generate(node: Node): string {
   return emit(node);
 }
 
+/** Extract namespace name from the first (ns ...) form, if present. */
+function extractNsName(forms: Form[]): string | null {
+  if (forms.length === 0) return null;
+  const first = forms[0]!;
+  if (first.data.type !== 'list' || first.data.items.length < 2) return null;
+  const head = first.data.items[0]!;
+  if (head.data.type !== 'symbol' || head.data.name !== 'ns') return null;
+  const nameForm = first.data.items[1]!;
+  if (nameForm.data.type !== 'symbol') return null;
+  return nameForm.data.ns ? `${nameForm.data.ns}.${nameForm.data.name}` : nameForm.data.name;
+}
+
+/** Deep-walk forms, replacing keyword ns "__auto__" with the actual namespace. */
+function resolveAutoKeywords(forms: Form[], nsName: string): Form[] {
+  function walkForm(form: Form): Form {
+    const d = form.data;
+    if (d.type === 'keyword' && d.ns === '__auto__') {
+      return { ...form, data: { type: 'keyword', ns: nsName, name: d.name } };
+    }
+    if (d.type === 'list' || d.type === 'vector' || d.type === 'set') {
+      return { ...form, data: { ...d, items: d.items.map(walkForm) } };
+    }
+    if (d.type === 'map') {
+      return { ...form, data: { ...d, items: d.items.map(walkForm) } };
+    }
+    if (d.type === 'tagged') {
+      return { ...form, data: { ...d, form: walkForm(d.form) } };
+    }
+    return form;
+  }
+  return forms.map(walkForm);
+}
+
 /** Compile ClojureScript source to JavaScript. */
 export function compile(source: string, options?: CompileOptions): CompileResult {
-  const forms = readAllStr(source);
+  let forms = readAllStr(source);
+  const nsName = extractNsName(forms);
+  if (nsName) {
+    forms = resolveAutoKeywords(forms, nsName);
+  }
   const nodes = forms.map((f) => analyzer.analyze(f));
   const code = emitModule(nodes);
 
