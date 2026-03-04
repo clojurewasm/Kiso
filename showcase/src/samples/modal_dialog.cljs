@@ -22,19 +22,20 @@
               :align-items "center"
               :justify-content "center"
               :z-index "1000"}]
-  [:.dialog {:background "#fff"
+  [:.dialog {:background "#1e293b"
+             :border "1px solid #334155"
              :border-radius "16px"
              :padding "32px"
              :max-width "420px"
              :width "90%"
-             :box-shadow "0 20px 60px rgba(0,0,0,0.3)"
+             :box-shadow "0 20px 60px rgba(0,0,0,0.5)"
              :text-align "left"}]
   [:.title {:font-size "20px"
             :font-weight "600"
-            :color "#1e293b"
+            :color "#e2e8f0"
             :margin "0 0 12px"}]
   [:.body {:font-size "14px"
-           :color "#475569"
+           :color "#94a3b8"
            :line-height "1.6"
            :margin-bottom "24px"}]
   [:.actions {:display "flex"
@@ -46,7 +47,7 @@
           :font-size "14px"
           :font-weight "500"
           :cursor "pointer"}]
-  [:.btn-cancel {:background "#e2e8f0" :color "#475569"}]
+  [:.btn-cancel {:background "#334155" :color "#cbd5e1"}]
   [:.btn-confirm {:background "#6366f1" :color "#fff"}])
 
 (defc sample-modal

@@ -3,11 +3,12 @@
 
 (defstyle counter-styles
   [:host {:display "block"
-          :font-family "'Inter', system-ui, sans-serif"}]
+          :font-family "'Inter', system-ui, sans-serif"
+          :color "#e2e8f0"}]
   [:.wrap {:text-align "center" :padding "40px"}]
   [:.count {:font-size "72px"
             :font-weight "700"
-            :color "#6366f1"
+            :color "#818cf8"
             :margin "16px 0"}]
   [:.buttons {:display "flex"
               :gap "12px"

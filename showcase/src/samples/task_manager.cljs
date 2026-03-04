@@ -38,13 +38,13 @@
 (defstyle stat-card-styles
   [:host {:display "block"}]
   [:.card {:padding "16px"
-           :background "#fff"
+           :background "#0f172a"
            :border-radius "12px"
-           :box-shadow "0 1px 3px rgba(0,0,0,0.1)"
+           :border "1px solid #334155"
            :text-align "center"
            :min-width "100px"}]
   [:.count {:font-size "28px" :font-weight "700"}]
-  [:.label {:font-size "13px" :color "#64748b" :margin-top "4px"}])
+  [:.label {:font-size "13px" :color "#94a3b8" :margin-top "4px"}])
 
 (defc stat-card
   {:props {:label "string" :count "number" :color "string"}
@@ -63,10 +63,10 @@
   [:.row {:display "flex"
           :align-items "center"
           :padding "10px 12px"
-          :background "#fff"
+          :background "#0f172a"
           :border-radius "8px"
           :margin-bottom "6px"
-          :border "1px solid #e5e7eb"}]
+          :border "1px solid #334155"}]
   [:.checkbox {:margin-right "12px"
                :width "16px"
                :height "16px"
@@ -75,7 +75,7 @@
   [:.text {:flex "1" :font-size "14px"}]
   [:.delete {:background "none"
              :border "none"
-             :color "#94a3b8"
+             :color "#64748b"
              :cursor "pointer"
              :font-size "16px"
              :padding "2px 6px"}])
@@ -92,7 +92,7 @@
               :on-click (fn [_] (toggle-task! tasks task-id))}]
      [:span {:class "text"
              :style {:text-decoration (if done "line-through" "none")
-                     :color (if done "#94a3b8" "#1e293b")}}
+                     :color (if done "#64748b" "#e2e8f0")}}
       text]
      [:button {:class "delete"
                :on-click (fn [_] (remove-task! tasks task-id))}
@@ -105,10 +105,12 @@
   [:.row {:display "flex" :gap "8px" :margin-bottom "16px"}]
   [:.text-input {:flex "1"
                  :padding "10px 14px"
-                 :border "1px solid #d1d5db"
+                 :border "1px solid #475569"
                  :border-radius "8px"
                  :font-size "14px"
-                 :outline "none"}]
+                 :outline "none"
+                 :background "#0f172a"
+                 :color "#e2e8f0"}]
   [:.add-btn {:padding "10px 20px"
               :background "#6366f1"
               :color "#fff"
@@ -150,7 +152,7 @@
   [:.filters {:display "flex" :gap "6px" :margin-bottom "16px"}]
   [:.btn {:padding "6px 16px"
           :border-radius "20px"
-          :border "1px solid #d1d5db"
+          :border "1px solid #475569"
           :font-size "13px"
           :cursor "pointer"}])
 
@@ -163,8 +165,8 @@
         [:div {:class "filters"}
          (map (fn [m]
                 [:button {:class "btn"
-                          :style {:background (if (= mode m) "#6366f1" "#fff")
-                                  :color (if (= mode m) "#fff" "#374151")}
+                          :style {:background (if (= mode m) "#6366f1" "transparent")
+                                  :color (if (= mode m) "#fff" "#cbd5e1")}
                           :on-click (fn [_] (reset! filter-mode m))}
                  (name m)])
               [:all :active :done])]))))
@@ -198,7 +200,7 @@
 
 (defstyle task-app-styles
   [:host {:font-family "'Inter', system-ui, sans-serif"
-          :color "#1e293b"}]
+          :color "#e2e8f0"}]
   [:.container {:max-width "520px"
                 :margin "0 auto"}]
   [:.header {:background "linear-gradient(135deg, #6366f1, #8b5cf6)"
@@ -207,10 +209,10 @@
              :color "#fff"}]
   [:.header-title {:margin "0" :font-size "22px" :font-weight "600"}]
   [:.header-sub {:margin "4px 0 0" :font-size "13px" :opacity "0.85"}]
-  [:.body {:background "#f8fafc"
+  [:.body {:background "#1e293b"
            :padding "20px"
            :border-radius "0 0 16px 16px"
-           :border "1px solid #e2e8f0"
+           :border "1px solid #334155"
            :border-top "none"}]
   [:.stats {:display "flex" :gap "12px" :margin-bottom "20px"}])
 

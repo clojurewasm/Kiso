@@ -9,7 +9,7 @@
           :padding "20px"}]
   [:.title {:font-size "18px"
             :font-weight "600"
-            :color "#1e293b"
+            :color "#e2e8f0"
             :margin-bottom "12px"}]
   [:table {:width "100%"
            :border-collapse "collapse"}]
@@ -17,18 +17,18 @@
         :text-align "left"
         :font-size "13px"
         :font-weight "600"
-        :color "#64748b"
-        :border-bottom "2px solid #e2e8f0"
+        :color "#94a3b8"
+        :border-bottom "2px solid #334155"
         :cursor "pointer"
         :user-select "none"}
-   [:&:hover {:color "#6366f1"}]]
+   [:&:hover {:color "#818cf8"}]]
   [:.sort-icon {:margin-left "4px"
                 :font-size "10px"}]
   [:td {:padding "10px 12px"
         :font-size "14px"
-        :color "#334155"
-        :border-bottom "1px solid #f1f5f9"}]
-  [:tr:hover>td {:background "#f8fafc"}])
+        :color "#cbd5e1"
+        :border-bottom "1px solid #1e293b"}]
+  [:tr:hover>td {:background "#0f172a"}])
 
 (def data
   [{:name "Alice"   :role "Engineer"  :score 95}

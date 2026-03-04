@@ -6,35 +6,38 @@
            :align-items "center"
            :gap "8px"
            :padding "8px 12px"
-           :border-bottom "1px solid #eee"}
-   [:span {:flex "1"}]
+           :border-bottom "1px solid #334155"}
+   [:span {:flex "1" :color "#e2e8f0"}]
    [:button {:cursor "pointer"
              :border "none"
              :background "transparent"
-             :color "#e74c3c"}
-    [:&:hover {:color "#c0392b"
+             :color "#f87171"}
+    [:&:hover {:color "#ef4444"
                :font-weight "bold"}]]])
 
 (defstyle todo-app-styles
   [:host {:display "block"
           :font-family "sans-serif"
           :max-width "400px"
-          :margin "0 auto"}]
+          :margin "0 auto"
+          :color "#e2e8f0"}]
   [:.header {:display "flex"
              :gap "8px"
              :margin-bottom "16px"}
    [:input {:flex "1"
             :padding "8px"
-            :border "1px solid #ccc"
-            :border-radius "4px"}]
+            :border "1px solid #475569"
+            :border-radius "4px"
+            :background "#0f172a"
+            :color "#e2e8f0"}]
    [:button {:padding "8px 16px"
-             :background "#3498db"
+             :background "#6366f1"
              :color "white"
              :border "none"
              :border-radius "4px"
              :cursor "pointer"}
-    [:&:hover {:background "#2980b9"}]]]
-  [:.empty {:color "#999"
+    [:&:hover {:background "#4f46e5"}]]]
+  [:.empty {:color "#94a3b8"
             :text-align "center"
             :padding "24px"}])
 

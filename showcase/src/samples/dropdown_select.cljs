@@ -9,44 +9,44 @@
           :padding "40px 20px"}]
   [:.label {:font-size "13px"
             :font-weight "500"
-            :color "#64748b"
+            :color "#94a3b8"
             :margin-bottom "6px"}]
   [:.select {:position "relative"}]
   [:.trigger {:width "100%"
               :padding "10px 14px"
-              :border "1px solid #d1d5db"
+              :border "1px solid #475569"
               :border-radius "8px"
-              :background "#fff"
+              :background "#0f172a"
               :font-size "14px"
-              :color "#1e293b"
+              :color "#e2e8f0"
               :cursor "pointer"
               :display "flex"
               :justify-content "space-between"
               :align-items "center"
               :text-align "left"}
-   [:&:hover {:border-color "#6366f1"}]]
+   [:&:hover {:border-color "#818cf8"}]]
   [:.arrow {:font-size "10px" :color "#94a3b8"}]
   [:.menu {:position "absolute"
            :top "calc(100% + 4px)"
            :left "0"
            :right "0"
-           :background "#fff"
-           :border "1px solid #e2e8f0"
+           :background "#0f172a"
+           :border "1px solid #334155"
            :border-radius "8px"
-           :box-shadow "0 4px 12px rgba(0,0,0,0.1)"
+           :box-shadow "0 4px 12px rgba(0,0,0,0.4)"
            :z-index "10"
            :overflow "hidden"}]
   [:.option {:padding "10px 14px"
              :font-size "14px"
              :cursor "pointer"
-             :color "#334155"}
-   [:&:hover {:background "#f1f5f9"}]]
-  [:.option.selected {:background "#eef2ff"
-                      :color "#6366f1"
+             :color "#cbd5e1"}
+   [:&:hover {:background "#1e293b"}]]
+  [:.option.selected {:background "rgba(99,102,241,0.15)"
+                      :color "#818cf8"
                       :font-weight "500"}]
   [:.selected-display {:margin-top "16px"
                        :font-size "14px"
-                       :color "#475569"}])
+                       :color "#94a3b8"}])
 
 (def options
   [{:value "react"   :label "React"}

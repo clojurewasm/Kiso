@@ -9,7 +9,7 @@
   [:.track {:width "56px"
             :height "30px"
             :border-radius "15px"
-            :background "#cbd5e1"
+            :background "#475569"
             :position "relative"
             :cursor "pointer"
             :transition "background 0.2s"
@@ -27,7 +27,7 @@
   [:.thumb.on {:left "28px"}]
   [:.label {:margin-top "16px"
             :font-size "15px"
-            :color "#475569"}])
+            :color "#cbd5e1"}])
 
 (defc sample-toggle
   {:style [toggle-styles]}

@@ -9,7 +9,7 @@
           :padding "40px 20px"
           :text-align "center"}]
   [:.track {:height "24px"
-            :background "#e2e8f0"
+            :background "#334155"
             :border-radius "12px"
             :overflow "hidden"
             :margin "20px 0"}]
@@ -19,7 +19,7 @@
            :transition "width 0.3s"}]
   [:.pct {:font-size "28px"
           :font-weight "700"
-          :color "#6366f1"}]
+          :color "#818cf8"}]
   [:.controls {:display "flex"
                :gap "8px"
                :justify-content "center"
@@ -33,37 +33,47 @@
           :background "#6366f1"
           :color "#fff"}
    [:&:hover {:background "#4f46e5"}]]
-  [:.btn.reset {:background "#e2e8f0"
-                :color "#475569"}])
+  [:.btn.reset {:background "#334155"
+                :color "#cbd5e1"}])
 
 (defc sample-progress
   {:style [progress-styles]}
   []
   (let [pct (atom 0)
-        timer-id (atom nil)]
-    (su/on-mount
-     (fn []
-       (reset! timer-id
-               (js/setInterval
-                (fn [] (swap! pct (fn [p] (if (>= p 100) 0 (+ p 2)))))
-                100))))
-    (su/on-unmount
-     (fn []
-       (when @timer-id
-         (js/clearInterval @timer-id))))
-    (fn []
-      [:div
-       [:div {:class "pct"} (str @pct "%")]
-       [:div {:class "track"}
-        [:div {:class "fill"
-               :style {:width (str @pct "%")}}]]
-       [:div {:class "controls"}
-        [:button {:class "btn"
-                  :on-click (fn [_] (swap! pct (fn [p] (min 100 (+ p 10)))))}
-         "+10%"]
-        [:button {:class "btn reset"
-                  :on-click (fn [_] (reset! pct 0))}
-         "Reset"]]])))
+        tid (atom nil)
+        stop! (fn []
+                (when @tid
+                  (js/clearInterval @tid)
+                  (reset! tid nil)))
+        start! (fn []
+                 (when (nil? @tid)
+                   (reset! tid
+                           (js/setInterval
+                            (fn []
+                              (swap! pct (fn [p]
+                                           (if (>= p 100)
+                                             (do (when @tid
+                                                   (js/clearInterval @tid)
+                                                   (reset! tid nil))
+                                                 100)
+                                             (+ p 2)))))
+                            100))))]
+    (su/on-unmount (fn [] (stop!)))
+    [:div
+     (fn [] [:div {:class "pct"} (str @pct "%")])
+     [:div {:class "track"}
+      (fn [] [:div {:class "fill"
+                    :style {:width (str @pct "%")}}])]
+     [:div {:class "controls"}
+      (fn [] [:button {:class "btn"
+                       :on-click (fn [_] (if (some? @tid) (stop!) (start!)))}
+              (if (some? @tid) "Pause" "Start")])
+      [:button {:class "btn"
+                :on-click (fn [_] (swap! pct (fn [p] (min 100 (+ p 10)))))}
+       "+10%"]
+      [:button {:class "btn reset"
+                :on-click (fn [_] (stop!) (reset! pct 0))}
+       "Reset"]]]))
 
 (defn mount! [container]
   (su/mount container [::sample-progress]))

@@ -7,29 +7,29 @@
           :max-width "480px"
           :margin "0 auto"
           :padding "20px"}]
-  [:.item {:border "1px solid #e2e8f0"
+  [:.item {:border "1px solid #334155"
            :border-radius "8px"
            :margin-bottom "8px"
            :overflow "hidden"}]
   [:.header {:padding "14px 16px"
-             :background "#f8fafc"
+             :background "#0f172a"
              :cursor "pointer"
              :display "flex"
              :justify-content "space-between"
              :align-items "center"
              :font-weight "500"
-             :color "#1e293b"
+             :color "#e2e8f0"
              :user-select "none"}
-   [:&:hover {:background "#f1f5f9"}]]
+   [:&:hover {:background "#1a2744"}]]
   [:.arrow {:transition "transform 0.2s"
             :font-size "12px"
-            :color "#94a3b8"}]
+            :color "#818cf8"}]
   [:.arrow.open {:transform "rotate(90deg)"}]
   [:.body {:padding "0 16px"
            :max-height "0"
            :overflow "hidden"
            :transition "max-height 0.3s, padding 0.3s"
-           :color "#475569"
+           :color "#94a3b8"
            :font-size "14px"
            :line-height "1.6"}]
   [:.body.open {:max-height "200px"
