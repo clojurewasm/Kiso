@@ -1,7 +1,7 @@
 {:lint-as {defc clojure.core/defn
-           defstyle clojure.core/comment
+           defstyle clojure.core/def
            su.core/defc clojure.core/defn
-           su.core/defstyle clojure.core/comment}
+           su.core/defstyle clojure.core/def}
  :linters {:namespace-name-mismatch {:level :off}
            :unresolved-namespace {:exclude [su.core]}
            :unresolved-symbol {:exclude [(defc) (defstyle)]}
