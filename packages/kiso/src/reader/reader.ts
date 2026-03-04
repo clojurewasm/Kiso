@@ -132,8 +132,9 @@ class Reader {
     let text = token.text;
     // Strip leading :
     text = text.slice(1);
-    // Strip second : for auto-resolved
-    if (text.startsWith(':')) {
+    // Auto-resolved keyword (::foo)
+    const autoResolve = text.startsWith(':');
+    if (autoResolve) {
       text = text.slice(1);
     }
 
@@ -141,7 +142,9 @@ class Reader {
     if (ns !== null && name === '') {
       throw this.error('Invalid keyword: trailing slash', token);
     }
-    return makeKeyword(ns, name, token.line, token.col);
+    // ::foo (no explicit ns) → ns "__auto__", ::ns/bar → ns "ns" (already qualified)
+    const resolvedNs = autoResolve && ns === null ? '__auto__' : ns;
+    return makeKeyword(resolvedNs, name, token.line, token.col);
   }
 
   private readInteger(token: Token): Form {

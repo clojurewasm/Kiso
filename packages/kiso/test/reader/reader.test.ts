@@ -224,9 +224,23 @@ describe('keywords', () => {
     }
   });
 
-  it('reads auto-resolved keywords', () => {
-    expect(pr('::foo')).toBe(':foo');
-    // auto-resolved keywords are stored without the ::
+  it('reads auto-resolved keywords with __auto__ ns', () => {
+    const form = readStr('::foo');
+    expect(form!.data.type).toBe('keyword');
+    if (form!.data.type === 'keyword') {
+      expect(form!.data.ns).toBe('__auto__');
+      expect(form!.data.name).toBe('foo');
+    }
+    expect(pr('::foo')).toBe(':__auto__/foo');
+  });
+
+  it('reads auto-resolved namespaced keywords as regular ns', () => {
+    const form = readStr('::ns/bar');
+    expect(form!.data.type).toBe('keyword');
+    if (form!.data.type === 'keyword') {
+      expect(form!.data.ns).toBe('ns');
+      expect(form!.data.name).toBe('bar');
+    }
   });
 
   // CSS selector keywords for su's defstyle
