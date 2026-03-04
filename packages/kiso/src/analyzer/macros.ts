@@ -1051,6 +1051,44 @@ defmacro('comment', (_items, form) => {
 
 // -- su Framework Macros --
 
+// Auto-wrap: ensures the final expression in a defc body returns a thunk
+// so that renderHiccup can detect reactive children and bind them via effect().
+// If the user already returns (fn ...) or (fn* ...), we leave it alone.
+function wrapFinalExpr(form: Form): Form {
+  const d = form.data;
+  if (d.type === 'list') {
+    const items = d.items as Form[];
+    const head = items[0];
+    if (head?.data.type === 'symbol') {
+      const name = (head.data as { name: string }).name;
+      // Already a function literal → skip
+      if (name === 'fn' || name === 'fn*') return form;
+      // let / let* → recurse into last body expr
+      if (name === 'let' || name === 'let*') {
+        if (items.length < 3) return wrapInFn(form);
+        const last = items[items.length - 1]!;
+        const wrapped = wrapFinalExpr(last);
+        if (wrapped === last) return form;
+        return makeList([...items.slice(0, -1), wrapped]);
+      }
+      // do → recurse into last statement
+      if (name === 'do') {
+        if (items.length < 2) return wrapInFn(form);
+        const last = items[items.length - 1]!;
+        const wrapped = wrapFinalExpr(last);
+        if (wrapped === last) return form;
+        return makeList([...items.slice(0, -1), wrapped]);
+      }
+    }
+  }
+  // Default: wrap in (fn* [] expr)
+  return wrapInFn(form);
+}
+
+function wrapInFn(form: Form): Form {
+  return makeList([sym('fn*'), makeVector([]), form]);
+}
+
 defmacro('defc', (items, form) => {
   // (defc my-counter "doc" {:props {...}} [{:keys [a b]}] body...)
   // (defc my-counter [{:keys [a b]}] body...)
@@ -1170,7 +1208,8 @@ defmacro('defc', (items, form) => {
 
   // Build render fn: (fn* [props-atom] (let* [{:keys [...]} @props-atom] body...))
   const propsAtomSym = sym('props-atom__auto');
-  const letBody = body.length === 1 ? body[0]! : makeList([sym('do'), ...body]);
+  const rawLetBody = body.length === 1 ? body[0]! : makeList([sym('do'), ...body]);
+  const letBody = wrapFinalExpr(rawLetBody);
 
   let renderBody: Form;
   if (paramsForm.data.items.length === 0) {

@@ -137,10 +137,18 @@ function applyAttrs(el: HTMLElement, attrs: Record<string, unknown>, tag: string
         el.style.setProperty(prop, sval);
       }
     } else if (key.startsWith('on-')) {
-      const event = key.slice(3);
-      el.addEventListener(event, val as EventListener);
+      if (tag.includes('-') && key in el) {
+        // Rich prop on Custom Element (e.g., on-delete callback)
+        (el as unknown as Record<string, unknown>)[key] = val;
+      } else {
+        const event = key.slice(3);
+        el.addEventListener(event, val as EventListener);
+      }
     } else if (tag.includes('-') && typeof val === 'object' && val !== null) {
       (el as unknown as Record<string, unknown>)[key] = val;
+    } else if (key === 'checked' || key === 'disabled' || key === 'selected' || key === 'readonly') {
+      // DOM boolean properties — set as property, not attribute
+      (el as unknown as Record<string, unknown>)[key] = !!val;
     } else {
       el.setAttribute(key, String(val));
     }

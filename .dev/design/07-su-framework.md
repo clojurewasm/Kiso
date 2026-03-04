@@ -208,6 +208,28 @@ When the options map is omitted:
 - Props inferred from destructuring keys
 - Types default to `:string`
 
+### Auto-Wrap for Reactivity
+
+The render function runs **once** (Solid.js model). Reactive updates happen only when
+`renderHiccup` detects a function child and wraps it with `bind()` → `effect()`.
+
+To avoid requiring users to manually return `(fn [] hiccup)` (Form-2) for every component
+that uses atoms, the `defc` macro auto-wraps the final hiccup expression in `(fn* [] expr)`
+at compile time. If the user already returns `fn` or `fn*` (Form-2), the macro leaves it alone.
+The auto-wrap also recurses through `let`/`let*`/`do` to find the actual final expression.
+
+```clojure
+;; User writes (no manual fn wrapper needed):
+(defc my-counter []
+  (let [n (atom 0)]
+    [:div (str @n)]))
+
+;; Macro expands to:
+(defc my-counter []
+  (let [n (atom 0)]
+    (fn* [] [:div (str @n)])))
+```
+
 ### Expansion Target
 
 defc expands to a `customElements.define()` call:

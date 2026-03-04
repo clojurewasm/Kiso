@@ -14,7 +14,15 @@ Session handover document. Read at session start.
 
 ## Current Task
 
-All Phase 24 tasks complete. Ready for npm publish.
+All Phase 24 tasks + post-release improvements complete. Ready for npm publish.
+
+### Completed (Post-Phase 24)
+- defc auto-wrap (D12): `wrapFinalExpr` + `wrapInFn` in macros.ts, 16 unit tests, 4 codegen tests
+- Showcase counter.cljs simplified (removed manual fn wrapper)
+- Fix: CE rich prop `on-*` callback routing in hiccup.ts (was treated as event listener)
+- Fix: DOM boolean props (checked/disabled/selected/readonly) set as properties, not attributes
+- Fix: Task Manager checkbox `:checked done`, Add button input clearing (showcase + example)
+- Browser verification: all 3 components, 6 code samples, example app — all working
 
 ### Completed (Phase 24)
 - 24.1-24.7: Codegen audit, readability, CI, bundle size, docs, quality audit
@@ -32,4 +40,4 @@ All Phase 24 tasks complete. Ready for npm publish.
 ## Key Design References
 
 - Roadmap: `.dev/roadmap.md` (phases 1-24)
-- Decisions: `.dev/decisions.md` (D1-D11)
+- Decisions: `.dev/decisions.md` (D1-D12)

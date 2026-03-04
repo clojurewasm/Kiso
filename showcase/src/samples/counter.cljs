@@ -26,13 +26,12 @@
   {:style [counter-styles]}
   []
   (let [n (atom 0)]
-    (fn []
-      [:div {:class "wrap"}
-       [:div "Click the buttons to change the count:"]
-       [:div {:class "count"} (str @n)]
-       [:div {:class "buttons"}
-        [:button {:class "btn" :on-click (fn [_] (swap! n dec))} "-"]
-        [:button {:class "btn" :on-click (fn [_] (swap! n inc))} "+"]]])))
+    [:div {:class "wrap"}
+     [:div "Click the buttons to change the count:"]
+     [:div {:class "count"} (str @n)]
+     [:div {:class "buttons"}
+      [:button {:class "btn" :on-click (fn [_] (swap! n dec))} "-"]
+      [:button {:class "btn" :on-click (fn [_] (swap! n inc))} "+"]]]))
 
 (defn mount! [container]
   (su/mount container [::sample-counter]))

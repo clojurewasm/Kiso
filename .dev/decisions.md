@@ -238,3 +238,20 @@ The vector `:style [a b c]` pattern enables style composition across multiple sh
 
 **Affected**: `packages/kiso/src/analyzer/macros.ts` (defstyle, defc),
 `packages/su/src/css.ts` (globalStyle), `packages/su/src/index.ts` (exports).
+
+## D12: defc Auto-Wrap for Reactivity
+
+**Date**: 2026-03-05
+
+**Decision**: The `defc` macro auto-wraps the final hiccup expression in `(fn* [] expr)` at
+compile time. If the user already returns `fn` or `fn*` (Form-2), the macro detects it and
+skips the wrap. The auto-wrap recurses through `let`/`let*`/`do` to find the actual final expression.
+
+**Rationale**: The su framework uses a Solid.js-style reactivity model where the render function
+runs once. Reactive updates only happen when `renderHiccup` detects a function child and wraps it
+with `bind()` → `effect()`. Without auto-wrap, users must manually return `(fn [] hiccup)` for
+any component that uses atoms — a DX footgun since `@atom` inline in hiccup naturally appears
+to work but produces static text. Auto-wrap eliminates this footgun with zero breaking changes:
+existing Form-2 components are detected and preserved.
+
+**Affected**: `packages/kiso/src/analyzer/macros.ts` (`wrapFinalExpr`, `wrapInFn`, defc expansion).

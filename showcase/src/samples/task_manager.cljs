@@ -88,6 +88,7 @@
     [:div {:class "row"}
      [:input {:type "checkbox"
               :class "checkbox"
+              :checked done
               :on-click (fn [_] (toggle-task! tasks task-id))}]
      [:span {:class "text"
              :style {:text-decoration (if done "line-through" "none")
@@ -134,9 +135,12 @@
                               (set! (.-value (.-target e)) "")
                               (reset! input-text "")))}]
      [:button {:class "add-btn"
-               :on-click (fn [_]
+               :on-click (fn [e]
                            (add-task! tasks next-id @input-text)
-                           (reset! input-text ""))}
+                           (reset! input-text "")
+                           (let [root (.getRootNode (.-target e))
+                                 input (.querySelector root ".text-input")]
+                             (set! (.-value input) "")))}
       "Add"]]))
 
 ;; -- filter-bar --
