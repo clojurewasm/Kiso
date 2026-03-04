@@ -4,7 +4,5 @@ packages/*/dist/
 *.tsbuildinfo
 .DS_Store
 coverage/
-.lsp/
-!.lsp/config.edn
-.clj-kondo/
-!.clj-kondo/config.edn
+.lsp/.cache/
+.clj-kondo/.cache/
