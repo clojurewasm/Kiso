@@ -71,6 +71,8 @@ function emitNode(node: Node, ctx: EmitCtx): string {
     case 'vector': return `vector(${node.items.map((n) => emitNode(n, ctx)).join(', ')})`;
     case 'map': return emitMap(node, ctx);
     case 'set': return `hashSet(${node.items.map((n) => emitNode(n, ctx)).join(', ')})`;
+    case 'js-array': return `[${node.items.map((n: Node) => emitNode(n, ctx)).join(', ')}]`;
+    case 'js-object': return `({${node.keys.map((k: string, i: number) => `${JSON.stringify(k)}: ${emitNode(node.vals[i]!, ctx)}`).join(', ')}})`;
     case 'invoke': return emitInvoke(node, ctx);
     case 'if': return emitIf(node, ctx);
     case 'do': return emitDo(node, ctx);
@@ -772,6 +774,14 @@ function scanNodeForRuntime(node: Node, used: Set<string>): void {
     case 'set': {
       used.add('hashSet');
       for (const item of node.items) scanNodeForRuntime(item, used);
+      break;
+    }
+    case 'js-array': {
+      for (const item of node.items) scanNodeForRuntime(item, used);
+      break;
+    }
+    case 'js-object': {
+      for (const v of node.vals) scanNodeForRuntime(v, used);
       break;
     }
     case 'keyword': {

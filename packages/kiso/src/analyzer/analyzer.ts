@@ -60,8 +60,33 @@ export class Analyzer {
       case 'list': return this.analyzeList(form, scope);
       case 'regex': return lit(form.data.pattern, 'regex');
       case 'ratio': return lit(parseInt(form.data.numerator) / parseInt(form.data.denominator), 'number');
-      case 'tagged': return this.analyzeForm(form.data.form, scope); // simplified: unwrap tagged
+      case 'tagged': return this.analyzeTagged(form, scope);
     }
+  }
+
+  private analyzeTagged(form: Form, scope: Scope): Node {
+    if (form.data.type !== 'tagged') throw new Error('Expected tagged');
+    const tag = form.data.tag;
+    const inner = form.data.form;
+    if (tag === 'js') {
+      if (inner.data.type === 'vector') {
+        return { type: 'js-array', items: inner.data.items.map((f: Form) => this.analyzeForm(f, scope)) };
+      }
+      if (inner.data.type === 'map') {
+        const keys: string[] = [];
+        const vals: Node[] = [];
+        const items = inner.data.items;
+        for (let i = 0; i < items.length; i += 2) {
+          const k = items[i]!;
+          const kd = k.data;
+          keys.push(kd.type === 'keyword' ? kd.name : kd.type === 'string' ? kd.value : kd.type === 'symbol' ? kd.name : String((kd as { value?: unknown }).value ?? ''));
+          vals.push(this.analyzeForm(items[i + 1]!, scope));
+        }
+        return { type: 'js-object', keys, vals };
+      }
+    }
+    // Default: unwrap tag and analyze inner form
+    return this.analyzeForm(inner, scope);
   }
 
   private analyzeSymbol(form: Form, scope: Scope): Node {

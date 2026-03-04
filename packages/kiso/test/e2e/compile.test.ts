@@ -884,6 +884,26 @@ describe('maps as IFn', () => {
   });
 });
 
+describe('#js tagged literal', () => {
+  it('#js vector produces JS array', () => {
+    const result = run('#js [1 2 3]');
+    expect(Array.isArray(result)).toBe(true);
+    expect(result).toEqual([1, 2, 3]);
+  });
+
+  it('#js map produces JS object', () => {
+    const result = run('#js {:a 1 :b 2}') as Record<string, unknown>;
+    expect(typeof result).toBe('object');
+    expect(result.a).toBe(1);
+    expect(result.b).toBe(2);
+  });
+
+  it('#js nested vector', () => {
+    const result = run('#js [1 #js [2 3]]');
+    expect(result).toEqual([1, [2, 3]]);
+  });
+});
+
 describe('contains? and subs', () => {
   it('contains? on map returns true for existing key', () => {
     expect(run('(contains? {:a 1 :b 2} :a)')).toBe(true);
