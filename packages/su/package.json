@@ -1,7 +1,10 @@
 {
   "name": "@clojurewasm/su",
   "version": "0.1.0",
-  "description": "Su component framework runtime",
+  "description": "Su — ClojureScript Web Component framework with fine-grained reactivity",
+  "keywords": [
+    "clojurescript", "web-components", "reactive", "shadow-dom", "signals"
+  ],
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

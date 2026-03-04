@@ -11,10 +11,17 @@
     "./runtime/string": "./dist/runtime/string.js",
     "./runtime/set": "./dist/runtime/set.js",
     "./runtime/walk": "./dist/runtime/walk.js",
+    "./runtime/sorted-map": "./dist/runtime/sorted-map.js",
+    "./runtime/sorted-set": "./dist/runtime/sorted-set.js",
+    "./runtime/transient": "./dist/runtime/transient.js",
     "./vite": "./dist/api/vite-plugin.js",
     "./compiler": "./dist/api/compiler.js",
     "./codegen": "./dist/api/codegen-hooks.js"
   },
+  "keywords": [
+    "clojurescript", "compiler", "clojure", "cljs",
+    "persistent-data-structures", "vite", "typescript"
+  ],
   "bin": {
     "kiso": "./bin/kiso.mjs"
   },

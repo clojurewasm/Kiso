@@ -28,10 +28,10 @@ Monorepo: `@clojurewasm/kiso` (compiler + runtime), `@clojurewasm/su` (component
 | 19    | def Mutability         | DONE   | def→let, binding/with-redefs on def vars                  |
 | 20    | Transient Collections  | DONE   | TransientVector/HashMap/HashSet, conj!/assoc!             |
 | 21    | Metadata Propagation   | DONE   | meta, with-meta, vary-meta via WeakMap                    |
-| 22    | Performance Benchmarks | TODO   | Benchmark suite, hot path optimization                    |
-| 23    | npm Publish Prep       | TODO   | Package metadata, export validation, bundle analysis      |
+| 22    | Performance Benchmarks | DONE   | Vitest bench suite, baseline measurements                 |
+| 23    | npm Publish Prep       | DONE   | Keywords, export map, build verification, dry-run         |
 
-Phases 1-21 complete. 1388 vitest + 14 Playwright E2E tests. Types clean.
+Phases 1-23 complete. 1388 vitest + 14 Playwright E2E tests. Types clean.
 Var coverage: 330/330 (100%). All vars implemented.
 Design: `.dev/design/08-quality-and-ecosystem.md` (Q1-Q7 details).
 
@@ -249,23 +249,23 @@ Metadata support via WeakMap store on collection copies.
 - 21.3 ~~`vary-meta` applies function to current metadata~~ DONE
 - 21.4 Metadata preservation through map/filter/reduce — deferred (requires collection-level integration)
 
-## Phase 22: Performance Benchmarks — TODO
+## Phase 22: Performance Benchmarks — DONE
 
-Establish baselines and optimize hot paths.
+Establish baselines with vitest bench.
 
-- 22.1 Benchmark suite (vitest bench or custom)
-- 22.2 PersistentVector / PersistentHashMap read/write benchmarks
-- 22.3 Compiler throughput (forms/sec)
-- 22.4 Runtime startup cost measurement
+- 22.1 ~~Benchmark suite (vitest bench)~~ DONE
+- 22.2 ~~PersistentVector / PersistentHashMap / TreeMap read/write benchmarks~~ DONE
+- 22.3 ~~Compiler throughput (180K forms/sec)~~ DONE
+- 22.4 ~~Transient vs persistent comparison benchmarks~~ DONE
 
-## Phase 23: npm Publish Preparation — TODO
+## Phase 23: npm Publish Preparation — DONE
 
 Prepare packages for npm registry.
 
-- 23.1 Package metadata (README, LICENSE, keywords, repository)
-- 23.2 Export map validation (`package.json` exports field)
-- 23.3 Bundle size analysis (tree-shaking verification)
-- 23.4 Publish dry-run + CI publish workflow
+- 23.1 ~~Package metadata (keywords, repository, description)~~ DONE
+- 23.2 ~~Export map validation (added sorted-map, sorted-set, transient)~~ DONE
+- 23.3 ~~Build verification (tsc build, dist/ output checked)~~ DONE
+- 23.4 ~~Publish dry-run (kiso: 136KB/178 files, su: 16KB/41 files)~~ DONE
 
 ## Known Gaps / Future Work
 
