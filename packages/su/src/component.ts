@@ -146,8 +146,9 @@ export function registerComponent(def: ComponentDef, config: ComponentConfig, _r
       if (def.formAssociated) {
         this._internals = this.attachInternals();
       }
-      if (def.styles.length > 0) {
-        shadow.adoptedStyleSheets = [...def.styles as CSSStyleSheet[]];
+      const sheets = def.styles.filter(Boolean) as CSSStyleSheet[];
+      if (sheets.length > 0) {
+        shadow.adoptedStyleSheets = [...sheets];
       }
       const initialProps: Record<string, unknown> = {};
       for (const attr of def.observedAttrs) {

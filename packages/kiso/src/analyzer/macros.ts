@@ -819,6 +819,12 @@ defmacro('defc', (items, form) => {
   if (styleForm) {
     configItems.push(makeKeyword(null, 'styles'));
     configItems.push(makeVector([styleForm]));
+  } else {
+    // Auto-lookup stylesheet by component name
+    configItems.push(makeKeyword(null, 'styles'));
+    configItems.push(makeVector([
+      makeList([makeSymbol('su.core', 'get-stylesheet'), makeStr(name)]),
+    ]));
   }
 
   // Build render fn: (fn* [props-atom] (let* [{:keys [...]} @props-atom] body...))

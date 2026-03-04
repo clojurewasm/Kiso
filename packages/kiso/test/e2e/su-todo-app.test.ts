@@ -148,7 +148,7 @@ describe('su todo-app dogfooding', () => {
           [:input {:value value}])
       `);
       expect(js).toContain('keyword("form-associated")');
-      expect(js).toContain(', true)');
+      expect(js).toContain(', true,');
     });
 
     it('defc passes delegates-focus option to config', () => {
@@ -159,7 +159,7 @@ describe('su todo-app dogfooding', () => {
           [:input {:placeholder label}])
       `);
       expect(js).toContain('keyword("delegates-focus")');
-      expect(js).toContain(', true)');
+      expect(js).toContain(', true,');
     });
 
     it('defc :style option adds styles vector to config', () => {
@@ -171,6 +171,16 @@ describe('su todo-app dogfooding', () => {
       `);
       expect(js).toContain('keyword("styles")');
       expect(js).toContain('card_styles');
+    });
+
+    it('defc without :style auto-lookups stylesheet by component name', () => {
+      const js = compileForm(`
+        (defc my-widget [{:keys [label]}]
+          [:div label])
+      `);
+      expect(js).toContain('keyword("styles")');
+      expect(js).toContain('get_stylesheet');
+      expect(js).toContain('"my-widget"');
     });
   });
 
