@@ -21,9 +21,11 @@ ClojureScript's power to the modern JavaScript ecosystem.
 - **Zero dependencies** — pure TypeScript, no external packages
 - **Vite integration** — first-class `.cljs` support with HMR
 - **Full reader** — syntax-quote, namespaced maps, destructuring
-- **Rich runtime** — persistent vectors, hash maps, sets, lazy seqs, protocols, atoms
+- **Rich runtime** — persistent vectors, hash maps, sorted maps, sets, lazy seqs, protocols, atoms
 - **Source maps** — V3 source map generation with VLQ encoding
 - **ES modules** — `ns` + `:require` compiles to `import`/`export`
+- **Docstrings** — `def`/`defn` docstrings compile to JSDoc comments
+- **330 core vars** — comprehensive `cljs.core` coverage
 
 ## Packages
 
@@ -42,10 +44,20 @@ ClojureScript's power to the modern JavaScript ecosystem.
 
 ### Install
 
-Kiso is not yet published to npm. Clone the repository and link locally:
+```bash
+npm install @clojurewasm/kiso
+```
+
+For the component framework:
 
 ```bash
-git clone https://github.com/chaploud/Kiso.git
+npm install @clojurewasm/su
+```
+
+Or clone for development:
+
+```bash
+git clone https://github.com/clojurewasm/Kiso.git
 cd Kiso
 npm install
 npm run build
@@ -113,7 +125,26 @@ That's it — Vite handles `.cljs` files automatically with HMR.
 
 ```js
 // JavaScript
-export const greet = function greet(name) {
+export let greet = function greet(name) {
+  return str("Hello, ", name, "!");
+};
+```
+
+### Docstrings → JSDoc
+
+```clojure
+(def pi "The ratio of circumference to diameter" 3.14159)
+
+(defn greet "Returns a greeting string" [name]
+  (str "Hello, " name "!"))
+```
+
+```js
+/** The ratio of circumference to diameter */
+export let pi = 3.14159;
+
+/** Returns a greeting string */
+export let greet = function greet(name) {
   return str("Hello, ", name, "!");
 };
 ```
@@ -133,8 +164,8 @@ export const greet = function greet(name) {
 import * as u from './util.js';
 import { format_date } from './helper.js';
 
-export const version = "1.0";
-export const start = function start() { return u.init(); };
+export let version = "1.0";
+export let start = function start() { return u.init(); };
 ```
 
 ### JavaScript interop
@@ -246,6 +277,48 @@ su provides reactive Web Components using ClojureScript + Shadow DOM:
 ```
 
 Each `defc` component becomes a native Custom Element with Shadow DOM isolation.
+
+---
+
+## Compiler API
+
+```ts
+import { compile } from '@clojurewasm/kiso';
+
+const { code, sourceMap } = compile(`
+  (ns my.app)
+  (defn greet [name] (str "Hello, " name "!"))
+`);
+```
+
+### Vite Plugin
+
+```js
+// vite.config.js
+import { cljs } from '@clojurewasm/kiso/vite';
+
+export default {
+  plugins: [cljs()],
+};
+```
+
+### CLI
+
+```bash
+npx kiso compile src/main.cljs              # compile single file
+npx kiso compile src/ --out-dir dist/        # compile directory
+npx kiso compile src/main.cljs --source-map  # with source maps
+```
+
+### Individual Pipeline Stages
+
+```ts
+import { read, analyze, generate } from '@clojurewasm/kiso';
+
+const form = read('(+ 1 2)');    // Reader: source → Form
+const node = analyze(form);       // Analyzer: Form → Node
+const js = generate(node);        // Codegen: Node → JavaScript string
+```
 
 ---
 
