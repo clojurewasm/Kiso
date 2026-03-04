@@ -3,7 +3,18 @@
 
 ;; -- Styles --
 
-(defstyle app-styles
+(defstyle stat-card
+  [:host {:display "block"}]
+  [:.card {:padding "16px"
+           :background "#fff"
+           :border-radius "12px"
+           :box-shadow "0 1px 3px rgba(0,0,0,0.1)"
+           :text-align "center"
+           :min-width "100px"}]
+  [:.count {:font-size "28px" :font-weight "700"}]
+  [:.label {:font-size "13px" :color "#64748b" :margin-top "4px"}])
+
+(defstyle task-app
   [:host {:font-family "'Inter', system-ui, sans-serif"
           :color "#1e293b"}]
   [:.container {:max-width "520px"
@@ -65,17 +76,6 @@
                  :font-size "16px"
                  :padding "2px 6px"}])
 
-(defstyle stat-styles
-  [:host {:display "block"}]
-  [:.card {:padding "16px"
-           :background "#fff"
-           :border-radius "12px"
-           :box-shadow "0 1px 3px rgba(0,0,0,0.1)"
-           :text-align "center"
-           :min-width "100px"}]
-  [:.count {:font-size "28px" :font-weight "700"}]
-  [:.label {:font-size "13px" :color "#64748b" :margin-top "4px"}])
-
 ;; -- State --
 
 (def tasks (atom []))
@@ -114,8 +114,7 @@
 ;; -- Components --
 
 (defc stat-card
-  {:props {:label "string" :count "number" :color "string"}
-   :style stat-styles}
+  {:props {:label "string" :count "number" :color "string"}}
   [{:keys [label count color]}]
   [:div {:class "card"
          :style {:border-top (str "3px solid " (or color "#6366f1"))}}
@@ -123,9 +122,7 @@
     (str count)]
    [:div {:class "label"} label]])
 
-(defc task-app
-  {:style app-styles}
-  []
+(defc task-app []
   (let [input-text (atom "")]
     [:div {:class "container"}
      ;; Header
@@ -197,4 +194,4 @@
 
 ;; Mount to page
 (su/mount (js/document.getElementById "app")
-          [:task-app])
+          [::task-app])
