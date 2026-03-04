@@ -227,6 +227,12 @@ describe('interop compilation', () => {
     const js = compile('(Date. 2024)');
     expect(js).toContain('new Date');
   });
+
+  it('compiles namespaced Ctor. calls (js/Error.)', () => {
+    const js = compile('(js/Error. "msg")');
+    expect(js).toContain('new Error');
+    expect(js).not.toContain('Error.(');
+  });
 });
 
 // -- name munging --

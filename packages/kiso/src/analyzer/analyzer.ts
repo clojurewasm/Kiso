@@ -119,6 +119,13 @@ export class Analyzer {
       }
     }
 
+    // Namespaced Ctor. calls: (js/Error. args...) → new
+    if (head.data.type === 'symbol' && head.data.ns !== null && head.data.name.endsWith('.') && head.data.name.length > 1) {
+      const ctorName = head.data.name.slice(0, -1);
+      const args = items.slice(1).map((f) => this.analyzeForm(f, scope));
+      return { type: 'new', ctor: { type: 'var-ref', name: ctorName, local: false }, args };
+    }
+
     // Regular invocation
     const fn = this.analyzeForm(head, scope);
     const args = items.slice(1).map((f) => this.analyzeForm(f, scope));
