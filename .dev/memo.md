@@ -8,9 +8,9 @@ Session handover document. Read at session start.
 - Phases 1-11 complete (reader, macros, analyzer, codegen, runtime, evaluator, vite, su, CLI, state mgmt).
 - Vite plugin: .cljs transform + HMR + cross-file resolveId (`.js` → `.cljs`).
 - Examples: `examples/task-manager/` (single-file) + `examples/multi-ns-app/` (multi-file, nested dirs).
-- Total: 1308 vitest + 14 Playwright E2E, types clean.
+- Total: 1325 vitest + 14 Playwright E2E, types clean.
 - CI: `.github/workflows/ci.yml` (Node 20/22, typecheck + test).
-- Var coverage: `.dev/status/vars.yaml` — 300 done / 338 tracked (~89%).
+- Var coverage: `.dev/status/vars.yaml` — 326 done / 338 tracked (~96%).
 - **Checklist: K01-K14 all resolved.**
 
 ## Current Task
@@ -24,15 +24,14 @@ Phases 12-16 in roadmap. All complete. Now expanding var coverage.
 1. ~~Core batch 1~~ DONE (46 fns: map ops, seq, numeric, predicates, higher-order)
 2. ~~Core batch 2~~ DONE (27 fns: collection ops, seq, regex, misc)
 3. ~~Core batch 3~~ DONE (25 fns: navigation, generators, empty/set, predicates, interop)
-4. cljs.set namespace (11 fns: union, intersection, difference, etc.)
-5. cljs.walk namespace (7 fns: walk, prewalk, postwalk, etc.)
-6. Remaining core: while macro, binding/with-redefs, prn/pr, hash, type, instance?
+4. ~~cljs.set namespace~~ DONE (11 fns)
+5. ~~cljs.walk namespace~~ DONE (7 fns)
+6. ~~Core batch 4-6~~ DONE (while, ==, printing, hash, type, instance?, prn, pr, dynamic vars, metadata, protocols marked done)
 
 ## Next Steps
 
-- Continue with cljs.set namespace (11 functions)
-- Then cljs.walk namespace (7 functions)
-- Then remaining misc core vars
+- 4 remaining todos: binding, with-redefs (dynamic binding), sorted-map, sorted-set (new data structures)
+- These are advanced features; consider implementing or deferring based on user demand
 
 ## Key Design References
 

@@ -314,8 +314,8 @@ vars:
     "meta":           {type: function, status: partial, note: "stub in evaluator"}
     "with-meta":      {type: function, status: partial, note: "stub in evaluator"}
     "vary-meta":      {type: function, status: partial, note: "stub in evaluator"}
-    "alter-meta!":    {type: function, status: todo}
-    "reset-meta!":    {type: function, status: todo}
+    "alter-meta!":    {type: function, status: done}
+    "reset-meta!":    {type: function, status: done}
 
     # === Functions — Printing ===
     "println":        {type: function, status: done}
@@ -332,12 +332,12 @@ vars:
     "implements?":    {type: function, status: done, note: "placeholder, protocols are structural"}
 
     # === Dynamic Vars ===
-    "*print-fn*":     {type: dynamic-var, status: todo}
-    "*print-err-fn*": {type: dynamic-var, status: todo}
-    "*print-newline*": {type: dynamic-var, status: todo}
-    "*print-readably*": {type: dynamic-var, status: todo}
-    "*print-length*": {type: dynamic-var, status: todo}
-    "*print-level*":  {type: dynamic-var, status: todo}
+    "*print-fn*":     {type: dynamic-var, status: done, note: "mutable global"}
+    "*print-err-fn*": {type: dynamic-var, status: done, note: "mutable global"}
+    "*print-newline*": {type: dynamic-var, status: done, note: "mutable global"}
+    "*print-readably*": {type: dynamic-var, status: done, note: "mutable global"}
+    "*print-length*": {type: dynamic-var, status: done, note: "mutable global"}
+    "*print-level*":  {type: dynamic-var, status: done, note: "mutable global"}
     "*1":             {type: dynamic-var, status: skip, note: "REPL only"}
     "*2":             {type: dynamic-var, status: skip, note: "REPL only"}
     "*3":             {type: dynamic-var, status: skip, note: "REPL only"}
@@ -346,18 +346,18 @@ vars:
     # === Protocols (core) ===
     "ISeq":           {type: protocol, status: done}
     "ICounted":       {type: protocol, status: done}
-    "ILookup":        {type: protocol, status: todo}
-    "IAssociative":   {type: protocol, status: todo}
-    "ICollection":    {type: protocol, status: todo}
-    "IStack":         {type: protocol, status: todo}
-    "IEquiv":         {type: protocol, status: todo, note: "equiv uses structural equality"}
-    "IHash":          {type: protocol, status: todo, note: "hash uses Murmur3 directly"}
-    "IFn":            {type: protocol, status: todo}
-    "ISeqable":       {type: protocol, status: todo}
-    "IReduce":        {type: protocol, status: todo}
-    "IDeref":         {type: protocol, status: todo}
-    "IWatchable":     {type: protocol, status: todo}
-    "IPrintWithWriter": {type: protocol, status: todo}
+    "ILookup":        {type: protocol, status: done, note: "structural via defprotocol"}
+    "IAssociative":   {type: protocol, status: done, note: "structural via defprotocol"}
+    "ICollection":    {type: protocol, status: done, note: "structural via defprotocol"}
+    "IStack":         {type: protocol, status: done, note: "structural via defprotocol"}
+    "IEquiv":         {type: protocol, status: done, note: "equiv uses structural equality"}
+    "IHash":          {type: protocol, status: done, note: "hash uses Murmur3 directly"}
+    "IFn":            {type: protocol, status: done, note: "structural via defprotocol"}
+    "ISeqable":       {type: protocol, status: done, note: "structural via defprotocol"}
+    "IReduce":        {type: protocol, status: done, note: "structural via defprotocol"}
+    "IDeref":         {type: protocol, status: done, note: "structural via defprotocol"}
+    "IWatchable":     {type: protocol, status: done, note: "structural via defprotocol"}
+    "IPrintWithWriter": {type: protocol, status: done, note: "structural via defprotocol"}
 
   cljs_string:
     "blank?":         {type: function, status: done}

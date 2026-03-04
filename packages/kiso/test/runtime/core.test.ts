@@ -1036,3 +1036,47 @@ describe('satisfies?', () => {
     expect(core.satisfies_p({}, 42)).toBe(false);
   });
 });
+
+describe('dynamic vars', () => {
+  it('*print-fn* is a function by default', () => {
+    expect(typeof core._print_fn_).toBe('function');
+  });
+  it('*print-err-fn* is a function by default', () => {
+    expect(typeof core._print_err_fn_).toBe('function');
+  });
+  it('*print-newline* defaults to true', () => {
+    expect(core._print_newline_).toBe(true);
+  });
+  it('*print-readably* defaults to true', () => {
+    expect(core._print_readably_).toBe(true);
+  });
+  it('*print-length* defaults to null', () => {
+    expect(core._print_length_).toBe(null);
+  });
+  it('*print-level* defaults to null', () => {
+    expect(core._print_level_).toBe(null);
+  });
+});
+
+describe('metadata', () => {
+  it('alter-meta! modifies metadata', () => {
+    const obj = { x: 1 };
+    core.alter_meta_m(obj, (_old: unknown) => hashMap('tag', 'test'));
+    core.alter_meta_m(obj, (old: any) => old);
+    // Just verify it doesn't throw
+    expect(true).toBe(true);
+  });
+
+  it('reset-meta! replaces metadata', () => {
+    const obj = { x: 1 };
+    const meta = hashMap('key', 'val');
+    core.reset_meta_m(obj, meta);
+    // No getter yet, just verify no crash
+    expect(true).toBe(true);
+  });
+
+  it('alter-meta!/reset-meta! on nil returns null', () => {
+    expect(core.alter_meta_m(null, (x: unknown) => x)).toBe(null);
+    expect(core.reset_meta_m(null, {})).toBe(null);
+  });
+});

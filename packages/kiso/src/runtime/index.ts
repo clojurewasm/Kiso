@@ -79,4 +79,9 @@ export {
   prn, pr,
   reversible_p, sorted_p,
   satisfies_p, implements_p,
+  // Batch 6: dynamic vars, metadata
+  _print_fn_, _print_err_fn_,
+  _print_newline_, _print_readably_,
+  _print_length_, _print_level_,
+  alter_meta_m, reset_meta_m,
 } from './core.js';

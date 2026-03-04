@@ -1108,3 +1108,44 @@ export function satisfies_p(_protocol: unknown, _x: unknown): boolean {
 export function implements_p(_protocol: unknown, _x: unknown): boolean {
   return false;
 }
+
+// -- Dynamic vars (print system) --
+
+export let _print_fn_: ((s: string) => void) | null = (s: string) => {
+  if (typeof process !== 'undefined' && process.stdout) {
+    process.stdout.write(s);
+  } else if (typeof console !== 'undefined') {
+    console.log(s);
+  }
+};
+
+export let _print_err_fn_: ((s: string) => void) | null = (s: string) => {
+  if (typeof process !== 'undefined' && process.stderr) {
+    process.stderr.write(s);
+  } else if (typeof console !== 'undefined') {
+    console.error(s);
+  }
+};
+
+export let _print_newline_ = true;
+export let _print_readably_ = true;
+export let _print_length_: number | null = null;
+export let _print_level_: number | null = null;
+
+// -- Metadata --
+
+const metaStore = new WeakMap<object, unknown>();
+
+export function alter_meta_m(ref: unknown, f: (...args: unknown[]) => unknown, ...args: unknown[]): unknown {
+  if (ref === null || ref === undefined || typeof ref !== 'object') return null;
+  const current = metaStore.get(ref as object) ?? null;
+  const newMeta = f(current, ...args);
+  metaStore.set(ref as object, newMeta);
+  return newMeta;
+}
+
+export function reset_meta_m(ref: unknown, m: unknown): unknown {
+  if (ref === null || ref === undefined || typeof ref !== 'object') return null;
+  metaStore.set(ref as object, m);
+  return m;
+}
