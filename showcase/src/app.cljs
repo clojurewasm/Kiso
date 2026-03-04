@@ -156,7 +156,7 @@
       .tab-btn:hover { color: #e2e8f0; }
       .tab-btn.tab-active { color: #a5b4fc; border-bottom-color: #6366f1; }
       #content { flex: 1; overflow: auto; padding: 16px; }
-      .preview-mount { height: calc(100vh - 120px); background: #1e293b; border-radius: 8px; padding: 16px; overflow: auto; }
+      .preview-mount { height: calc(100vh - 120px); background: #1e293b; border-radius: 8px; padding: 16px; overflow: auto; display: flex; align-items: center; justify-content: center; }
       .placeholder { color: #64748b; font-size: 14px; text-align: center; padding: 60px 20px; }
       .code-block { font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.6; white-space: pre-wrap; word-break: break-word; color: #e2e8f0; margin: 0; background: #1e293b; border-radius: 8px; padding: 16px; }
       .comment { color: #64748b; } .string { color: #a5d6ff; } .keyword { color: #7dd3fc; }
