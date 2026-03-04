@@ -281,6 +281,26 @@ Pre-release quality improvements across codegen, CI, documentation, and general 
 - 24.6 Documentation + examples update (docstring, defstyle D11, latest API)
 - 24.7 General quality audit and fixes
 
+## Phase 25: Macro Plugin System (Future)
+
+Extract su-specific macros (`defc`, `defstyle`) from kiso core into a plugin architecture.
+Currently these 2 macros are hard-coded in `kiso/analyzer/macros.ts`, creating
+an implicit reverse dependency from kiso → su. This phase fixes that.
+
+- 25.1 TypeScript-level macro plugin API (`MacroPlugin` interface in `CompileOptions`)
+- 25.2 Move `defc` expansion to `su/src/macros.ts` (su-side plugin registration)
+- 25.3 Move `defstyle` expansion to `su/src/macros.ts`
+- 25.4 Verify kiso has zero su-specific knowledge after migration
+
+**Rationale**: kiso should be a pure compiler + runtime with no framework-specific macros.
+The existing `codegenHooks` pattern (su registers hooks at compile time) is the right model —
+`macroPlugins` extends this to the macro expansion phase. This enables third-party frameworks
+to define their own macros without forking kiso.
+
+**Related cleanup** (optional, lower priority):
+- Attribute handler registry for `applyAttrs` (replace ad-hoc branching with chain-of-responsibility)
+- Explicit component lifecycle phase model for su
+
 ## Known Gaps / Future Work
 
 - `alter-var-root` not implemented (set! is sufficient for current model)
