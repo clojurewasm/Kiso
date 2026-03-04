@@ -268,6 +268,30 @@ describe('dotimes edge cases', () => {
   });
 });
 
+// ── while ──
+
+describe('while macro', () => {
+  it('loops while condition is truthy', () => {
+    const code = `
+      (let [state (js* "{ n: 0 }")]
+        (while (js* "state.n < 5")
+          (js* "state.n++"))
+        (js* "state.n"))
+    `;
+    expect(run(code)).toBe(5);
+  });
+
+  it('skips body when condition is initially false', () => {
+    const code = `
+      (let [state (js* "{ n: 10 }")]
+        (while (js* "state.n < 5")
+          (js* "state.n++"))
+        (js* "state.n"))
+    `;
+    expect(run(code)).toBe(10);
+  });
+});
+
 // ── or/and ──
 
 describe('or/and edge cases', () => {

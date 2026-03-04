@@ -905,3 +905,87 @@ describe('array interop', () => {
     expect(result).toEqual(['a', 'b']);
   });
 });
+
+// -- Batch 4: numeric equality, printing, regex, interop, misc --
+
+describe('numeric equality (==)', () => {
+  it('numbers equal', () => {
+    expect(core.num_eq(1, 1)).toBe(true);
+    expect(core.num_eq(1, 2)).toBe(false);
+  });
+  it('coerces to number', () => {
+    expect(core.num_eq(1.0, 1)).toBe(true);
+  });
+});
+
+describe('re-pattern', () => {
+  it('creates regex from string', () => {
+    const re = core.re_pattern('\\d+');
+    expect(re).toBeInstanceOf(RegExp);
+    expect(re.test('123')).toBe(true);
+  });
+});
+
+describe('printing to string', () => {
+  it('pr-str', () => {
+    expect(core.pr_str('hello')).toBe('"hello"');
+    expect(core.pr_str(42)).toBe('42');
+    expect(core.pr_str(null)).toBe('nil');
+  });
+  it('prn-str', () => {
+    expect(core.prn_str('hello')).toBe('"hello"\n');
+  });
+  it('print-str', () => {
+    expect(core.print_str('hello')).toBe('hello');
+    expect(core.print_str(42)).toBe('42');
+  });
+  it('println-str', () => {
+    expect(core.println_str('hello')).toBe('hello\n');
+  });
+});
+
+describe('array interop', () => {
+  it('array creates JS array', () => {
+    const arr = core.array(1, 2, 3);
+    expect(arr).toEqual([1, 2, 3]);
+  });
+  it('aclone clones array', () => {
+    const original = [1, 2, 3];
+    const cloned = core.aclone(original);
+    expect(cloned).toEqual([1, 2, 3]);
+    expect(cloned).not.toBe(original);
+  });
+  it('js-delete removes property', () => {
+    const obj: any = { a: 1, b: 2 };
+    core.js_delete(obj, 'a');
+    expect(obj.a).toBeUndefined();
+    expect(obj.b).toBe(2);
+  });
+});
+
+describe('hash', () => {
+  it('returns number for various types', () => {
+    expect(typeof core.hash(42)).toBe('number');
+    expect(typeof core.hash('hello')).toBe('number');
+    expect(typeof core.hash(null)).toBe('number');
+  });
+  it('same value same hash', () => {
+    expect(core.hash('test')).toBe(core.hash('test'));
+  });
+});
+
+describe('type', () => {
+  it('returns constructor or null', () => {
+    expect(core.type_fn(42)).toBe(Number);
+    expect(core.type_fn('hi')).toBe(String);
+    expect(core.type_fn(null)).toBe(null);
+    expect(core.type_fn(true)).toBe(Boolean);
+  });
+});
+
+describe('instance?', () => {
+  it('checks instance', () => {
+    expect(core.instance_p(RegExp, /abc/)).toBe(true);
+    expect(core.instance_p(RegExp, 'abc')).toBe(false);
+  });
+});

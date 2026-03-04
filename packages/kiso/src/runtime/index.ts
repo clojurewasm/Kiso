@@ -68,4 +68,11 @@ export {
   quot, compare,
   // Array interop
   aget, aset, alength, js_keys,
+  // Batch 4: numeric equality, regex, printing, interop, misc
+  num_eq,
+  re_pattern,
+  pr_str, prn_str, print_str, println_str,
+  array, aclone, js_delete,
+  hash,
+  type_fn, instance_p,
 } from './core.js';

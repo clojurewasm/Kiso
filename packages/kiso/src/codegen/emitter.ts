@@ -657,6 +657,11 @@ const RUNTIME_FUNCTIONS = new Set([
   'quot', 'compare',
   // Array interop
   'aget', 'aset', 'alength', 'js-keys',
+  // Batch 4
+  '==', 're-pattern',
+  'pr-str', 'prn-str', 'print-str', 'println-str',
+  'array', 'aclone', 'js-delete',
+  'hash', 'type', 'instance?',
 ]);
 
 /** Scan AST for runtime function usage and return needed import names. */
@@ -795,7 +800,9 @@ export function munge(name: string): string {
     case '+': return 'add';
     case '*': return 'multiply';
     case '=': return 'eq';
+    case '==': return 'num_eq';
     case 'not=': return 'notEq';
+    case 'type': return 'type_fn';
     case '<': return 'lt';
     case '>': return 'gt';
     case '<=': return 'lte';

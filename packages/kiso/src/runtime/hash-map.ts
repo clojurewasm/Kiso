@@ -13,7 +13,7 @@ const MAP_TAG = Symbol.for('kiso.hashmap');
 
 // -- Hash for arbitrary keys --
 
-function hashKey(key: unknown): number {
+export function hashKey(key: unknown): number {
   if (key === null || key === undefined) return hashNull();
   if (typeof key === 'number') return Number.isInteger(key) ? hashInt(key) : hashFloat(key);
   if (typeof key === 'string') return hashString(key);

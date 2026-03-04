@@ -8,9 +8,9 @@ Session handover document. Read at session start.
 - Phases 1-11 complete (reader, macros, analyzer, codegen, runtime, evaluator, vite, su, CLI, state mgmt).
 - Vite plugin: .cljs transform + HMR + cross-file resolveId (`.js` → `.cljs`).
 - Examples: `examples/task-manager/` (single-file) + `examples/multi-ns-app/` (multi-file, nested dirs).
-- Total: 1263 vitest + 14 Playwright E2E, types clean.
+- Total: 1308 vitest + 14 Playwright E2E, types clean.
 - CI: `.github/workflows/ci.yml` (Node 20/22, typecheck + test).
-- Var coverage: `.dev/status/vars.yaml` — 270 done / 338 tracked (~80%).
+- Var coverage: `.dev/status/vars.yaml` — 300 done / 338 tracked (~89%).
 - **Checklist: K01-K14 all resolved.**
 
 ## Current Task

@@ -914,6 +914,22 @@ defmacro('dotimes', (items, form) => {
   ], ...loc(form));
 });
 
+defmacro('while', (items, form) => {
+  // (while test body...) → (loop* [] (if test (do body... (recur)) nil))
+  const test = nth(items, 1);
+  const body = items.slice(2);
+  return makeList([
+    sym('loop*'),
+    makeVector([]),
+    makeList([
+      sym('if'),
+      test,
+      makeList([sym('do'), ...body, makeList([sym('recur')])]),
+      makeNil(),
+    ]),
+  ], ...loc(form));
+});
+
 defmacro('defprotocol', (items, form) => {
   // (defprotocol IFoo (foo [this]) (bar [this x]))
   // → (do (def IFoo (defprotocol "IFoo" ["foo" "bar"]))

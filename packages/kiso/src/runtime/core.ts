@@ -1004,3 +1004,71 @@ export function aget(arr: unknown[], idx: number): unknown { return arr[idx]; }
 export function aset(arr: unknown[], idx: number, val: unknown): unknown { arr[idx] = val; return val; }
 export function alength(arr: unknown[]): number { return arr.length; }
 export function js_keys(obj: unknown): string[] { return Object.keys(obj as Record<string, unknown>); }
+
+// -- Numeric equality --
+
+export function num_eq(...args: unknown[]): boolean {
+  if (args.length < 2) return true;
+  const first = Number(args[0]);
+  for (let i = 1; i < args.length; i++) {
+    if (first !== Number(args[i])) return false;
+  }
+  return true;
+}
+
+// -- Regex --
+
+export function re_pattern(s: string): RegExp { return new RegExp(s); }
+
+// -- Printing to string --
+
+function prStr(x: unknown): string {
+  if (x === null || x === undefined) return 'nil';
+  if (typeof x === 'string') return `"${x}"`;
+  if (isKeyword(x)) return `:${(x as Keyword).name}`;
+  if (isSymbol(x)) return (x as Sym).name;
+  return String(x);
+}
+
+export function pr_str(...args: unknown[]): string {
+  return args.map(prStr).join(' ');
+}
+
+export function prn_str(...args: unknown[]): string {
+  return args.map(prStr).join(' ') + '\n';
+}
+
+export function print_str(...args: unknown[]): string {
+  return args.map(x => x == null ? 'nil' : String(x)).join(' ');
+}
+
+export function println_str(...args: unknown[]): string {
+  return args.map(x => x == null ? 'nil' : String(x)).join(' ') + '\n';
+}
+
+// -- More interop --
+
+export function array(...items: unknown[]): unknown[] { return items; }
+export function aclone(arr: unknown[]): unknown[] { return arr.slice(); }
+export function js_delete(obj: unknown, key: string): void { delete (obj as Record<string, unknown>)[key]; }
+
+// -- Hashing --
+
+import { hashKey } from './hash-map.js';
+
+export function hash(x: unknown): number {
+  if (x === null || x === undefined) return 0;
+  return hashKey(x);
+}
+
+// -- Type --
+
+export function type_fn(x: unknown): unknown {
+  if (x === null || x === undefined) return null;
+  return (x as object).constructor;
+}
+
+export function instance_p(ctor: unknown, x: unknown): boolean {
+  if (x === null || x === undefined) return false;
+  return x instanceof (ctor as new (...args: unknown[]) => unknown);
+}

@@ -96,7 +96,7 @@ vars:
     "defmacro":       {type: macro, status: done, note: "via mini evaluator"}
     "binding":        {type: macro, status: todo}
     "with-redefs":    {type: macro, status: todo}
-    "while":          {type: macro, status: todo}
+    "while":          {type: macro, status: done}
 
     # === Functions — Arithmetic ===
     "+":              {type: function, status: done}
@@ -117,7 +117,7 @@ vars:
     # === Functions — Comparison ===
     "=":              {type: function, status: done, note: "structural equality via equiv"}
     "not=":           {type: function, status: done}
-    "==":             {type: function, status: todo, note: "numeric equality"}
+    "==":             {type: function, status: done, note: "numeric equality"}
     "<":              {type: function, status: done}
     ">":              {type: function, status: done}
     "<=":             {type: function, status: done}
@@ -273,14 +273,14 @@ vars:
     "name":           {type: function, status: done}
     "namespace":      {type: function, status: done, note: "evaluator built-in"}
     "pr-str":         {type: function, status: done, note: "evaluator built-in"}
-    "prn-str":        {type: function, status: todo}
-    "print-str":      {type: function, status: todo}
-    "println-str":    {type: function, status: todo}
+    "prn-str":        {type: function, status: done}
+    "print-str":      {type: function, status: done}
+    "println-str":    {type: function, status: done}
     "subs":           {type: function, status: done, note: "evaluator built-in"}
     "re-find":        {type: function, status: done}
     "re-matches":     {type: function, status: done}
     "re-seq":         {type: function, status: done}
-    "re-pattern":     {type: function, status: todo}
+    "re-pattern":     {type: function, status: done}
 
     # === Functions — Atom / State ===
     "atom":           {type: function, status: done}
@@ -300,15 +300,15 @@ vars:
     "clj->js":        {type: function, status: done}
     "js->clj":        {type: function, status: done}
     "bean":           {type: function, status: done}
-    "array":          {type: function, status: todo}
-    "aclone":         {type: function, status: todo}
+    "array":          {type: function, status: done}
+    "aclone":         {type: function, status: done}
     "aget":           {type: function, status: done}
     "aset":           {type: function, status: done}
     "alength":        {type: function, status: done}
     "js-obj":         {type: function, status: done}
     "js-array":       {type: function, status: done}
     "js-keys":        {type: function, status: done}
-    "js-delete":      {type: function, status: todo}
+    "js-delete":      {type: function, status: done}
 
     # === Functions — Metadata ===
     "meta":           {type: function, status: partial, note: "stub in evaluator"}
@@ -325,9 +325,9 @@ vars:
 
     # === Functions — Misc ===
     "equiv":          {type: function, status: done}
-    "hash":           {type: function, status: todo}
-    "type":           {type: function, status: todo}
-    "instance?":      {type: function, status: todo}
+    "hash":           {type: function, status: done}
+    "type":           {type: function, status: done}
+    "instance?":      {type: function, status: done}
     "satisfies?":     {type: function, status: todo}
     "implements?":    {type: function, status: todo}
 
