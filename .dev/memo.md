@@ -5,37 +5,29 @@ Session handover document. Read at session start.
 ## Current State
 
 - **Monorepo**: npm workspaces with `packages/kiso` (@clojurewasm/kiso) and `packages/su` (@clojurewasm/su).
-- **All 23 phases complete** + Phase 24 (Release Polish) in progress.
-- Total: 1410 vitest + 14 Playwright E2E, types clean.
+- **All 23 phases complete** + Phase 24 (Release Polish) complete.
+- Total: 1435 vitest + 14 Playwright E2E, types clean.
 - Var coverage: 330/330 (100%).
-- Build: kiso ~134KB, su ~17KB. npm pack dry-run verified.
-- Docstring support: `def` 4-arg form, `defn`/`defc`/`defstyle` docstring tolerance, JSDoc output.
-- Style architecture D11: defstyle is def-based, defc uses explicit `:style`, `global-style!` for document-level.
+- Build: kiso ~141KB (npm tarball), su ~17KB. npm publish dry-run verified clean.
+- Showcase site: `showcase/` — interactive CLJS demo for GitHub Pages.
+- Docs: reorganized with numbered guide (001-011), `api/README.md`, `advanced/`.
 
 ## Current Task
 
-Phase 24: Release Polish — Quality audit remaining.
+All Phase 24 tasks complete. Ready for npm publish.
 
 ### Completed (Phase 24)
-- 24.1 Codegen audit script (`.dev/scripts/compile-samples.mjs`)
-- 24.2 Codegen readability: nsRef, autoImports, empty?/concat runtime, CSS multi-line, JSDoc for defc
-- 24.3 WC class emit evaluation: NOT feasible (kept defineComponent API)
-- 24.4 CI: E2E job, build step added
-- 24.5 Bundle size: documented in README
-- 24.6 Documentation/examples: updated all to D11 spec (`:style` binding, Garden DSL, `:on-click`)
-  - task-manager: 6 defstyle renamed to `-styles`, `:style` added to all 6 defc
-  - multi-ns-app: string CSS → Garden DSL, onclick → :on-click, `:style` added to all 4 defc
-  - README, getting-started, counter cookbook, todo-app cookbook, styling guide, API reference, codegen-hooks: all updated
-  - Removed all "auto-linking" references, added `global-style!` docs
-
-- 24.7 Quality audit: odd-length map/let/loop validation, sorted map keys/vals, defrecord scan
+- 24.1-24.7: Codegen audit, readability, CI, bundle size, docs, quality audit
+- 24.8: Interactive showcase site (`showcase/`)
+- 24.9: Runtime/codegen bug fixes from showcase dogfooding (nth, ^:private, etc.)
+- 24.10: Unified CompileError with phase/location context
+- 24.11: Docs reorganization (numbered guide, API ref, slim README)
+- 24.12: npm publish dry-run verification (both packages clean)
 
 ## Task Queue
 
-1. ~~Docstring support~~ DONE
-2. ~~`.gitignore` commit~~ DONE
-3. ~~README (API reference, Getting Started)~~ DONE
-4. npm publish
+1. npm publish (requires npm login to @clojurewasm org)
+2. GitHub Pages deploy (CI workflow in showcase)
 
 ## Key Design References
 
