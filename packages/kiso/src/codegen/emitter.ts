@@ -174,7 +174,35 @@ function emitInvoke(node: { fn: Node; args: Node[] }, ctx: EmitCtx): string {
   return `${emitNode(node.fn, ctx)}(${node.args.map((n) => emitNode(n, ctx)).join(', ')})`;
 }
 
+function ifChainDepth(node: { test: Node; then: Node; else: Node }): number {
+  let depth = 1;
+  let cur = node.else;
+  while (cur.type === 'if') {
+    depth++;
+    cur = (cur as { test: Node; then: Node; else: Node }).else;
+  }
+  return depth;
+}
+
+function emitIfChain(node: { test: Node; then: Node; else: Node }, ctx: EmitCtx): string {
+  const inner = deeper(ctx);
+  const i = ind(inner);
+  const lines: string[] = [];
+  let cur: Node = node as unknown as Node;
+  while (cur.type === 'if') {
+    const ifNode = cur as unknown as { test: Node; then: Node; else: Node };
+    lines.push(`${i}if (truthy(${emitNode(ifNode.test, inner)})) return ${emitNode(ifNode.then, inner)};`);
+    cur = ifNode.else;
+  }
+  lines.push(`${i}return ${emitNode(cur, inner)};`);
+  return `(() => {\n${lines.join('\n')}\n${ind(ctx)}})()`;
+}
+
 function emitIf(node: { test: Node; then: Node; else: Node }, ctx: EmitCtx): string {
+  // Deep if-chains (cond) → IIFE with early returns
+  if (ifChainDepth(node) > 2) {
+    return emitIfChain(node, ctx);
+  }
   // Clojure truthiness: only nil and false are falsy
   const test = emitNode(node.test, ctx);
   const inner = deeper(ctx);

@@ -143,6 +143,20 @@ describe('if compilation', () => {
     expect(js).toContain('truthy(');
     expect(js).not.toContain('!= null');
   });
+
+  it('emits deep if-chain as IIFE with early returns', () => {
+    // cond expands to nested if with depth > 2
+    const js = compile('(cond (= x 1) :a (= x 2) :b (= x 3) :c :else :d)');
+    expect(js).toContain('(() => {');
+    expect(js).toContain('if (truthy(');
+    expect(js).toContain('return keyword(');
+  });
+
+  it('still uses ternary for shallow if', () => {
+    const js = compile('(if true 1 2)');
+    expect(js).toContain('?');
+    expect(js).not.toContain('(() => {');
+  });
 });
 
 // -- do --
