@@ -1,6 +1,6 @@
 // DevTools — atom state change tracing for debugging.
 
-import { Atom } from '@clojurewasm/kiso/runtime';
+import { Atom, cljToJs } from '@clojurewasm/kiso/runtime';
 
 /** Enable console tracing of all atom state changes. */
 export function enableTrace(opts?: {
@@ -8,7 +8,7 @@ export function enableTrace(opts?: {
 }): void {
   Atom._globalOnChange = (a, oldVal, newVal) => {
     if (opts?.filter && !opts.filter(a)) return;
-    console.log(`[atom:${a.label ?? '?'}]`, oldVal, '\u2192', newVal);
+    console.log(`[atom:${a.label ?? '?'}]`, cljToJs(oldVal), '\u2192', cljToJs(newVal));
   };
 }
 
