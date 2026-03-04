@@ -49,11 +49,15 @@ function in `core.ts`. It was also not listed in `RUNTIME_FUNCTIONS` or re-expor
 **Fix**: Implemented standalone `nth` function in `core.ts` (handles vectors, arrays, strings,
 and seq fallback), added to `RUNTIME_FUNCTIONS` set, and added to `index.ts` re-exports.
 
-## Workarounds (not bugs, just current limitations)
+### 6. `^:private` metadata on `def` not handled (analyzer.ts)
 
-### `^:private` metadata on `def` not supported
-`(def ^:private x ...)` throws "def requires a symbol" because the analyzer doesn't strip
-metadata reader macros before checking the symbol. **Workaround**: Omit `^:private`.
+**Symptom**: `(def ^:private x 42)` threw "def requires a symbol".
+**Root cause**: Reader wraps `^:private x` as `(with-meta x {:private true})`, but `analyzeDef`
+expected `items[1]` to be a bare symbol — failed on the list wrapper.
+**Fix**: Added `with-meta` unwrapping in `analyzeDef` before symbol check.
+**Test**: `compile.test.ts` — "metadata on def" suite (3 tests: ^:private, ^:dynamic, ^{:doc}).
+
+## Workarounds (not bugs, just current limitations)
 
 ### `defc` names must contain a hyphen
 Custom Element names require a hyphen (web standard). `(defc counter ...)` fails.

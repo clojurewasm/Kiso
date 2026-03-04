@@ -137,7 +137,14 @@ export class Analyzer {
 
   private analyzeDef(items: Form[], scope: Scope): DefNode {
     if (items.length > 4) throw new Error('Too many arguments to def');
-    const nameSym = items[1]!;
+    let nameSym = items[1]!;
+    // Unwrap metadata: ^:private, ^:dynamic, ^{...} produces (with-meta sym meta)
+    if (nameSym.data.type === 'list') {
+      const inner = nameSym.data.items;
+      if (inner.length >= 2 && inner[0]!.data.type === 'symbol' && inner[0]!.data.name === 'with-meta') {
+        nameSym = inner[1]!;
+      }
+    }
     if (nameSym.data.type !== 'symbol') throw new Error('def requires a symbol');
     const name = nameSym.data.name;
     let doc: string | null = null;

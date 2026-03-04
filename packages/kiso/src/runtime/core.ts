@@ -610,7 +610,7 @@ export function print_fn(...args: unknown[]): void {
 export function nth(coll: unknown, index: number, notFound?: unknown): unknown {
   if (coll == null) {
     if (notFound !== undefined) return notFound;
-    throw new Error('Index out of bounds');
+    return null;
   }
   if (isVector(coll)) {
     const v = coll as PersistentVector;

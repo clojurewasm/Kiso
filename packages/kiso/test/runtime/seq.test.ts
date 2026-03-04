@@ -5,7 +5,7 @@ import { vector, EMPTY_VECTOR, isVector } from '../../src/runtime/vector.js';
 import { hashMap, EMPTY_MAP } from '../../src/runtime/hash-map.js';
 import { hashSet, EMPTY_SET } from '../../src/runtime/hash-set.js';
 import { keyword } from '../../src/runtime/keyword.js';
-import { get } from '../../src/runtime/core.js';
+import { get, nth } from '../../src/runtime/core.js';
 
 describe('seq on nil', () => {
   it('seq(null) returns null', () => {
@@ -145,5 +145,57 @@ describe('seq on hash-set', () => {
     const arr = toArray(s);
     expect(arr.length).toBe(3);
     expect(arr.sort()).toEqual([1, 2, 3]);
+  });
+});
+
+describe('nth', () => {
+  it('nth on nil returns null', () => {
+    expect(nth(null, 0)).toBe(null);
+    expect(nth(null, 5)).toBe(null);
+  });
+
+  it('nth on nil with not-found returns not-found', () => {
+    expect(nth(null, 0, 'default')).toBe('default');
+  });
+
+  it('nth on vector returns element', () => {
+    const v = vector(10, 20, 30);
+    expect(nth(v, 0)).toBe(10);
+    expect(nth(v, 2)).toBe(30);
+  });
+
+  it('nth on vector out of bounds throws', () => {
+    const v = vector(10, 20, 30);
+    expect(() => nth(v, 5)).toThrow('Index out of bounds');
+  });
+
+  it('nth on vector out of bounds with not-found', () => {
+    const v = vector(10, 20, 30);
+    expect(nth(v, 5, 'nf')).toBe('nf');
+  });
+
+  it('nth on JS array', () => {
+    expect(nth([1, 2, 3], 1)).toBe(2);
+    expect(() => nth([1], 5)).toThrow();
+    expect(nth([1], 5, -1)).toBe(-1);
+  });
+
+  it('nth on string returns character', () => {
+    expect(nth('hello', 0)).toBe('h');
+    expect(nth('hello', 4)).toBe('o');
+    expect(() => nth('hello', 10)).toThrow();
+    expect(nth('hello', 10, null)).toBe(null);
+  });
+
+  it('nth on list via seq traversal', () => {
+    const l = list(10, 20, 30);
+    expect(nth(l, 0)).toBe(10);
+    expect(nth(l, 2)).toBe(30);
+    expect(() => nth(l, 5)).toThrow();
+    expect(nth(l, 5, 'nf')).toBe('nf');
+  });
+
+  it('nth negative index throws on vector', () => {
+    expect(() => nth(vector(1, 2), -1)).toThrow();
   });
 });

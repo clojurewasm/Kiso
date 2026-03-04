@@ -200,7 +200,7 @@ vars:
     "sorted-map":     {type: function, status: done, note: "PersistentTreeMap red-black tree"}
     "sorted-set":     {type: function, status: done, note: "PersistentTreeSet wrapper over TreeMap"}
     "subvec":         {type: function, status: done}
-    "nth":            {type: function, status: done, note: "evaluator built-in"}
+    "nth":            {type: function, status: done, note: "runtime core.ts + evaluator built-in"}
     "peek":           {type: function, status: done}
     "pop":            {type: function, status: done}
     "last":           {type: function, status: done}

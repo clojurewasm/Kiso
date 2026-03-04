@@ -842,3 +842,20 @@ describe('docstring', () => {
     expect(closeCount).toBe(1);
   });
 });
+
+describe('metadata on def', () => {
+  it('def with ^:private metadata compiles without error', () => {
+    const js = compile('(def ^:private x 42)');
+    expect(js).toContain('let x = 42');
+  });
+
+  it('def with ^:dynamic metadata compiles without error', () => {
+    const js = compile('(def ^:dynamic *debug* false)');
+    expect(js).toContain('_debug_');
+  });
+
+  it('def with map metadata compiles without error', () => {
+    const js = compile('(def ^{:doc "hi"} x 42)');
+    expect(js).toContain('let x = 42');
+  });
+});
