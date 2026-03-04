@@ -12,7 +12,7 @@ type AnalyzeFn = (form: Form, scope: { locals: Set<string>; parent: unknown }) =
 let tempCounter = 0;
 
 function tempName(prefix: string): string {
-  return `__${prefix}_${tempCounter++}__`;
+  return `_${prefix}${tempCounter++}`;
 }
 
 /**
@@ -49,7 +49,7 @@ function expandSequential(
   const bindings: LetBinding[] = [];
 
   // Temp var for the collection
-  const collName = tempName('seq_coll');
+  const collName = tempName('sc');
   bindings.push({ name: collName, init });
 
   // Scan for & and :as
@@ -77,7 +77,7 @@ function expandSequential(
     }
   } else {
     // Has rest — use seq/first/next chain
-    const seqName = tempName('seq_s');
+    const seqName = tempName('ss');
     bindings.push({ name: seqName, init: makeSeqCall(collRef) });
     scope.locals.add(seqName);
 
@@ -92,7 +92,7 @@ function expandSequential(
         scope.locals.add(b.name);
       }
       // Advance: seqName = next(seqName)
-      const nextSeqName = tempName('seq_s');
+      const nextSeqName = tempName('ss');
       bindings.push({
         name: nextSeqName,
         init: makeNextCall(seqRef),
@@ -146,12 +146,23 @@ function expandAssociative(
 ): LetBinding[] {
   const bindings: LetBinding[] = [];
 
-  // Temp var for the map
-  const mapName = tempName('map');
-  bindings.push({ name: mapName, init });
-  scope.locals.add(mapName);
+  // Check if we need :as before deciding on temp var
+  let hasAs = false;
+  for (let i = 0; i < items.length; i += 2) {
+    const key = items[i]!;
+    if (key.data.type === 'keyword' && key.data.name === 'as') { hasAs = true; break; }
+  }
 
-  const mapRef: Node = { type: 'var-ref', name: mapName, local: true };
+  // Skip intermediate temp when init is a simple var-ref and no :as
+  let mapRef: Node;
+  if (!hasAs && init.type === 'var-ref') {
+    mapRef = init;
+  } else {
+    const mapName = tempName('m');
+    bindings.push({ name: mapName, init });
+    scope.locals.add(mapName);
+    mapRef = { type: 'var-ref', name: mapName, local: true };
+  }
 
   // First pass: find :or defaults and :as
   let defaults: Map<string, Form> | null = null;
