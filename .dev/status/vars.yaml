@@ -395,10 +395,10 @@ vars:
     "superset?":      {type: function, status: done}
 
   cljs_walk:
-    "walk":           {type: function, status: todo}
-    "prewalk":        {type: function, status: todo}
-    "postwalk":       {type: function, status: todo}
-    "prewalk-replace": {type: function, status: todo}
-    "postwalk-replace": {type: function, status: todo}
-    "stringify-keys": {type: function, status: todo}
-    "keywordize-keys": {type: function, status: todo}
+    "walk":           {type: function, status: done}
+    "prewalk":        {type: function, status: done}
+    "postwalk":       {type: function, status: done}
+    "prewalk-replace": {type: function, status: done}
+    "postwalk-replace": {type: function, status: done}
+    "stringify-keys": {type: function, status: done}
+    "keywordize-keys": {type: function, status: done}

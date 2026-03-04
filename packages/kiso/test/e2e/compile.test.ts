@@ -378,6 +378,11 @@ describe('ns require compilation', () => {
     expect(js).toContain("import * as set from 'clojure/set.js'");
   });
 
+  it('maps clojure.walk ns to clojure/walk.js', () => {
+    const js = compileModule('(ns my.app (:require [clojure.walk :as w]))');
+    expect(js).toContain("import * as w from 'clojure/walk.js'");
+  });
+
   it('auto-imports runtime when collection literals are used', () => {
     const js = compileModule('(ns my.app) (def v [1 2])');
     expect(js).toContain('import');

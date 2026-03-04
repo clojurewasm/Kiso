@@ -41,6 +41,7 @@ export function cljs(options?: CljsPluginOptions): VitePlugin {
             'su/core.js': '@clojurewasm/su',
             'clojure/string.js': '@clojurewasm/kiso/runtime/string',
             'clojure/set.js': '@clojurewasm/kiso/runtime/set',
+            'clojure/walk.js': '@clojurewasm/kiso/runtime/walk',
           },
         },
       };
