@@ -1,5 +1,5 @@
 {
-  "name": "hello-counter",
+  "name": "task-manager",
   "private": true,
   "type": "module",
   "scripts": {

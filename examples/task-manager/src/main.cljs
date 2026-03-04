@@ -1,4 +1,4 @@
-(ns hello-counter.core
+(ns task-manager.core
   (:require [su.core :as su]))
 
 ;; -- State --

@@ -4,9 +4,11 @@
 ![License: MIT](https://img.shields.io/badge/license-MIT-blue)
 ![TypeScript](https://img.shields.io/badge/TypeScript-zero%20deps-3178c6)
 
-> **Status: Pre-Alpha / Experimental**
+> **⚠️ Early Stage — Not Production Ready**
 >
-> Kiso is under active development. APIs may change. 838 tests passing.
+> Kiso is in its early stages and under heavy active development. Expect frequent
+> breaking changes, incomplete features, and unstable APIs. This project is shared
+> for experimentation and feedback purposes only — **do not use in production.**
 
 A ClojureScript-to-JavaScript compiler written in TypeScript. Zero dependencies.
 
@@ -49,20 +51,20 @@ npm install
 npm run build
 ```
 
-### Try it — Hello Counter
+### Try it — Task Manager
 
 ```bash
-cd examples/hello-counter
+cd examples/task-manager
 npm install
 npm run dev
 ```
 
-Open `http://localhost:5173` — you'll see a counter app written entirely in ClojureScript.
+Open `http://localhost:5173` — you'll see a task manager app written entirely in ClojureScript.
 
 **`src/main.cljs`**:
 
 ```clojure
-(ns hello-counter.core)
+(ns task-manager.core)
 
 (def message "Hello from Kiso!")
 
@@ -264,7 +266,7 @@ packages/
     ├── src/                 Reactive, component, hiccup, CSS, HMR
     └── test/
 examples/
-└── hello-counter/           Example app with Vite
+└── task-manager/            Example app with Vite
 ```
 
 ## Development

@@ -109,7 +109,7 @@ packages/
 └── su/                      @clojurewasm/su — component framework (depends on @clojurewasm/kiso)
     ├── src/                 Component, reactive, hiccup, CSS, HMR
     └── test/
-examples/hello-counter/      Example app
+examples/task-manager/       Example app
 ```
 
 ## References

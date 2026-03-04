@@ -79,7 +79,7 @@ kiso/                             (monorepo root)
 │   │   └── index.ts              Barrel export
 │   └── test/
 │
-└── examples/hello-counter/       Demo app
+└── examples/task-manager/        Demo app
 ```
 
 ---
