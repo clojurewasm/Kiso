@@ -19,56 +19,67 @@ That knowledge transfers directly to a TypeScript implementation.
 
 ## Project Structure
 
+npm workspaces monorepo with two packages:
+
 ```
-@kiso/cljs                        (compiler + runtime)
-├── package.json                  type: "module"
-├── src/
-│   ├── reader/                   Clojure Reader (TS)
-│   │   ├── tokenizer.ts          Lexical analysis
-│   │   ├── reader.ts             Parsing + reader macro expansion
-│   │   └── form.ts               Form data model
-│   │
-│   ├── analyzer/                 Analysis + macro expansion
-│   │   ├── analyzer.ts           Special form dispatch, scope analysis
-│   │   ├── macros.ts             Core macro transforms (~40)
-│   │   ├── evaluator.ts          Mini evaluator for defmacro
-│   │   ├── destructure.ts        Destructuring pattern expansion
-│   │   └── node.ts               Analyzed AST node types
-│   │
-│   ├── codegen/                  JS code generation
-│   │   ├── emitter.ts            AST → ES6 JavaScript
-│   │   ├── sourcemap.ts          Source Map V3 generation
-│   │   └── modules.ts            ES6 import/export resolution
-│   │
-│   ├── runtime/                  Browser runtime (tree-shakeable)
-│   │   ├── core.ts               re-exports
-│   │   ├── protocols.ts          Protocol system
-│   │   ├── keyword.ts            Keyword
-│   │   ├── symbol.ts             Symbol
-│   │   ├── vector.ts             PersistentVector
-│   │   ├── hash-map.ts           PersistentHashMap (HAMT)
-│   │   ├── hash-set.ts           PersistentHashSet
-│   │   ├── list.ts               PersistentList
-│   │   ├── seq.ts                LazySeq, seq functions
-│   │   ├── atom.ts               Atom, Volatile
-│   │   ├── hash.ts               Hash functions
-│   │   ├── equiv.ts              Structural equality
-│   │   └── interop.ts            clj->js, js->clj
-│   │
-│   └── api/                      Public API
-│       ├── compiler.ts           compile(), compileFile()
-│       └── vite.ts               Vite plugin
+kiso/                             (monorepo root)
+├── package.json                  private, workspaces: ["packages/*"]
+├── tsconfig.base.json            Shared TS settings
+├── vitest.config.ts              Root test runner
 │
-├── clj/                          Clojure sources (macro definitions)
-│   ├── cljs/core.cljs            cljs.core macros (defn, when, cond, etc.)
-│   └── su/core.cljs              su macros (defc, defstyle)
+├── packages/cljs/                @kiso/cljs (compiler + runtime)
+│   ├── package.json              type: "module"
+│   ├── tsconfig.json             extends ../../tsconfig.base.json, composite
+│   ├── src/
+│   │   ├── reader/               Clojure Reader (TS)
+│   │   │   ├── tokenizer.ts      Lexical analysis
+│   │   │   ├── reader.ts         Parsing + reader macro expansion
+│   │   │   └── form.ts           Form data model
+│   │   ├── analyzer/             Analysis + macro expansion
+│   │   │   ├── analyzer.ts       Special form dispatch, scope analysis
+│   │   │   ├── macros.ts         Core macro transforms (~24)
+│   │   │   ├── evaluator.ts      Mini evaluator for defmacro
+│   │   │   ├── destructure.ts    Destructuring pattern expansion
+│   │   │   └── node.ts           Analyzed AST node types
+│   │   ├── codegen/              JS code generation
+│   │   │   ├── emitter.ts        AST → ES6 JavaScript
+│   │   │   └── sourcemap.ts      Source Map V3 generation
+│   │   ├── runtime/              Browser runtime (tree-shakeable)
+│   │   │   ├── core.ts           re-exports
+│   │   │   ├── protocols.ts      Protocol system
+│   │   │   ├── keyword.ts        Keyword
+│   │   │   ├── symbol.ts         Symbol
+│   │   │   ├── vector.ts         PersistentVector
+│   │   │   ├── hash-map.ts       PersistentHashMap (HAMT)
+│   │   │   ├── hash-set.ts       PersistentHashSet
+│   │   │   ├── list.ts           PersistentList
+│   │   │   ├── seq.ts            Seq functions
+│   │   │   ├── lazy-seq.ts       LazySeq
+│   │   │   ├── atom.ts           Atom (with tracking hook)
+│   │   │   ├── hash.ts           Hash functions (Murmur3)
+│   │   │   ├── equiv.ts          Structural equality
+│   │   │   ├── array-map.ts      ArrayMap (<=8 entries)
+│   │   │   ├── interop.ts        clj->js, js->clj
+│   │   │   └── protocol-ext.ts   Protocol extensions for built-in types
+│   │   └── api/                  Public API
+│   │       ├── compiler.ts       compile(), compileFile()
+│   │       └── vite-plugin.ts    Vite plugin
+│   └── test/
 │
-└── test/
-    ├── reader/
-    ├── analyzer/
-    ├── codegen/
-    ├── runtime/
-    └── e2e/                      .cljs → .js → execution
+├── packages/su/                  @kiso/su (component framework)
+│   ├── package.json              depends on @kiso/cljs
+│   ├── tsconfig.json             references ../cljs
+│   ├── src/
+│   │   ├── reactive.ts           track(), effect(), computed()
+│   │   ├── component.ts          defineComponent(), Custom Element, Shadow DOM
+│   │   ├── hiccup.ts             renderHiccup(), bind()
+│   │   ├── css.ts                createSheet(), adoptedStyleSheets
+│   │   ├── lifecycle.ts          on-mount, on-unmount hooks
+│   │   ├── hmr.ts                Hot module replacement
+│   │   └── index.ts              Barrel export
+│   └── test/
+│
+└── examples/hello-counter/       Demo app
 ```
 
 ---
@@ -152,16 +163,15 @@ Vite / esbuild / Rollup processes output
 ## su Positioning
 
 ```
-@kiso/cljs (npm package)
-  ↑ dependency
-@kiso/su (npm package)
-  ├── clj/su/core.cljs    defc, defstyle macros
-  ├── runtime/             atom tracking, hiccup→DOM, CSS (~3KB)
-  └── vite-plugin.js       Vite integration + HMR
+@kiso/cljs (packages/cljs)
+  ↑ dependency (workspace link)
+@kiso/su (packages/su)
+  ├── src/                reactive, component, hiccup, css, lifecycle, hmr (~3KB)
+  └── defc/defstyle macros defined in @kiso/cljs analyzer (macros.ts)
 ```
 
 su is a regular library consumer of `@kiso/cljs`.
-defc/defstyle are implemented as normal ClojureScript macros.
+defc/defstyle macros are implemented in `@kiso/cljs` analyzer and expand to `su.core/*` calls.
 
 ---
 
@@ -187,7 +197,7 @@ Comparison:
 
 ```
 runtime (used modules only, tree-shaken):  ~15-30 KB gzipped
-su-runtime:                                 ~3 KB gzipped
+@kiso/su:                                   ~3 KB gzipped
 ```
 
 ### Compile Speed Targets

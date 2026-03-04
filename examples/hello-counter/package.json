@@ -7,7 +7,8 @@
     "build": "vite build"
   },
   "dependencies": {
-    "@kiso/cljs": "file:../../"
+    "@kiso/cljs": "file:../../packages/cljs",
+    "@kiso/su": "file:../../packages/su"
   },
   "devDependencies": {
     "vite": "^6.0.0"

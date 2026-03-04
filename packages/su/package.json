@@ -1,0 +1,23 @@
+{
+  "name": "@kiso/su",
+  "version": "0.0.1",
+  "description": "Su component framework runtime",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "dependencies": {
+    "@kiso/cljs": "*"
+  },
+  "scripts": {
+    "build": "tsc --build",
+    "test": "vitest run",
+    "typecheck": "tsc --build"
+  },
+  "files": [
+    "dist/"
+  ],
+  "license": "MIT"
+}

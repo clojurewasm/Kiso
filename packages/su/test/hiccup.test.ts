@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { parseTag, renderHiccup } from '../../src/su-runtime/hiccup.js';
+import { parseTag, renderHiccup } from '../src/hiccup.js';
 
 describe('parseTag', () => {
   it('parses plain tag', () => {

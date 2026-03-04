@@ -1,0 +1,23 @@
+{
+  "name": "@kiso/cljs",
+  "version": "0.0.1",
+  "description": "ClojureScript-to-JavaScript compiler in TypeScript",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js",
+    "./runtime": "./dist/runtime/index.js",
+    "./vite": "./dist/api/vite-plugin.js",
+    "./compiler": "./dist/api/compiler.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "files": [
+    "dist/"
+  ],
+  "license": "MIT"
+}

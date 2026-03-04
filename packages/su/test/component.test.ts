@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { defineComponent, type ComponentConfig } from '../../src/su-runtime/component.js';
+import { defineComponent, type ComponentConfig } from '../src/component.js';
 
 describe('defineComponent', () => {
   it('creates a component definition', () => {

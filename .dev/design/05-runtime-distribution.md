@@ -160,7 +160,7 @@ Total:                ~118 KB minified, ~40-50 KB gzipped
 ### Browser Bundle (after tree-shaking)
 ```
 Typical su app:    ~35 KB minified → ~12 KB gzipped
-su-runtime:        +3 KB gzipped
+@kiso/su:          +3 KB gzipped
 Total:             ~15 KB gzipped
 
 Comparison: React ~42KB, Vue ~33KB, Svelte ~2KB, CLJS ~100+KB

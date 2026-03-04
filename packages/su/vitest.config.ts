@@ -3,11 +3,11 @@ import path from 'path';
 
 export default defineConfig({
   test: {
-    include: ['packages/*/test/**/*.test.ts'],
+    include: ['test/**/*.test.ts'],
   },
   resolve: {
     alias: {
-      '@kiso/cljs/runtime': path.resolve(__dirname, 'packages/cljs/src/runtime/index.ts'),
+      '@kiso/cljs/runtime': path.resolve(__dirname, '../cljs/src/runtime/index.ts'),
     },
   },
 });

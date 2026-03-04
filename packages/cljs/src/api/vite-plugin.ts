@@ -32,7 +32,7 @@ export function cljs(_options?: CljsPluginOptions): VitePlugin {
       return {
         resolve: {
           alias: {
-            'su/core.js': '@kiso/cljs/su',
+            'su/core.js': '@kiso/su',
           },
         },
       };

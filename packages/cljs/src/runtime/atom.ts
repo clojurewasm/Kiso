@@ -15,7 +15,7 @@ export class Atom {
   /** Optional per-instance deref tracking hook. */
   _onDeref: ((atom: Atom) => void) | undefined;
 
-  /** Global deref hook. Set by su-runtime for dependency tracking. */
+  /** Global deref hook. Set by @kiso/su for dependency tracking. */
   static _globalOnDeref: ((atom: Atom) => void) | undefined;
 
   constructor(initial: unknown) {

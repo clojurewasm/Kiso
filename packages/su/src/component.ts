@@ -4,7 +4,7 @@
 // In Node.js (tests), provides a testable abstraction.
 // In browser, registers with customElements.define().
 
-import { Atom, atom } from '../runtime/atom.js';
+import { Atom, atom } from '@kiso/cljs/runtime';
 
 export type ComponentConfig = {
   observedAttrs: string[];

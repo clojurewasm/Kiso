@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import {
   onMount, onUnmount, collectLifecycleHooks,
   type LifecycleHooks,
-} from '../../src/su-runtime/lifecycle.js';
+} from '../src/lifecycle.js';
 
 describe('lifecycle hooks', () => {
   it('collectLifecycleHooks captures onMount callbacks', () => {

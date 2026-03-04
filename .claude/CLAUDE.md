@@ -72,15 +72,17 @@ When in doubt, **continue**. When a phase completes, start the next phase immedi
 
 0. **TDD**: Test written/updated BEFORE production code
 1. **Tests**: `npm test` — all pass
-2. **Type check**: `npx tsc --noEmit` — no errors
+2. **Type check**: `npm run typecheck` — no errors
 3. **decisions.md / checklist.md / memo.md**: Update as needed
 
 ## Build & Test
 
 ```bash
-npm test                    # Run all tests (vitest)
-npm run build               # Build (tsc)
-npx tsc --noEmit            # Type check only
+npm test                    # Run all tests (vitest, all workspaces)
+npm run build               # Build (tsc, all workspaces)
+npm run typecheck            # Type check only (all workspaces)
+npx tsc --noEmit -p packages/cljs   # Type check cljs only
+npx tsc --build --noEmit packages/su # Type check su (with refs)
 ```
 
 ## Context Efficiency
@@ -92,19 +94,22 @@ npx tsc --noEmit            # Type check only
 
 ## Project Structure
 
+Monorepo with two packages (`@kiso/cljs` and `@kiso/su`).
+
 ```
-src/
-├── reader/          Clojure Reader (tokenizer, reader, form)
-├── analyzer/        Analysis + macro expansion
-├── codegen/         JS code generation + source map
-├── runtime/         Persistent data structures (tree-shakeable)
-└── api/             Public API (compiler, vite plugin)
-test/
-├── reader/
-├── analyzer/
-├── codegen/
-├── runtime/
-└── e2e/             .cljs → .js → execution
+packages/
+├── cljs/                    @kiso/cljs — compiler + runtime
+│   ├── src/
+│   │   ├── reader/          Clojure Reader (tokenizer, reader, form)
+│   │   ├── analyzer/        Analysis + macro expansion
+│   │   ├── codegen/         JS code generation + source map
+│   │   ├── runtime/         Persistent data structures (tree-shakeable)
+│   │   └── api/             Public API (compiler, vite plugin)
+│   └── test/
+└── su/                      @kiso/su — component framework (depends on @kiso/cljs)
+    ├── src/                 Component, reactive, hiccup, CSS, HMR
+    └── test/
+examples/hello-counter/      Example app
 ```
 
 ## References

@@ -4,7 +4,7 @@ Track blockers and deferred work items. Format: K## (Kiso item number).
 
 ## Open
 
-(none)
+- K12: registerComponent shadow DOM attachment — renderFn output not attached to shadow root (component.ts:109 TODO)
 
 ## Resolved
 

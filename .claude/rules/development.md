@@ -1,7 +1,7 @@
 ---
 paths:
-  - "src/**"
-  - "test/**"
+  - "packages/*/src/**"
+  - "packages/*/test/**"
 ---
 
 # Development Work Rules

@@ -6,7 +6,7 @@ export { hashSet, isHashSet } from './hash-set.js';
 export { keyword, isKeyword } from './keyword.js';
 export { symbol, isSymbol } from './symbol.js';
 export { list, cons, EMPTY_LIST, isList } from './list.js';
-export { atom, isAtom, deref, reset_BANG_ as reset_BANG_, swap_BANG_ as swap_BANG_ } from './atom.js';
+export { Atom, atom, isAtom, deref, reset_BANG_ as reset_BANG_, swap_BANG_ as swap_BANG_ } from './atom.js';
 export { equiv } from './equiv.js';
 export { seq, first, rest, next, toArray, into } from './seq.js';
 export { defprotocol, protocolFn } from './protocols.js';

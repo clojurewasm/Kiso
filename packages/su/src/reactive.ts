@@ -3,7 +3,7 @@
 // Uses atom's _onDeref hook to automatically track dependencies.
 // No knowledge of DOM — pure reactive primitives.
 
-import { Atom } from '../runtime/atom.js';
+import { Atom } from '@kiso/cljs/runtime';
 
 // -- Tracking --
 

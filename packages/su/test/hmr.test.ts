@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { hotReplace, getComponentRenderFn, registerRenderFn } from '../../src/su-runtime/hmr.js';
+import { hotReplace, getComponentRenderFn, registerRenderFn } from '../src/hmr.js';
 
 describe('su HMR', () => {
   it('registers and retrieves render functions', () => {

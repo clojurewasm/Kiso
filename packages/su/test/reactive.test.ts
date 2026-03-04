@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { atom } from '../../src/runtime/atom.js';
-import { track, effect, computed, initReactiveTracking } from '../../src/su-runtime/reactive.js';
+import { atom } from '@kiso/cljs/runtime';
+import { track, effect, computed, initReactiveTracking } from '../src/reactive.js';
 
 // Initialize tracking hook on atom
 initReactiveTracking();

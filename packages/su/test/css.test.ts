@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { createSheet } from '../../src/su-runtime/css.js';
+import { createSheet } from '../src/css.js';
 
 describe('createSheet', () => {
   let mockSheet: { replaceSync: ReturnType<typeof vi.fn> };
