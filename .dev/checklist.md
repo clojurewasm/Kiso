@@ -4,11 +4,12 @@ Track blockers and deferred work items. Format: K## (Kiso item number).
 
 ## Open
 
-- K14: `:or` defaults don't apply when key exists with nil value (CLJS uses `or` on get result)
+(none)
 
 ## Resolved
 
 - K13: DONE — Nested map-in-map `{{:keys [x]} :key}` and vector-in-map `{[a b] :key}` destructuring
+- K14: DONE — `:or` nil semantics already correct (get with default, matches CLJS)
 
 - K01: DONE — Syntax-quote expansion: gensym, unquote, unquote-splicing, collections
 - K02: DONE — Namespaced maps (#:ns{}, #::alias{}) in reader

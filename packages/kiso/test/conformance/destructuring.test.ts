@@ -61,8 +61,7 @@ describe('combined :or + :as + :keys', () => {
   });
 
   it(':or with nil value — nil key present returns nil (not default)', () => {
-    // Our impl: :or only applies when key is missing, not when value is nil
-    // CLJS semantics: :or applies when get returns nil (K13: known difference)
+    // Matches CLJS: get with default only applies when key is missing, not when value is nil
     const code = `(let [{:keys [a] :or {a 42}} {:a nil}] a)`;
     expect(run(code)).toBe(null);
   });

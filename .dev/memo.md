@@ -11,11 +11,11 @@ Session handover document. Read at session start.
 - Total: 1162 vitest + 12 Playwright E2E, types clean.
 - CI: `.github/workflows/ci.yml` (Node 20/22, typecheck + test).
 - Var coverage: `.dev/status/vars.yaml` — 172 done / 338 tracked (~51%).
-- **Checklist: K01-K13 resolved. K14 open** (:or nil semantics).
+- **Checklist: K01-K14 all resolved.**
 
 ## Current Task
 
-**K14: `:or` nil semantics.** CLJS applies `:or` default when `get` returns nil (including when key exists with nil value). Our impl only applies when key is missing.
+**Pick next work from Known Gaps.** All checklist items resolved.
 
 ## Task Queue
 
@@ -29,7 +29,7 @@ Phases 12-16 in roadmap. All complete.
 
 ## Next Steps
 
-- Open checklist items: K14 (:or nil semantics)
+- All checklist items (K01-K14) resolved
 - Roadmap Known Gaps: transient collections, more cljs.core vars
 - Multi-ns-app runtime bug (deref null in notes atom)
 
