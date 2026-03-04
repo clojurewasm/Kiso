@@ -812,13 +812,20 @@ defmacro('defc', (items, form) => {
 
   // Build render fn: (fn* [props-atom] (let* [{:keys [...]} @props-atom] body...))
   const propsAtomSym = sym('props-atom__auto');
-  const derefForm = makeList([sym('deref'), propsAtomSym]);
   const letBody = body.length === 1 ? body[0]! : makeList([sym('do'), ...body]);
-  const renderBody = makeList([
-    sym('let*'),
-    makeVector([paramsForm.data.items[0]!, derefForm]),
-    letBody,
-  ]);
+
+  let renderBody: Form;
+  if (paramsForm.data.items.length === 0) {
+    // No props destructuring — just run body, ignore props-atom
+    renderBody = letBody;
+  } else {
+    const derefForm = makeList([sym('deref'), propsAtomSym]);
+    renderBody = makeList([
+      sym('let*'),
+      makeVector([paramsForm.data.items[0]!, derefForm]),
+      letBody,
+    ]);
+  }
   const renderFn = makeList([sym('fn*'), makeVector([propsAtomSym]), renderBody]);
 
   return makeList([

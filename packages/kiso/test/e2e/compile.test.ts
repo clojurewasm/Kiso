@@ -3,7 +3,7 @@ import { readStr, readAllStr } from '../../src/reader/reader.js';
 import { Analyzer } from '../../src/analyzer/analyzer.js';
 import { emit, emitModule, munge } from '../../src/codegen/emitter.js';
 import { vector, PersistentVector } from '../../src/runtime/vector.js';
-import { keyword, Keyword } from '../../src/runtime/keyword.js';
+import { keyword, isKeyword, Keyword } from '../../src/runtime/keyword.js';
 import { hashMap, PersistentHashMap } from '../../src/runtime/hash-map.js';
 import { hashSet, PersistentHashSet } from '../../src/runtime/hash-set.js';
 import { list, EMPTY_LIST } from '../../src/runtime/list.js';
@@ -78,7 +78,7 @@ describe('literal compilation', () => {
   it('compiles keywords to runtime Keyword', () => {
     expect(compile(':foo')).toBe('keyword("foo")');
     const k = run(':foo');
-    expect(k).toBeInstanceOf(Keyword);
+    expect(isKeyword(k)).toBe(true);
     expect((k as Keyword).name).toBe('foo');
   });
 

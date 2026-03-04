@@ -78,6 +78,17 @@ describe('defc macro', () => {
     expect(s).toContain('"count"');
   });
 
+  it('handles empty params vector (no-props component)', () => {
+    const result = expandStr(`
+      (defc my-shell []
+        [:div "hello"])
+    `);
+    const s = formToString(result);
+    expect(s).toContain('su.core/define-component');
+    expect(s).toContain('"my-shell"');
+    // Should not crash, render fn ignores props-atom
+  });
+
   it('infers attrs from destructuring keys when no props map', () => {
     const result = expandStr(`
       (defc my-card [{:keys [title subtitle]}]

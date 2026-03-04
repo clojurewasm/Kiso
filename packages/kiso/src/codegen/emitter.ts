@@ -461,7 +461,9 @@ const RUNTIME_FUNCTIONS = new Set([
   'not', 'nil?', 'some?',
   'inc', 'dec', 'zero?', 'pos?', 'neg?',
   'number?', 'string?', 'boolean?',
-  'equiv', 'symbol',
+  'equiv', 'symbol', 'name',
+  '=', 'not=', '-', '+', '*', '/', 'mod',
+  '>', '<', '>=', '<=',
   'defprotocol', 'protocolFn',
   'cljToJs', 'jsToClj',
 ]);

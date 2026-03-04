@@ -70,6 +70,53 @@ describe('isKeyword', () => {
   });
 });
 
+describe('keyword as function (IFn)', () => {
+  it('keyword invoked on a hash-map performs lookup', async () => {
+    const { hashMap } = await import('../../src/runtime/hash-map.js');
+    const k = keyword('foo');
+    const m = hashMap(k, 42);
+    expect(k(m)).toBe(42);
+  });
+
+  it('keyword invoked on a hash-map returns notFound when key missing', async () => {
+    const { hashMap } = await import('../../src/runtime/hash-map.js');
+    const k = keyword('foo');
+    const other = keyword('bar');
+    const m = hashMap(other, 99);
+    expect(k(m)).toBe(null);
+    expect(k(m, 'default')).toBe('default');
+  });
+
+  it('keyword invoked on nil returns null', () => {
+    const k = keyword('foo');
+    expect(k(null)).toBe(null);
+    expect(k(undefined)).toBe(null);
+  });
+
+  it('callable keyword is still interned', () => {
+    const a = keyword('ifn-test');
+    const b = keyword('ifn-test');
+    expect(a).toBe(b);
+  });
+
+  it('callable keyword passes isKeyword', () => {
+    const k = keyword('callable');
+    expect(isKeyword(k)).toBe(true);
+  });
+
+  it('callable keyword has correct name/ns/hash', () => {
+    const k = keyword('x', 'my.ns');
+    expect(k.name).toBe('x');
+    expect(k.ns).toBe('my.ns');
+    expect(typeof k.hash).toBe('number');
+  });
+
+  it('callable keyword toString works', () => {
+    expect(keyword('bar').toString()).toBe(':bar');
+    expect(keyword('baz', 'ns').toString()).toBe(':ns/baz');
+  });
+});
+
 describe('keyword hashing', () => {
   it('has a hash property', () => {
     const k = keyword('foo');

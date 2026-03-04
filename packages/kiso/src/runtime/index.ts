@@ -23,4 +23,15 @@ export {
   str, count, conj, get, assoc, dissoc,
   map, filter, reduce, apply,
   identity, constantly, comp, partial,
+  name,
+  // Munged aliases — compiled code references these names
+  subtract as _,
+  add as _PLUS_,
+  multiply as _STAR_,
+  eq as _EQ_,
+  not_eq as not_EQ_,
+  gt as _GT_,
+  lt as _LT_,
+  gte as _GT__EQ_,
+  lte as _LT__EQ_,
 } from './core.js';

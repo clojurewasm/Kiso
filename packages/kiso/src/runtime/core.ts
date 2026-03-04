@@ -7,6 +7,8 @@ import { isList, cons as listCons, count as listCount, EMPTY_LIST, list } from '
 import { isVector, PersistentVector } from './vector.js';
 import { isHashMap, PersistentHashMap } from './hash-map.js';
 import { isHashSet, PersistentHashSet } from './hash-set.js';
+import { isKeyword, type Keyword } from './keyword.js';
+import { isSymbol, type Sym } from './symbol.js';
 import { equiv } from './equiv.js';
 import { seq, first as seqFirst, next as seqNext } from './seq.js';
 
@@ -242,4 +244,12 @@ export function comp(...fns: ((...args: unknown[]) => unknown)[]): (...args: unk
 
 export function partial(f: (...args: unknown[]) => unknown, ...bound: unknown[]): (...args: unknown[]) => unknown {
   return (...args: unknown[]) => f(...bound, ...args);
+}
+
+/** Return the name part of a keyword, symbol, or string. */
+export function name(x: unknown): string {
+  if (typeof x === 'string') return x;
+  if (isKeyword(x)) return (x as Keyword).name;
+  if (isSymbol(x)) return (x as Sym).name;
+  throw new Error(`name: unsupported type ${typeof x}`);
 }

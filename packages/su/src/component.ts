@@ -4,7 +4,7 @@
 // In Node.js (tests), provides a testable abstraction.
 // In browser, registers with customElements.define().
 
-import { Atom, atom, cljToJs } from '@clojurewasm/kiso/runtime';
+import { Atom, atom, cljToJs, jsToClj, keyword as kw, assoc, isHashMap } from '@clojurewasm/kiso/runtime';
 import { renderHiccup } from './hiccup.js';
 import { collectLifecycleHooks, type LifecycleHooks } from './lifecycle.js';
 import { initReactiveTracking } from './reactive.js';
@@ -45,15 +45,28 @@ function deserializeAttr(value: string | null, type: string): unknown {
   }
 }
 
+/** Normalize config — handles both plain JS objects and Kiso types from compiled CLJS. */
+function normalizeConfig(raw: unknown): ComponentConfig {
+  const config = cljToJs(raw) as Record<string, unknown>;
+  // Support both camelCase (JS) and kebab-case (compiled CLJS) keys
+  const observedAttrs = (config.observedAttrs ?? config['observed-attrs'] ?? []) as string[];
+  const propTypes = (config.propTypes ?? config['prop-types'] ?? {}) as Record<string, string>;
+  const formAssociated = (config.formAssociated ?? config['form-associated'] ?? false) as boolean;
+  const delegatesFocus = (config.delegatesFocus ?? config['delegates-focus'] ?? false) as boolean;
+  return { observedAttrs, propTypes, formAssociated, delegatesFocus };
+}
+
 /** Define a component. Returns a definition that can create instances. */
 export function defineComponent(
   tagName: string,
-  config: ComponentConfig,
+  rawConfig: ComponentConfig | unknown,
   renderFn: RenderFn,
 ): ComponentDef {
   if (!tagName.includes('-')) {
     throw new Error(`Custom Element names require a hyphen: "${tagName}"`);
   }
+
+  const config = normalizeConfig(rawConfig);
 
   const def: ComponentDef = {
     tagName,
@@ -93,8 +106,12 @@ export function defineComponent(
         },
         setAttr(name: string, value: string | null) {
           const typed = deserializeAttr(value, config.propTypes[name] ?? 'string');
-          const current = propsAtom.deref() as Record<string, unknown>;
-          propsAtom.reset({ ...current, [name]: typed });
+          const current = propsAtom.deref();
+          if (isHashMap(current)) {
+            propsAtom.reset(assoc(current, kw(name), typed));
+          } else {
+            propsAtom.reset({ ...(current as Record<string, unknown>), [name]: typed });
+          }
         },
       };
     },
@@ -132,7 +149,8 @@ export function registerComponent(def: ComponentDef, config: ComponentConfig, _r
           config.propTypes[attr] ?? 'string',
         );
       }
-      this._instance = def.createInstance(initialProps);
+      // Convert to Kiso HashMap with keyword keys for compiled CLJS access
+      this._instance = def.createInstance(jsToClj(initialProps) as Record<string, unknown>);
       this._instance.mount(shadow);
     }
 
