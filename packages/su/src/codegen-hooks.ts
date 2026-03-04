@@ -54,13 +54,28 @@ const defineComponentHook: CodegenHook = (args, helpers) => {
   return `${su}.defineComponent(${name}, ${config}, ${renderFn})`;
 };
 
+// Format CSS string: add newlines between rule blocks for readability.
+function formatCss(cssLiteral: string, indent: string): string {
+  try {
+    const raw: string = JSON.parse(cssLiteral);
+    const rules = raw.split('} ').map((r, i, arr) => i < arr.length - 1 ? r + '}' : r);
+    if (rules.length <= 1) return cssLiteral;
+    const formatted = rules.map(r => `${indent}  ${r}`).join('\n');
+    return '`\n' + formatted + '\n' + indent + '`';
+  } catch {
+    return cssLiteral;
+  }
+}
+
 // Hook for su.core/create-stylesheet(name, cssText)
 const createStylesheetHook: CodegenHook = (args, helpers) => {
   const [nameNode, cssNode] = args;
   if (!nameNode || !cssNode) return helpers.emit({ type: 'literal', value: null, jsType: 'null' });
 
   const su = helpers.nsRef('su.core');
-  return `${su}.createSheet(${helpers.emit(nameNode)}, ${helpers.emit(cssNode)})`;
+  const cssText = helpers.emit(cssNode);
+  const formattedCss = formatCss(cssText, helpers.indent);
+  return `${su}.createSheet(${helpers.emit(nameNode)}, ${formattedCss})`;
 };
 
 /** All su codegen hooks, keyed by fully-qualified Clojure name. */
