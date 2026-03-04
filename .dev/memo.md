@@ -8,30 +8,31 @@ Session handover document. Read at session start.
 - Phases 1-11 complete (reader, macros, analyzer, codegen, runtime, evaluator, vite, su, CLI, state mgmt).
 - Vite plugin: .cljs transform + HMR + cross-file resolveId (`.js` → `.cljs`).
 - Examples: `examples/task-manager/` (single-file) + `examples/multi-ns-app/` (multi-file, nested dirs).
-- Total: 1242 vitest + 14 Playwright E2E, types clean.
+- Total: 1263 vitest + 14 Playwright E2E, types clean.
 - CI: `.github/workflows/ci.yml` (Node 20/22, typecheck + test).
-- Var coverage: `.dev/status/vars.yaml` — 245 done / 330 tracked (~74%).
+- Var coverage: `.dev/status/vars.yaml` — 270 done / 338 tracked (~80%).
 - **Checklist: K01-K14 all resolved.**
 
 ## Current Task
 
-**Pick next work from Known Gaps.** All checklist items resolved. Multi-ns-app bug fixed.
+**Expanding var coverage.** Implementing remaining cljs.core vars, cljs.set, cljs.walk namespaces.
 
 ## Task Queue
 
-Phases 12-16 in roadmap. All complete.
+Phases 12-16 in roadmap. All complete. Now expanding var coverage.
 
-1. ~~Phase 12: CI + Multi-File~~ DONE
-2. ~~Phase 13: Conformance Tests~~ DONE (137 tests, 3 bug fixes)
-3. ~~Phase 14: Standard Library~~ DONE (clojure.string 20 fns, for/doseq macros, defmulti/defmethod, equiv extended)
-4. ~~Phase 15: Browser E2E~~ DONE (12 Playwright tests: task-manager 9, multi-ns-app 3)
-5. ~~Phase 16: JS Interop Layer~~ DONE (bean, js-obj, js-array; renamed to munged names)
+1. ~~Core batch 1~~ DONE (46 fns: map ops, seq, numeric, predicates, higher-order)
+2. ~~Core batch 2~~ DONE (27 fns: collection ops, seq, regex, misc)
+3. ~~Core batch 3~~ DONE (25 fns: navigation, generators, empty/set, predicates, interop)
+4. cljs.set namespace (11 fns: union, intersection, difference, etc.)
+5. cljs.walk namespace (7 fns: walk, prewalk, postwalk, etc.)
+6. Remaining core: while macro, binding/with-redefs, prn/pr, hash, type, instance?
 
 ## Next Steps
 
-- All checklist items (K01-K14) resolved
-- Roadmap Known Gaps: transient collections, more cljs.core vars
-- Multi-ns-app runtime bug: FIXED (defc :atom annotation → richProps)
+- Continue with cljs.set namespace (11 functions)
+- Then cljs.walk namespace (7 functions)
+- Then remaining misc core vars
 
 ## Key Design References
 

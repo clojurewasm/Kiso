@@ -770,3 +770,138 @@ describe('trampoline', () => {
     expect(core.trampoline(bounce, 3)).toBe(6); // 3+2+1
   });
 });
+
+// -- Batch 3: More small functions --
+
+describe('ffirst/fnext/nfirst/nnext', () => {
+  it('ffirst', () => {
+    expect(core.ffirst(vector(vector(1, 2), vector(3, 4)))).toBe(1);
+  });
+
+  it('fnext', () => {
+    expect(core.fnext(vector(1, 2, 3))).toBe(2);
+  });
+
+  it('nfirst', () => {
+    const result = core.nfirst(vector(vector(1, 2, 3)));
+    expect(toArray(result as any)).toEqual([2, 3]);
+  });
+
+  it('nnext', () => {
+    const result = core.nnext(vector(1, 2, 3, 4));
+    expect(toArray(result as any)).toEqual([3, 4]);
+  });
+});
+
+describe('take-last / take-nth / drop-last', () => {
+  it('take-last', () => {
+    expect(toArray(core.take_last(2, vector(1, 2, 3, 4)) as any)).toEqual([3, 4]);
+  });
+
+  it('take-nth', () => {
+    expect(toArray(core.take_nth(2, vector(0, 1, 2, 3, 4, 5)) as any)).toEqual([0, 2, 4]);
+  });
+
+  it('drop-last', () => {
+    expect(toArray(core.drop_last(2, vector(1, 2, 3, 4)) as any)).toEqual([1, 2]);
+  });
+});
+
+describe('keep-indexed / reductions', () => {
+  it('keep-indexed', () => {
+    const result = core.keep_indexed(
+      (i: number, v: string) => i > 0 ? `${i}:${v}` : null,
+      vector('a', 'b', 'c')
+    );
+    expect(toArray(result as any)).toEqual(['1:b', '2:c']);
+  });
+
+  it('reductions', () => {
+    const result = toArray(core.reductions(core.add, 0, vector(1, 2, 3)) as any);
+    expect(result).toEqual([0, 1, 3, 6]);
+  });
+});
+
+describe('iterate / cycle / doall', () => {
+  it('iterate (take 5)', () => {
+    const inf = core.iterate(core.inc, 0);
+    const result = toArray(core.take(5, inf) as any);
+    expect(result).toEqual([0, 1, 2, 3, 4]);
+  });
+
+  it('cycle (take 6)', () => {
+    const inf = core.cycle(vector(1, 2, 3));
+    const result = toArray(core.take(6, inf) as any);
+    expect(result).toEqual([1, 2, 3, 1, 2, 3]);
+  });
+
+  it('doall forces lazy seq', () => {
+    const s = core.range(5);
+    const result = core.doall(s);
+    expect(toArray(result as any)).toEqual([0, 1, 2, 3, 4]);
+  });
+});
+
+describe('empty / set', () => {
+  it('empty of vector is empty vector', () => {
+    const result = core.empty(vector(1, 2));
+    expect(core.count(result)).toBe(0);
+  });
+
+  it('set creates hash-set from collection', () => {
+    const s = core.set(vector(1, 2, 2, 3)) as any;
+    expect(s.count).toBe(3);
+    expect(s.has(1)).toBe(true);
+    expect(s.has(2)).toBe(true);
+    expect(s.has(3)).toBe(true);
+  });
+});
+
+describe('type predicates batch 2', () => {
+  it('float?', () => {
+    expect(core.float_p(3.14)).toBe(true);
+    expect(core.float_p(3)).toBe(false);
+  });
+
+  it('ifn?', () => {
+    expect(core.ifn_p(() => {})).toBe(true);
+    expect(core.ifn_p(keyword('a'))).toBe(true); // keywords are IFn
+    expect(core.ifn_p(42)).toBe(false);
+  });
+
+  it('counted?', () => {
+    expect(core.counted_p(vector(1))).toBe(true);
+    expect(core.counted_p(hashMap())).toBe(true);
+    expect(core.counted_p(42)).toBe(false);
+  });
+});
+
+describe('quot / compare', () => {
+  it('quot', () => {
+    expect(core.quot(10, 3)).toBe(3);
+    expect(core.quot(-10, 3)).toBe(-3);
+  });
+
+  it('compare', () => {
+    expect(core.compare(1, 2)).toBe(-1);
+    expect(core.compare(2, 1)).toBe(1);
+    expect(core.compare(1, 1)).toBe(0);
+    expect(core.compare('a', 'b')).toBe(-1);
+  });
+});
+
+describe('array interop', () => {
+  it('aget/aset/alength', () => {
+    const arr = [10, 20, 30];
+    expect(core.aget(arr, 1)).toBe(20);
+    core.aset(arr, 1, 99);
+    expect(arr[1]).toBe(99);
+    expect(core.alength(arr)).toBe(3);
+  });
+
+  it('js-keys', () => {
+    const obj = { a: 1, b: 2 };
+    const result = core.js_keys(obj);
+    expect(result).toEqual(['a', 'b']);
+  });
+});

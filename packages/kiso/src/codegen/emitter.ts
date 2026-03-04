@@ -644,6 +644,19 @@ const RUNTIME_FUNCTIONS = new Set([
   're-find', 're-matches', 're-seq',
   // Misc
   'fnil', 'trampoline',
+  // Navigation
+  'ffirst', 'fnext', 'nfirst', 'nnext',
+  'take-last', 'take-nth', 'drop-last', 'keep-indexed', 'reductions',
+  // Generators
+  'iterate', 'cycle', 'doall', 'dorun',
+  // empty / set
+  'empty', 'set',
+  // Predicates batch 2
+  'float?', 'ifn?', 'counted?', 'realized?',
+  // Numeric
+  'quot', 'compare',
+  // Array interop
+  'aget', 'aset', 'alength', 'js-keys',
 ]);
 
 /** Scan AST for runtime function usage and return needed import names. */

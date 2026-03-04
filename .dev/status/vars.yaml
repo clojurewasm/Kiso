@@ -110,7 +110,7 @@ vars:
     "max":            {type: function, status: done}
     "min":            {type: function, status: done}
     "abs":            {type: function, status: done}
-    "quot":           {type: function, status: todo}
+    "quot":           {type: function, status: done}
     "rand":           {type: function, status: done}
     "rand-int":       {type: function, status: done}
 
@@ -122,7 +122,7 @@ vars:
     ">":              {type: function, status: done}
     "<=":             {type: function, status: done}
     ">=":             {type: function, status: done}
-    "compare":        {type: function, status: todo}
+    "compare":        {type: function, status: done}
     "identical?":     {type: function, status: done}
 
     # === Functions — Logic ===
@@ -139,9 +139,9 @@ vars:
     "symbol?":        {type: function, status: done, note: "evaluator built-in"}
     "keyword?":       {type: function, status: done, note: "evaluator built-in"}
     "fn?":            {type: function, status: done}
-    "ifn?":           {type: function, status: todo}
+    "ifn?":           {type: function, status: done}
     "integer?":       {type: function, status: done}
-    "float?":         {type: function, status: todo}
+    "float?":         {type: function, status: done}
     "zero?":          {type: function, status: done}
     "pos?":           {type: function, status: done}
     "neg?":           {type: function, status: done}
@@ -156,7 +156,7 @@ vars:
     "set?":           {type: function, status: done, note: "evaluator built-in"}
     "associative?":   {type: function, status: done}
     "sequential?":    {type: function, status: done}
-    "counted?":       {type: function, status: todo}
+    "counted?":       {type: function, status: done}
     "reversible?":    {type: function, status: todo}
     "sorted?":        {type: function, status: todo}
 
@@ -181,7 +181,7 @@ vars:
     "zipmap":         {type: function, status: done}
     "frequencies":    {type: function, status: done}
     "group-by":       {type: function, status: done}
-    "empty":          {type: function, status: todo}
+    "empty":          {type: function, status: done}
     "not-empty":      {type: function, status: done}
 
     # === Functions — Sequence Core ===
@@ -196,7 +196,7 @@ vars:
     "vector":         {type: function, status: done}
     "hash-map":       {type: function, status: done}
     "hash-set":       {type: function, status: done}
-    "set":            {type: function, status: todo}
+    "set":            {type: function, status: done}
     "sorted-map":     {type: function, status: todo}
     "sorted-set":     {type: function, status: todo}
     "subvec":         {type: function, status: done}
@@ -206,10 +206,10 @@ vars:
     "last":           {type: function, status: done}
     "butlast":        {type: function, status: done}
     "second":         {type: function, status: done}
-    "ffirst":         {type: function, status: todo}
-    "nfirst":         {type: function, status: todo}
-    "fnext":          {type: function, status: todo}
-    "nnext":          {type: function, status: todo}
+    "ffirst":         {type: function, status: done}
+    "nfirst":         {type: function, status: done}
+    "fnext":          {type: function, status: done}
+    "nnext":          {type: function, status: done}
 
     # === Functions — Sequence Operations ===
     "map":            {type: function, status: done}
@@ -220,15 +220,15 @@ vars:
     "mapcat":         {type: function, status: done}
     "map-indexed":    {type: function, status: done}
     "keep":           {type: function, status: done}
-    "keep-indexed":   {type: function, status: todo}
+    "keep-indexed":   {type: function, status: done}
     "remove":         {type: function, status: done}
     "take":           {type: function, status: done}
     "take-while":     {type: function, status: done}
-    "take-last":      {type: function, status: todo}
-    "take-nth":       {type: function, status: todo}
+    "take-last":      {type: function, status: done}
+    "take-nth":       {type: function, status: done}
     "drop":           {type: function, status: done}
     "drop-while":     {type: function, status: done}
-    "drop-last":      {type: function, status: todo}
+    "drop-last":      {type: function, status: done}
     "some":           {type: function, status: done}
     "every?":         {type: function, status: done}
     "not-every?":     {type: function, status: done}
@@ -244,16 +244,16 @@ vars:
     "partition":      {type: function, status: done}
     "partition-by":   {type: function, status: done}
     "partition-all":  {type: function, status: done}
-    "iterate":        {type: function, status: todo}
+    "iterate":        {type: function, status: done}
     "repeat":         {type: function, status: done}
     "repeatedly":     {type: function, status: done}
     "range":          {type: function, status: done}
-    "cycle":          {type: function, status: todo}
-    "doall":          {type: function, status: todo}
-    "dorun":          {type: function, status: todo}
-    "realized?":      {type: function, status: todo}
+    "cycle":          {type: function, status: done}
+    "doall":          {type: function, status: done}
+    "dorun":          {type: function, status: done}
+    "realized?":      {type: function, status: done}
     "reduce-kv":      {type: function, status: done}
-    "reductions":     {type: function, status: todo}
+    "reductions":     {type: function, status: done}
 
     # === Functions — Higher-Order ===
     "identity":       {type: function, status: done}
@@ -302,12 +302,12 @@ vars:
     "bean":           {type: function, status: done}
     "array":          {type: function, status: todo}
     "aclone":         {type: function, status: todo}
-    "aget":           {type: function, status: todo}
-    "aset":           {type: function, status: todo}
-    "alength":        {type: function, status: todo}
+    "aget":           {type: function, status: done}
+    "aset":           {type: function, status: done}
+    "alength":        {type: function, status: done}
     "js-obj":         {type: function, status: done}
     "js-array":       {type: function, status: done}
-    "js-keys":        {type: function, status: todo}
+    "js-keys":        {type: function, status: done}
     "js-delete":      {type: function, status: todo}
 
     # === Functions — Metadata ===

@@ -55,4 +55,17 @@ export {
   re_find, re_matches, re_seq,
   // Misc
   fnil, trampoline,
+  // Navigation
+  ffirst, fnext, nfirst, nnext,
+  take_last, take_nth, drop_last, keep_indexed, reductions,
+  // Generators
+  iterate, cycle, doall, dorun,
+  // empty / set
+  empty, set,
+  // Predicates batch 2
+  float_p, ifn_p, counted_p, realized_p,
+  // Numeric
+  quot, compare,
+  // Array interop
+  aget, aset, alength, js_keys,
 } from './core.js';
