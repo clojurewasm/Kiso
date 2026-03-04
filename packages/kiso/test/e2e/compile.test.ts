@@ -358,6 +358,16 @@ describe('ns require compilation', () => {
     expect(js).toContain('other/lib');
   });
 
+  it('converts ns hyphens to underscores in paths', () => {
+    const js = compileModule('(ns my.app (:require [my.foo-bar :as fb]))');
+    expect(js).toContain('./foo_bar.js');
+  });
+
+  it('converts nested ns hyphens to underscores', () => {
+    const js = compileModule('(ns my.app (:require [my.sub-ns.foo-bar :as fb]))');
+    expect(js).toContain('./sub_ns/foo_bar.js');
+  });
+
   it('auto-imports runtime when collection literals are used', () => {
     const js = compileModule('(ns my.app) (def v [1 2])');
     expect(js).toContain('import');

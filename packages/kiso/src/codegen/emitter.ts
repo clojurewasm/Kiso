@@ -569,8 +569,9 @@ function emitNs(node: { name: string; requires: { ns: string; alias: string | nu
 
 /** Map a Clojure ns to a JS module path relative to the current ns. */
 function nsToPath(currentNs: string, targetNs: string): string {
-  const currentParts = currentNs.split('.');
-  const targetParts = targetNs.split('.');
+  // ClojureScript convention: hyphens in namespace → underscores in filesystem
+  const currentParts = currentNs.split('.').map(p => p.replace(/-/g, '_'));
+  const targetParts = targetNs.split('.').map(p => p.replace(/-/g, '_'));
 
   // Check if same top-level package
   if (currentParts[0] === targetParts[0]) {
