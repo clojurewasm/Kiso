@@ -8,3 +8,4 @@ test-results/
 .lsp/.cache/
 .clj-kondo/.cache/
 private/
+.dev/codegen-samples/js/

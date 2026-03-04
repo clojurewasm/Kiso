@@ -6,7 +6,7 @@ Session handover document. Read at session start.
 
 - **Monorepo**: npm workspaces with `packages/kiso` (@clojurewasm/kiso) and `packages/su` (@clojurewasm/su).
 - **All 23 phases complete** + Phase 24 (Release Polish) in progress.
-- Total: 1405 vitest + 14 Playwright E2E, types clean.
+- Total: 1410 vitest + 14 Playwright E2E, types clean.
 - Var coverage: 330/330 (100%).
 - Build: kiso ~134KB, su ~17KB. npm pack dry-run verified.
 - Docstring support: `def` 4-arg form, `defn`/`defc`/`defstyle` docstring tolerance, JSDoc output.
@@ -28,8 +28,7 @@ Phase 24: Release Polish — Quality audit remaining.
   - README, getting-started, counter cookbook, todo-app cookbook, styling guide, API reference, codegen-hooks: all updated
   - Removed all "auto-linking" references, added `global-style!` docs
 
-### Remaining
-- 24.7 Quality audit and fixes
+- 24.7 Quality audit: odd-length map/let/loop validation, sorted map keys/vals, defrecord scan
 
 ## Task Queue
 

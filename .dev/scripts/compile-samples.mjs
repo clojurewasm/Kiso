@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-// Compile CLJS samples and output both source and JS side by side.
+// Compile CLJS samples and output JS to the js/ directory.
 // Usage: node .dev/scripts/compile-samples.mjs [file.cljs ...]
-// No args = compile all private/codegen-samples/*.cljs + private/sample.cljs
+// No args = compile all .dev/codegen-samples/cljs/*.cljs
 
 import { readFileSync, writeFileSync, readdirSync } from 'node:fs';
 import { resolve, basename, dirname, join } from 'node:path';
@@ -17,6 +17,8 @@ try {
 }
 
 const root = resolve(dirname(new URL(import.meta.url).pathname), '../..');
+const cljsDir = join(root, '.dev/codegen-samples/cljs');
+const jsDir = join(root, '.dev/codegen-samples/js');
 
 function compileSample(filePath) {
   const source = readFileSync(filePath, 'utf-8');
@@ -38,8 +40,8 @@ function printSample(filePath) {
   console.log(code);
   console.log();
 
-  // Write JS output to same directory
-  const jsPath = filePath.replace(/\.cljs$/, '.js');
+  // Write JS output to js/ directory
+  const jsPath = join(jsDir, name.replace(/\.cljs$/, '.js'));
   writeFileSync(jsPath, code, 'utf-8');
 }
 
@@ -47,14 +49,10 @@ function printSample(filePath) {
 let files = process.argv.slice(2);
 
 if (files.length === 0) {
-  const samplesDir = join(root, 'private/codegen-samples');
-  const sampleFiles = readdirSync(samplesDir)
+  files = readdirSync(cljsDir)
     .filter(f => f.endsWith('.cljs'))
     .sort()
-    .map(f => join(samplesDir, f));
-
-  const mainSample = join(root, 'private/sample.cljs');
-  files = [...sampleFiles, mainSample];
+    .map(f => join(cljsDir, f));
 }
 
 for (const f of files) {

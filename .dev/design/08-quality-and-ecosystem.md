@@ -165,7 +165,7 @@ packages/kiso/test/conformance/
 ```
 
 **Reference material**:
-- `/private/codegen-samples/09-threading.cljs` — threading examples
+- `/.dev/codegen-samples/cljs/09-threading.cljs` — threading examples
 - ClojureScript test suite (upstream) for edge cases
 - `.claude/references/cljs-upstream.md` for semantic reference
 
