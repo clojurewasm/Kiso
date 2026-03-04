@@ -256,12 +256,17 @@ describe('name munging', () => {
     expect(munge('*foo*')).toBe('_STAR_foo_STAR_');
   });
 
-  it('munges standalone - to subtract', () => {
+  it('munges standalone operators to readable names', () => {
     expect(munge('-')).toBe('subtract');
-  });
-
-  it('munges standalone / to divide', () => {
     expect(munge('/')).toBe('divide');
+    expect(munge('+')).toBe('add');
+    expect(munge('*')).toBe('multiply');
+    expect(munge('=')).toBe('eq');
+    expect(munge('not=')).toBe('notEq');
+    expect(munge('<')).toBe('lt');
+    expect(munge('>')).toBe('gt');
+    expect(munge('<=')).toBe('lte');
+    expect(munge('>=')).toBe('gte');
   });
 
   it('still munges - within names to _', () => {

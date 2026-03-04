@@ -17,7 +17,7 @@ export {
   add, subtract, multiply, divide, mod,
   inc, dec,
   lt, gt, lte, gte,
-  eq, not_eq,
+  eq, not_eq, not_eq as notEq,
   nil_QMARK_, some_QMARK_, not,
   zero_QMARK_, pos_QMARK_, neg_QMARK_,
   number_QMARK_, string_QMARK_, boolean_QMARK_,
@@ -25,13 +25,4 @@ export {
   map, filter, reduce, apply,
   identity, constantly, comp, partial,
   name,
-  // Munged aliases — compiled code references these names
-  add as _PLUS_,
-  multiply as _STAR_,
-  eq as _EQ_,
-  not_eq as not_EQ_,
-  gt as _GT_,
-  lt as _LT_,
-  gte as _GT__EQ_,
-  lte as _LT__EQ_,
 } from './core.js';

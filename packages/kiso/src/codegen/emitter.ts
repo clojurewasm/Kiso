@@ -660,9 +660,19 @@ function scanNodeForRuntime(node: Node, used: Set<string>): void {
 // -- Name Munging --
 
 export function munge(name: string): string {
-  // Standalone arithmetic operators → readable names
-  if (name === '-') return 'subtract';
-  if (name === '/') return 'divide';
+  // Standalone operators → readable names
+  switch (name) {
+    case '-': return 'subtract';
+    case '/': return 'divide';
+    case '+': return 'add';
+    case '*': return 'multiply';
+    case '=': return 'eq';
+    case 'not=': return 'notEq';
+    case '<': return 'lt';
+    case '>': return 'gt';
+    case '<=': return 'lte';
+    case '>=': return 'gte';
+  }
   return name
     .replace(/\//g, '.')
     .replace(/-/g, '_')

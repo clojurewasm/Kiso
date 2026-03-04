@@ -4,7 +4,7 @@ import { compile, read, analyze, generate } from '../../src/api/compiler.js';
 describe('compile', () => {
   it('compiles a simple expression', () => {
     const result = compile('(+ 1 2)');
-    expect(result.code).toContain('_PLUS_');
+    expect(result.code).toContain('add');
     expect(result.code).toContain('1');
     expect(result.code).toContain('2');
   });
