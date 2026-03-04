@@ -1,7 +1,7 @@
 # Kiso
 
 ClojureScript-to-JavaScript compiler in TypeScript. Zero dependencies.
-Design: `.dev/design/`. Memo: `@./.dev/memo.md`. Roadmap: `@./.dev/roadmap.md`.
+Design: `.dev/design/`. Memo: `@./.dev/memo.md`. Roadmap: `@./.dev/roadmap.md`. Tracker: `.dev/tracker.md`.
 
 ## Language Policy
 
@@ -20,8 +20,7 @@ Design: `.dev/design/`. Memo: `@./.dev/memo.md`. Roadmap: `@./.dev/roadmap.md`.
 ## Critical Rules
 
 - **One task = one commit**. Never batch multiple tasks.
-- **Architectural decisions** → `.dev/decisions.md` (D## entry).
-- **Update `.dev/checklist.md`** when deferred items are resolved or added.
+- **Architectural decisions** → `.dev/tracker.md` (D## entry).
 
 ## Autonomous Workflow
 
@@ -73,7 +72,7 @@ When in doubt, **continue**. When a phase completes, start the next phase immedi
 0. **TDD**: Test written/updated BEFORE production code
 1. **Tests**: `npm test` — all pass
 2. **Type check**: `npm run typecheck` — no errors
-3. **decisions.md / checklist.md / memo.md**: Update as needed
+3. **tracker.md / memo.md**: Update as needed
 
 ## Build & Test
 
@@ -118,5 +117,5 @@ CW reference: `.claude/references/cw-reference.md` — check before implementing
 CLJS upstream: `.claude/references/cljs-upstream.md` — semantic reference and edge cases.
 Design docs: `.dev/design/` (01-architecture through 07-su-framework).
 Roadmap: `@./.dev/roadmap.md` (phase planning).
-Decisions: `.dev/decisions.md` (architectural decisions).
-Deferred items: `.dev/checklist.md` (blockers to resolve).
+Tracker: `.dev/tracker.md` (decisions, known issues, workarounds, future work).
+Archive: `.dev/archive/` (completed phases, resolved checklist items, fixed bugs).

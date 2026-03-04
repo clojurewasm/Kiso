@@ -1,6 +1,8 @@
-# Kiso Architectural Decisions
+# Kiso Development Tracker
 
-## D1: Full TypeScript Implementation
+## Architectural Decisions
+
+### D1: Full TypeScript Implementation
 
 **Date**: 2026-03-03
 
@@ -12,7 +14,7 @@ CW's real asset is the knowledge gained from implementing Clojure, not the Zig c
 
 **Affected**: Entire project architecture.
 
-## D2: Self-Implemented Macro Evaluator (No SCI)
+### D2: Self-Implemented Macro Evaluator (No SCI)
 
 **Date**: 2026-03-03
 
@@ -24,7 +26,7 @@ Use a self-implemented mini evaluator for defmacro expansion instead of SCI depe
 
 **Affected**: `packages/kiso/src/analyzer/macros.ts`, `packages/kiso/src/analyzer/evaluator.ts`.
 
-## D3: Package Structure
+### D3: Package Structure
 
 **Date**: 2026-03-03 (updated 2026-03-04)
 
@@ -37,7 +39,7 @@ Scoped packages (`@clojurewasm/*`) to avoid npm name conflicts.
 
 **Affected**: root `package.json` (workspaces), `tsconfig.base.json`, per-package configs.
 
-## D4: Reader Token-Level Design
+### D4: Reader Token-Level Design
 
 **Date**: 2026-03-03
 
@@ -50,7 +52,7 @@ Column tracking is 1-indexed (matching the Form `col` field), differing from CW'
 Syntax-quote deferred to Phase 5: requires namespace resolution context which the
 analyzer will provide. Current `backtick` token emits `(syntax-quote x)` wrapper form.
 
-## D5: Runtime Data Structures
+### D5: Runtime Data Structures
 
 **Date**: 2026-03-03
 
@@ -67,7 +69,7 @@ Transient collections. These will be added when needed by the compiler pipeline.
 
 **Affected**: `packages/kiso/src/runtime/`.
 
-## D6: Language Scope — Full ClojureScript (minus Google Closure)
+### D6: Language Scope — Full ClojureScript (minus Google Closure)
 
 **Date**: 2026-03-04
 
@@ -99,7 +101,7 @@ while keeping full language semantics. "Minimal subset" would limit adoption.
 
 **Affected**: All modules — this sets the scope ceiling for the entire project.
 
-## D7: Protocol Dispatch — JS Symbol Keys (Not CW-style Map Lookup)
+### D7: Protocol Dispatch — JS Symbol Keys (Not CW-style Map Lookup)
 
 **Date**: 2026-03-04
 
@@ -126,7 +128,7 @@ to their prototypes safely. These use a fallback path in `protocolFn`.
 
 **Affected**: `packages/kiso/src/runtime/protocols.ts`, `packages/kiso/src/analyzer/`, `packages/kiso/src/codegen/emitter.ts`.
 
-## D8: su Architecture — Web Components + Fine-Grained Signals (No VDOM)
+### D8: su Architecture — Web Components + Fine-Grained Signals (No VDOM)
 
 **Date**: 2026-03-04
 
@@ -170,7 +172,7 @@ Custom Element re-registration is not possible — HMR uses render function repl
 `@clojurewasm/kiso` impact: atom tracking hook (F1), watch unsubscribe (F2),
 CE tag validation and hiccup ns-keyword resolution (F8) — see design doc.
 
-## D9: Codegen Readability — Short Munging + Codegen Hooks
+### D9: Codegen Readability — Short Munging + Codegen Hooks
 
 **Date**: 2026-03-04
 
@@ -195,7 +197,7 @@ runtime function calls.
 `packages/kiso/src/api/codegen-hooks.ts` (new), `packages/su/src/codegen-hooks.ts` (new).
 See `docs/codegen-hooks.md` for API documentation.
 
-## D10: State Management — Props Channeling + Context + DevTools
+### D10: State Management — Props Channeling + Context + DevTools
 
 **Date**: 2026-03-04
 
@@ -223,7 +225,7 @@ Shadow DOM. DevTools trace helps debug reactive state flows.
 `packages/su/src/lifecycle.ts`, `packages/kiso/src/runtime/atom.ts`,
 `packages/kiso/src/analyzer/macros.ts`.
 
-## D11: Explicit Style Binding for su Components
+### D11: Explicit Style Binding for su Components
 
 **Date**: 2026-03-04
 
@@ -239,7 +241,7 @@ The vector `:style [a b c]` pattern enables style composition across multiple sh
 **Affected**: `packages/kiso/src/analyzer/macros.ts` (defstyle, defc),
 `packages/su/src/css.ts` (globalStyle), `packages/su/src/index.ts` (exports).
 
-## D12: defc Auto-Wrap for Reactivity
+### D12: defc Auto-Wrap for Reactivity
 
 **Date**: 2026-03-05
 
@@ -255,3 +257,72 @@ to work but produces static text. Auto-wrap eliminates this footgun with zero br
 existing Form-2 components are detected and preserved.
 
 **Affected**: `packages/kiso/src/analyzer/macros.ts` (`wrapFinalExpr`, `wrapInFn`, defc expansion).
+
+## Known Issues
+
+### I1: Reactive :class/:style as fn — workaround: (fn [] hiccup) wrapper
+
+`{:class (fn [] (str "active" (when @flag " on")))}` silently drops the class attr.
+`applyAttrs` only handles string `:class` and object `:style`.
+**Workaround**: Wrap the entire hiccup subtree in a reactive `(fn [] ...)`.
+**Affected components**: toggle_switch, accordion, tabs, progress_bar, dropdown_select.
+
+### I2: #js tagged literal not supported — workaround: (array ...)
+
+`#js [1 2 3]` silently produces PersistentVector, not JS array.
+Reader parses `#js` as tagged literal, but analyzer simply unwraps the tag.
+**Workaround**: Use `(array 1 2 3)` for JS arrays.
+
+### I3: Sets not callable as IFn — workaround: (get set val)
+
+Unlike Clojure, `(#{:a :b} :a)` doesn't work.
+**Workaround**: Use `(get my-set val)` or `(contains? my-set val)`.
+
+### I4: contains?/subs missing from RUNTIME_FUNCTIONS — workaround: JS interop
+
+These functions exist in runtime but aren't auto-imported by the compiler.
+**Workaround**: Use `.substring` for `subs`, `(get coll key)` for `contains?`.
+
+### I5: innerHTML not supported in su hiccup
+
+su's hiccup renderer doesn't handle innerHTML as a special attribute.
+**Workaround**: Use `set!` on the DOM element via interop after mount.
+
+## Workarounds (Platform Constraints)
+
+- **defc names require hyphen**: Custom Element names require a hyphen (web standard). `(defc counter ...)` fails — use `(defc sample-counter ...)`.
+- **Top-level await needs ES2022 target**: `(js/await ...)` compiles to top-level `await` which older esbuild targets reject. Set `build: { target: 'es2022' }` in `vite.config.js`.
+- **Shadow DOM isolates querySelector**: Elements inside `defc` components are invisible to `document.querySelector`. Use plain DOM for shell, su for demos.
+
+## Future Work
+
+### Phase 25: Macro Plugin System
+
+Extract su-specific macros (`defc`, `defstyle`) from kiso core into a plugin architecture.
+Currently these 2 macros are hard-coded in `kiso/analyzer/macros.ts`, creating
+an implicit reverse dependency from kiso → su.
+
+- 25.1 TypeScript-level macro plugin API (`MacroPlugin` interface in `CompileOptions`)
+- 25.2 Move `defc` expansion to `su/src/macros.ts` (su-side plugin registration)
+- 25.3 Move `defstyle` expansion to `su/src/macros.ts`
+- 25.4 Verify kiso has zero su-specific knowledge after migration
+
+### Q1: clojure.string as .cljs source
+
+Currently implemented as TypeScript runtime module. Future: write `clojure/string.cljs`
+and compile during build (requires self-hosted compilation / namespace loading in evaluator).
+
+### Q7: JS Library Interop Ergonomics
+
+`clj->js`/`js->clj` work but are verbose. Future improvements:
+- `bean` for ergonomic shallow conversion (implemented)
+- Library adapter patterns via codegen hooks
+- Keep explicit conversion (no auto-convert at boundaries)
+
+### Known Gaps
+
+- `alter-var-root` not implemented (set! is sufficient for current model)
+- Transient collections use copy-on-transient model, not COW in HAMT
+- Metadata not auto-propagated through map/filter/reduce
+- cljs.spec — may add later as optional
+- core.async — may add later as optional

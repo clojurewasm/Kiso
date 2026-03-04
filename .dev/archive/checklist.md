@@ -1,15 +1,9 @@
-# Kiso Deferred Items
+# Kiso Deferred Items (Archive)
 
 Track blockers and deferred work items. Format: K## (Kiso item number).
-
-## Open
-
-(none)
+All items resolved — archived from `.dev/checklist.md`.
 
 ## Resolved
-
-- K13: DONE — Nested map-in-map `{{:keys [x]} :key}` and vector-in-map `{[a b] :key}` destructuring
-- K14: DONE — `:or` nil semantics already correct (get with default, matches CLJS)
 
 - K01: DONE — Syntax-quote expansion: gensym, unquote, unquote-splicing, collections
 - K02: DONE — Namespaced maps (#:ns{}, #::alias{}) in reader
@@ -23,3 +17,5 @@ Track blockers and deferred work items. Format: K## (Kiso item number).
 - K10: DONE — CSS custom properties, :part attr, :host selector, var() all verified
 - K11: DONE — delegatesFocus in ComponentConfig + defc, ARIA via setAttribute
 - K12: DONE — mount(container) renders hiccup to shadow DOM, collects/fires lifecycle hooks
+- K13: DONE — Nested map-in-map `{{:keys [x]} :key}` and vector-in-map `{[a b] :key}` destructuring
+- K14: DONE — `:or` nil semantics already correct (get with default, matches CLJS)
