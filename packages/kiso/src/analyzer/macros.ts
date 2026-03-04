@@ -25,6 +25,11 @@ function defmacro(name: string, fn: MacroFn): void {
 
 // -- Public API --
 
+/** Check if a name is a registered macro. */
+export function isMacro(name: string): boolean {
+  return MACROS.has(name);
+}
+
 /** Expand one level of macro. Returns the form unchanged if not a macro call. */
 export function expandOnce(form: Form): Form {
   if (form.data.type !== 'list') return form;

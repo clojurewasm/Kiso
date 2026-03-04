@@ -276,6 +276,13 @@ describe('ns require compilation', () => {
     expect(js).toContain('import { helper }');
   });
 
+  it('filters macro names from :refer imports', () => {
+    const js = compileModule('(ns my.app (:require [su.core :refer [defc defstyle mount]]))');
+    expect(js).not.toContain('defc');
+    expect(js).not.toContain('defstyle');
+    expect(js).toContain('import { mount }');
+  });
+
   it('maps ns to relative path', () => {
     const js = compileModule('(ns my.app (:require [my.util :as u]))');
     expect(js).toContain('./util.js');

@@ -7,6 +7,7 @@
 // - Name munging for special characters
 
 import type { Node, FnArity, LetBinding, CatchClause, CaseNode, DeftypeNode, DefrecordNode, ExtendTypeNode, ReifyNode } from '../analyzer/node.js';
+import { isMacro } from '../analyzer/macros.js';
 
 type EmitCtx = {
   loopBindings: string[] | null; // current loop/fn binding names for recur
@@ -416,11 +417,12 @@ function emitNs(node: { name: string; requires: { ns: string; alias: string | nu
     if (req.alias) {
       lines.push(`import * as ${munge(req.alias)} from '${path}';`);
     }
-    if (req.refers.length > 0) {
-      const names = req.refers.map(munge).join(', ');
+    const runtimeRefers = req.refers.filter(r => !isMacro(r));
+    if (runtimeRefers.length > 0) {
+      const names = runtimeRefers.map(munge).join(', ');
       lines.push(`import { ${names} } from '${path}';`);
     }
-    if (!req.alias && req.refers.length === 0) {
+    if (!req.alias && runtimeRefers.length === 0) {
       lines.push(`import '${path}';`);
     }
   }
