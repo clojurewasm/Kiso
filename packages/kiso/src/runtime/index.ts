@@ -84,4 +84,10 @@ export {
   _print_newline_, _print_readably_,
   _print_length_, _print_level_,
   alter_meta_m, reset_meta_m,
+  // Sorted collections
+  sorted_map, sorted_map_p,
+  sorted_set, sorted_set_p,
+  sorted_map_by, subseq, rsubseq,
 } from './core.js';
+export { PersistentTreeMap, isSortedMap, EMPTY_SORTED_MAP } from './sorted-map.js';
+export { PersistentTreeSet, isSortedSet, EMPTY_SORTED_SET } from './sorted-set.js';

@@ -24,15 +24,15 @@ Monorepo: `@clojurewasm/kiso` (compiler + runtime), `@clojurewasm/su` (component
 | 15    | Browser E2E            | DONE   | Playwright, real browser validation                       |
 | 16    | JS Interop Layer       | DONE   | bean, js-obj, js-array interop helpers                    |
 | 17    | Var Coverage Expansion | DONE   | 328/338 vars (~97%), clojure.set, clojure.walk            |
-| 18    | Sorted Collections     | TODO   | sorted-map, sorted-set, red-black tree                    |
+| 18    | Sorted Collections     | DONE   | PersistentTreeMap (LLRB), PersistentTreeSet, 100% vars    |
 | 19    | def Mutability         | TODO   | def→let, alter-var-root, ^:dynamic binding                |
 | 20    | Transient Collections  | TODO   | TransientVector/HashMap/HashSet, conj!/assoc!             |
 | 21    | Metadata Propagation   | TODO   | with-meta/vary-meta on all collections                    |
 | 22    | Performance Benchmarks | TODO   | Benchmark suite, hot path optimization                    |
 | 23    | npm Publish Prep       | TODO   | Package metadata, export validation, bundle analysis      |
 
-Phases 1-16 complete. 1327 vitest + 14 Playwright E2E tests. Types clean.
-Var coverage: 328/338 (~97%). 2 deferred: sorted-map, sorted-set.
+Phases 1-18 complete. 1363 vitest + 14 Playwright E2E tests. Types clean.
+Var coverage: 330/330 (100%). All vars implemented.
 Design: `.dev/design/08-quality-and-ecosystem.md` (Q1-Q7 details).
 
 ## Phase 1: Reader — DONE
@@ -211,15 +211,16 @@ Systematic implementation of cljs.core vars, clojure.set, clojure.walk. 328/338 
 - 17.6 ~~Core batch 4-6 (while macro, ==, printing, hash, type, instance?, prn, pr, dynamic vars, metadata, protocols)~~ DONE
 - 17.7 ~~binding / with-redefs macros~~ DONE
 
-## Phase 18: Sorted Collections — TODO
+## Phase 18: Sorted Collections — DONE
 
 New data structures for sorted-map and sorted-set.
 
-- 18.1 Red-black tree or skip-list implementation
-- 18.2 sorted-map (PersistentTreeMap)
-- 18.3 sorted-set (PersistentTreeSet)
-- 18.4 Comparator support (compare, custom comparators)
-- 18.5 subseq / rsubseq
+- 18.1 ~~Left-leaning red-black tree implementation~~ DONE
+- 18.2 ~~sorted-map (PersistentTreeMap)~~ DONE
+- 18.3 ~~sorted-set (PersistentTreeSet)~~ DONE
+- 18.4 ~~Comparator support (compare enhanced for keywords/symbols, custom comparators)~~ DONE
+- 18.5 ~~subseq / rsubseq~~ DONE
+- 18.6 ~~Core integration (count, conj, get, assoc, dissoc, empty, sorted?, etc.)~~ DONE
 
 ## Phase 19: def Mutability + Full Dynamic Vars — TODO
 
@@ -267,10 +268,8 @@ Prepare packages for npm registry.
 
 ## Known Gaps / Future Work
 
-- Sorted collections (Phase 18) — new data structures required
 - `def` emits `const` — `binding`/`with-redefs` only work with `let`-bound vars (Phase 19)
 - Transient collections (Phase 20) — deferred, not needed yet
 - Metadata propagation incomplete (Phase 21)
-- 2 remaining vars: sorted-map, sorted-set (blocked on Phase 18)
 - cljs.spec — may add later as optional
 - core.async — may add later as optional

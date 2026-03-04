@@ -5,28 +5,27 @@ Session handover document. Read at session start.
 ## Current State
 
 - **Monorepo**: npm workspaces with `packages/kiso` (@clojurewasm/kiso) and `packages/su` (@clojurewasm/su).
-- Phases 1-17 complete (reader → macros → analyzer → codegen → runtime → evaluator → vite → su → CLI → state mgmt → CI → conformance → stdlib → E2E → interop → var coverage).
+- Phases 1-18 complete (reader → macros → analyzer → codegen → runtime → evaluator → vite → su → CLI → state mgmt → CI → conformance → stdlib → E2E → interop → var coverage → sorted collections).
 - Vite plugin: .cljs transform + HMR + cross-file resolveId (`.js` → `.cljs`).
 - Examples: `examples/task-manager/` (single-file) + `examples/multi-ns-app/` (multi-file, nested dirs).
-- Total: 1327 vitest + 14 Playwright E2E, types clean.
+- Total: 1363 vitest + 14 Playwright E2E, types clean.
 - CI: `.github/workflows/ci.yml` (Node 20/22, typecheck + test).
-- Var coverage: `.dev/status/vars.yaml` — 328 done / 338 tracked (~97%).
+- Var coverage: `.dev/status/vars.yaml` — 330 done / 330 tracked (100%).
 - **Checklist: K01-K14 all resolved.**
 
 ## Current Task
 
-**Phase 18: Sorted Collections.** Implementing sorted-map (PersistentTreeMap) and sorted-set (PersistentTreeSet) using red-black tree. This completes the final 2 deferred vars.
+**Phase 19: def Mutability + Full Dynamic Vars.** Emit `let` instead of `const` for `def`, implement `alter-var-root`, `^:dynamic` metadata, binding with `def`-bound vars.
 
 ## Task Queue
 
-Phases 18-23 in roadmap. See `.dev/roadmap.md` for details.
+Phases 19-23 in roadmap. See `.dev/roadmap.md` for details.
 
-1. Phase 18: Sorted Collections (sorted-map, sorted-set, comparator, subseq/rsubseq)
-2. Phase 19: def Mutability + Full Dynamic Vars (def→let, alter-var-root, ^:dynamic)
-3. Phase 20: Transient Collections (TransientVector/HashMap/HashSet)
-4. Phase 21: Metadata Propagation (with-meta/vary-meta on all collections)
-5. Phase 22: Performance Benchmarks
-6. Phase 23: npm Publish Preparation
+1. Phase 19: def Mutability + Full Dynamic Vars (def→let, alter-var-root, ^:dynamic)
+2. Phase 20: Transient Collections (TransientVector/HashMap/HashSet)
+3. Phase 21: Metadata Propagation (with-meta/vary-meta on all collections)
+4. Phase 22: Performance Benchmarks
+5. Phase 23: npm Publish Preparation
 
 ## Key Design References
 

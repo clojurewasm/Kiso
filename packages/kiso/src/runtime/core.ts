@@ -11,6 +11,8 @@ import { isKeyword, type Keyword } from './keyword.js';
 import { isSymbol, type Sym } from './symbol.js';
 import { equiv } from './equiv.js';
 import { seq, first as seqFirst, next as seqNext } from './seq.js';
+import { isSortedMap, PersistentTreeMap, EMPTY_SORTED_MAP } from './sorted-map.js';
+import { isSortedSet, PersistentTreeSet, EMPTY_SORTED_SET } from './sorted-set.js';
 
 // -- Truthiness --
 
@@ -110,6 +112,8 @@ export function count(coll: unknown): number {
   if (isVector(coll)) return (coll as PersistentVector).count;
   if (isHashMap(coll)) return (coll as PersistentHashMap).count;
   if (isHashSet(coll)) return (coll as PersistentHashSet).count;
+  if (isSortedMap(coll)) return (coll as PersistentTreeMap).count;
+  if (isSortedSet(coll)) return (coll as PersistentTreeSet).count;
   return 0;
 }
 
@@ -124,6 +128,8 @@ export function conj(coll: unknown, ...items: unknown[]): unknown {
       result = listCons(item, result);
     } else if (isHashSet(result)) {
       result = (result as PersistentHashSet).conj(item);
+    } else if (isSortedSet(result)) {
+      result = (result as PersistentTreeSet).conj(item);
     } else {
       result = listCons(item, EMPTY_LIST);
     }
@@ -145,6 +151,13 @@ export function get(coll: unknown, key: unknown, notFound?: unknown): unknown {
   if (isHashSet(coll)) {
     return (coll as PersistentHashSet).has(key) ? key : defaultVal;
   }
+  if (isSortedMap(coll)) {
+    const v = (coll as PersistentTreeMap).get(key);
+    return v !== undefined ? v : defaultVal;
+  }
+  if (isSortedSet(coll)) {
+    return (coll as PersistentTreeSet).has(key) ? key : defaultVal;
+  }
   return defaultVal;
 }
 
@@ -155,10 +168,18 @@ export function assoc(coll: unknown, key: unknown, val: unknown): unknown {
   if (isVector(coll) && typeof key === 'number') {
     return (coll as PersistentVector).assocN(key, val);
   }
+  if (isSortedMap(coll)) {
+    return (coll as PersistentTreeMap).assoc(key, val);
+  }
   throw new Error('assoc not supported on this type');
 }
 
 export function dissoc(coll: unknown, ...keys: unknown[]): unknown {
+  if (isSortedMap(coll)) {
+    let m = coll as PersistentTreeMap;
+    for (const k of keys) { m = m.dissoc(k); }
+    return m;
+  }
   if (!isHashMap(coll)) throw new Error('dissoc requires a map');
   let m = coll as PersistentHashMap;
   for (const k of keys) {
@@ -505,9 +526,9 @@ export function frequencies(coll: unknown): unknown {
 
 export function fn_p(x: unknown): boolean { return typeof x === 'function'; }
 export function integer_p(x: unknown): boolean { return typeof x === 'number' && Number.isInteger(x); }
-export function coll_p(x: unknown): boolean { return isVector(x) || isList(x) || isHashMap(x) || isHashSet(x); }
+export function coll_p(x: unknown): boolean { return isVector(x) || isList(x) || isHashMap(x) || isHashSet(x) || isSortedMap(x) || isSortedSet(x); }
 export function sequential_p(x: unknown): boolean { return isVector(x) || isList(x); }
-export function associative_p(x: unknown): boolean { return isHashMap(x) || isVector(x); }
+export function associative_p(x: unknown): boolean { return isHashMap(x) || isVector(x) || isSortedMap(x); }
 export function identical_p(a: unknown, b: unknown): boolean { return a === b; }
 
 // -- Higher-order --
@@ -965,6 +986,8 @@ export function empty(coll: unknown): unknown {
   if (isList(coll)) return EMPTY_LIST;
   if (isHashMap(coll)) return hm();
   if (isHashSet(coll)) return new (Object.getPrototypeOf(coll).constructor)(hm());
+  if (isSortedMap(coll)) return EMPTY_SORTED_MAP;
+  if (isSortedSet(coll)) return EMPTY_SORTED_SET;
   return null;
 }
 
@@ -978,11 +1001,34 @@ export function set(coll: unknown): unknown {
   return result;
 }
 
+// -- Sorted collections --
+
+export { sortedMap as sorted_map, isSortedMap as sorted_map_p } from './sorted-map.js';
+export { sortedSet as sorted_set, isSortedSet as sorted_set_p } from './sorted-set.js';
+
+export function sorted_map_by(cmp: (a: unknown, b: unknown) => number, ...kvs: unknown[]): PersistentTreeMap {
+  let m = new PersistentTreeMap(null, 0, cmp);
+  for (let i = 0; i < kvs.length; i += 2) {
+    m = m.assoc(kvs[i], kvs[i + 1]);
+  }
+  return m;
+}
+
+export function subseq(sc: unknown, fromKey: unknown, inclusive = true): unknown[] {
+  if (isSortedMap(sc)) return (sc as PersistentTreeMap).subseq(fromKey, inclusive);
+  return [];
+}
+
+export function rsubseq(sc: unknown, toKey: unknown, inclusive = true): unknown[] {
+  if (isSortedMap(sc)) return (sc as PersistentTreeMap).rsubseq(toKey, inclusive);
+  return [];
+}
+
 // -- More predicates --
 
 export function float_p(x: unknown): boolean { return typeof x === 'number' && !Number.isInteger(x); }
 export function ifn_p(x: unknown): boolean { return typeof x === 'function' || isKeyword(x) || isHashMap(x) || isHashSet(x); }
-export function counted_p(x: unknown): boolean { return isVector(x) || isList(x) || isHashMap(x) || isHashSet(x) || typeof x === 'string'; }
+export function counted_p(x: unknown): boolean { return isVector(x) || isList(x) || isHashMap(x) || isHashSet(x) || isSortedMap(x) || isSortedSet(x) || typeof x === 'string'; }
 export function realized_p(x: unknown): boolean { return x instanceof LazySeq ? (x as any).realized : true; }
 
 // -- Numeric --
@@ -995,6 +1041,14 @@ export function compare(a: unknown, b: unknown): number {
   if (b === null) return 1;
   if (typeof a === 'number' && typeof b === 'number') return a < b ? -1 : a > b ? 1 : 0;
   if (typeof a === 'string' && typeof b === 'string') return a < b ? -1 : a > b ? 1 : 0;
+  if (isKeyword(a) && isKeyword(b)) {
+    const sa = a.toString(), sb = b.toString();
+    return sa < sb ? -1 : sa > sb ? 1 : 0;
+  }
+  if (isSymbol(a) && isSymbol(b)) {
+    const sa = a.toString(), sb = b.toString();
+    return sa < sb ? -1 : sa > sb ? 1 : 0;
+  }
   return 0;
 }
 
@@ -1093,9 +1147,8 @@ export function reversible_p(x: unknown): boolean {
   return isVector(x);
 }
 
-export function sorted_p(_x: unknown): boolean {
-  // We don't have sorted collections yet
-  return false;
+export function sorted_p(x: unknown): boolean {
+  return isSortedMap(x) || isSortedSet(x);
 }
 
 // -- Protocol predicates --

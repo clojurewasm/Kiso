@@ -197,8 +197,8 @@ vars:
     "hash-map":       {type: function, status: done}
     "hash-set":       {type: function, status: done}
     "set":            {type: function, status: done}
-    "sorted-map":     {type: function, status: todo}
-    "sorted-set":     {type: function, status: todo}
+    "sorted-map":     {type: function, status: done, note: "PersistentTreeMap red-black tree"}
+    "sorted-set":     {type: function, status: done, note: "PersistentTreeSet wrapper over TreeMap"}
     "subvec":         {type: function, status: done}
     "nth":            {type: function, status: done, note: "evaluator built-in"}
     "peek":           {type: function, status: done}

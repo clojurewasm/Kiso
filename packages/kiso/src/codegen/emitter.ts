@@ -665,6 +665,9 @@ const RUNTIME_FUNCTIONS = new Set([
   'prn', 'pr',
   'reversible?', 'sorted?',
   'satisfies?', 'implements?',
+  // Sorted collections
+  'sorted-map', 'sorted-set',
+  'sorted-map-by', 'subseq', 'rsubseq',
 ]);
 
 /** Scan AST for runtime function usage and return needed import names. */
