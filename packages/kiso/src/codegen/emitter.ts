@@ -615,6 +615,23 @@ const RUNTIME_FUNCTIONS = new Set([
   'defprotocol', 'protocolFn',
   'defmultiFn',
   'clj->js', 'js->clj', 'bean', 'js-obj', 'js-array',
+  // Map operations
+  'get-in', 'assoc-in', 'update', 'update-in',
+  'keys', 'vals', 'merge', 'select-keys', 'find',
+  // Numeric
+  'max', 'min', 'abs', 'even?', 'odd?', 'rem', 'rand', 'rand-int',
+  // Seq operations
+  'take', 'drop', 'take-while', 'drop-while',
+  'some', 'every?', 'not-every?', 'not-any?',
+  'sort', 'sort-by', 'reverse',
+  'range', 'repeat', 'repeatedly',
+  'group-by', 'frequencies',
+  // Predicates
+  'fn?', 'integer?', 'coll?', 'sequential?', 'associative?', 'identical?',
+  // Higher-order
+  'complement', 'juxt', 'every-pred', 'some-fn', 'memoize',
+  // Printing
+  'println', 'print',
 ]);
 
 /** Scan AST for runtime function usage and return needed import names. */

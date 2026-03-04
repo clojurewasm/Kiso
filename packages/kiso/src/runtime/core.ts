@@ -4,8 +4,8 @@
 // They implement Clojure semantics (truthiness, nil handling, etc.).
 
 import { isList, cons as listCons, count as listCount, EMPTY_LIST, list } from './list.js';
-import { isVector, PersistentVector } from './vector.js';
-import { isHashMap, PersistentHashMap } from './hash-map.js';
+import { isVector, PersistentVector, vector } from './vector.js';
+import { isHashMap, PersistentHashMap, hashMap as hm } from './hash-map.js';
 import { isHashSet, PersistentHashSet } from './hash-set.js';
 import { isKeyword, type Keyword } from './keyword.js';
 import { isSymbol, type Sym } from './symbol.js';
@@ -254,4 +254,318 @@ export function name(x: unknown): string {
   if (isKeyword(x)) return (x as Keyword).name;
   if (isSymbol(x)) return (x as Sym).name;
   throw new Error(`name: unsupported type ${typeof x}`);
+}
+
+// -- Map operations --
+
+export function get_in(m: unknown, ks: unknown, notFound?: unknown): unknown {
+  let result = m;
+  let s = seq(ks);
+  while (s !== null) {
+    result = get(result, seqFirst(s));
+    if (result === null || result === undefined) {
+      return s !== null && seqNext(s) !== null ? (notFound !== undefined ? notFound : null) : (result === null && notFound !== undefined ? notFound : result);
+    }
+    s = seqNext(s);
+  }
+  return result;
+}
+
+export function assoc_in(m: unknown, ks: unknown, v: unknown): unknown {
+  const arr: unknown[] = [];
+  let s = seq(ks);
+  while (s !== null) { arr.push(seqFirst(s)); s = seqNext(s); }
+  if (arr.length === 1) return assoc(m ?? hm(), arr[0], v);
+  return assoc(m ?? hm(), arr[0], assoc_in(get(m, arr[0]), vector(...arr.slice(1)), v));
+}
+
+export function update(m: unknown, k: unknown, f: (...args: unknown[]) => unknown, ...args: unknown[]): unknown {
+  return assoc(m, k, f(get(m, k), ...args));
+}
+
+export function update_in(m: unknown, ks: unknown, f: (...args: unknown[]) => unknown, ...args: unknown[]): unknown {
+  const arr: unknown[] = [];
+  let s = seq(ks);
+  while (s !== null) { arr.push(seqFirst(s)); s = seqNext(s); }
+  if (arr.length === 1) return update(m, arr[0], f, ...args);
+  return assoc(m ?? hm(), arr[0], update_in(get(m, arr[0]), vector(...arr.slice(1)), f, ...args));
+}
+
+export function keys(m: unknown): unknown {
+  if (m === null || m === undefined) return null;
+  if (!isHashMap(m)) return null;
+  const ks: unknown[] = [];
+  (m as PersistentHashMap).forEach((k) => ks.push(k));
+  return list(...ks);
+}
+
+export function vals(m: unknown): unknown {
+  if (m === null || m === undefined) return null;
+  if (!isHashMap(m)) return null;
+  const vs: unknown[] = [];
+  (m as PersistentHashMap).forEach((_, v) => vs.push(v));
+  return list(...vs);
+}
+
+export function merge(...maps: unknown[]): unknown {
+  let result: PersistentHashMap | null = null;
+  for (const m of maps) {
+    if (m === null || m === undefined) continue;
+    if (result === null) { result = m as PersistentHashMap; continue; }
+    (m as PersistentHashMap).forEach((k, v) => { result = result!.assoc(k, v); });
+  }
+  return result;
+}
+
+export function select_keys(m: unknown, ks: unknown): unknown {
+  let result = hm();
+  let s = seq(ks);
+  while (s !== null) {
+    const k = seqFirst(s);
+    const v = get(m, k);
+    if (v !== null || (isHashMap(m) && (m as PersistentHashMap).has(k))) {
+      result = result.assoc(k, v);
+    }
+    s = seqNext(s);
+  }
+  return result;
+}
+
+export function find(m: unknown, k: unknown): unknown {
+  if (!isHashMap(m)) return null;
+  const hm = m as PersistentHashMap;
+  if (!hm.has(k)) return null;
+  return vector(k, hm.get(k));
+}
+
+// -- Numeric --
+
+export function max(...args: number[]): number { return Math.max(...args); }
+export function min(...args: number[]): number { return Math.min(...args); }
+export function abs(n: number): number { return Math.abs(n); }
+export function even_p(n: number): boolean { return n % 2 === 0; }
+export function odd_p(n: number): boolean { return n % 2 !== 0; }
+export function rem(a: number, b: number): number { return a % b; }
+export function rand(): number { return Math.random(); }
+export function rand_int(n: number): number { return Math.floor(Math.random() * n); }
+
+// -- Seq operations --
+
+export function take(n: number, coll: unknown): unknown {
+  const result: unknown[] = [];
+  let s = seq(coll);
+  let i = 0;
+  while (s !== null && i < n) {
+    result.push(seqFirst(s));
+    s = seqNext(s);
+    i++;
+  }
+  return list(...result);
+}
+
+export function drop(n: number, coll: unknown): unknown {
+  let s = seq(coll);
+  let i = 0;
+  while (s !== null && i < n) { s = seqNext(s); i++; }
+  const result: unknown[] = [];
+  while (s !== null) { result.push(seqFirst(s)); s = seqNext(s); }
+  return list(...result);
+}
+
+export function take_while(pred: (x: unknown) => unknown, coll: unknown): unknown {
+  const result: unknown[] = [];
+  let s = seq(coll);
+  while (s !== null) {
+    const v = seqFirst(s);
+    if (!isTruthy(pred(v))) break;
+    result.push(v);
+    s = seqNext(s);
+  }
+  return list(...result);
+}
+
+export function drop_while(pred: (x: unknown) => unknown, coll: unknown): unknown {
+  let s = seq(coll);
+  while (s !== null && isTruthy(pred(seqFirst(s)))) { s = seqNext(s); }
+  const result: unknown[] = [];
+  while (s !== null) { result.push(seqFirst(s)); s = seqNext(s); }
+  return list(...result);
+}
+
+export function some(pred: (x: unknown) => unknown, coll: unknown): unknown {
+  let s = seq(coll);
+  while (s !== null) {
+    const result = pred(seqFirst(s));
+    if (isTruthy(result)) return result;
+    s = seqNext(s);
+  }
+  return null;
+}
+
+export function every_p(pred: (x: unknown) => unknown, coll: unknown): boolean {
+  let s = seq(coll);
+  while (s !== null) {
+    if (!isTruthy(pred(seqFirst(s)))) return false;
+    s = seqNext(s);
+  }
+  return true;
+}
+
+export function not_every_p(pred: (x: unknown) => unknown, coll: unknown): boolean {
+  return !every_p(pred, coll);
+}
+
+export function not_any_p(pred: (x: unknown) => unknown, coll: unknown): boolean {
+  return !some(pred, coll);
+}
+
+export function sort(...args: unknown[]): unknown {
+  let comp: ((a: unknown, b: unknown) => number) | null = null;
+  let coll: unknown;
+  if (args.length === 1) { coll = args[0]; }
+  else { comp = args[0] as (a: unknown, b: unknown) => number; coll = args[1]; }
+  const arr: unknown[] = [];
+  let s = seq(coll);
+  while (s !== null) { arr.push(seqFirst(s)); s = seqNext(s); }
+  arr.sort(comp ?? ((a, b) => (a as number) < (b as number) ? -1 : (a as number) > (b as number) ? 1 : 0));
+  return list(...arr);
+}
+
+export function sort_by(keyfn: (x: unknown) => unknown, ...args: unknown[]): unknown {
+  let comp: ((a: unknown, b: unknown) => number) | null = null;
+  let coll: unknown;
+  if (args.length === 1) { coll = args[0]; }
+  else { comp = args[0] as (a: unknown, b: unknown) => number; coll = args[1]; }
+  const arr: unknown[] = [];
+  let s = seq(coll);
+  while (s !== null) { arr.push(seqFirst(s)); s = seqNext(s); }
+  const defaultComp = (a: unknown, b: unknown) => (a as number) < (b as number) ? -1 : (a as number) > (b as number) ? 1 : 0;
+  arr.sort((a, b) => (comp ?? defaultComp)(keyfn(a), keyfn(b)));
+  return list(...arr);
+}
+
+export function reverse(coll: unknown): unknown {
+  const arr: unknown[] = [];
+  let s = seq(coll);
+  while (s !== null) { arr.push(seqFirst(s)); s = seqNext(s); }
+  arr.reverse();
+  return list(...arr);
+}
+
+export function range(...args: number[]): unknown {
+  let start = 0, end: number, step = 1;
+  if (args.length === 1) { end = args[0]!; }
+  else if (args.length === 2) { start = args[0]!; end = args[1]!; }
+  else { start = args[0]!; end = args[1]!; step = args[2]!; }
+  const result: number[] = [];
+  if (step > 0) { for (let i = start; i < end; i += step) result.push(i); }
+  else if (step < 0) { for (let i = start; i > end; i += step) result.push(i); }
+  return list(...result);
+}
+
+export function repeat(n: number, x: unknown): unknown {
+  const result: unknown[] = [];
+  for (let i = 0; i < n; i++) result.push(x);
+  return list(...result);
+}
+
+export function repeatedly(n: number, f: () => unknown): unknown {
+  const result: unknown[] = [];
+  for (let i = 0; i < n; i++) result.push(f());
+  return list(...result);
+}
+
+export function group_by(f: (x: unknown) => unknown, coll: unknown): unknown {
+  let result = hm();
+  let s = seq(coll);
+  while (s !== null) {
+    const v = seqFirst(s);
+    const k = f(v);
+    const existing = result.get(k);
+    const group = existing !== undefined ? (existing as PersistentVector).conj(v) : vector(v);
+    result = result.assoc(k, group);
+    s = seqNext(s);
+  }
+  return result;
+}
+
+export function frequencies(coll: unknown): unknown {
+  let result = hm();
+  let s = seq(coll);
+  while (s !== null) {
+    const v = seqFirst(s);
+    const existing = result.get(v);
+    result = result.assoc(v, (existing !== undefined ? (existing as number) : 0) + 1);
+    s = seqNext(s);
+  }
+  return result;
+}
+
+// -- Predicates --
+
+export function fn_p(x: unknown): boolean { return typeof x === 'function'; }
+export function integer_p(x: unknown): boolean { return typeof x === 'number' && Number.isInteger(x); }
+export function coll_p(x: unknown): boolean { return isVector(x) || isList(x) || isHashMap(x) || isHashSet(x); }
+export function sequential_p(x: unknown): boolean { return isVector(x) || isList(x); }
+export function associative_p(x: unknown): boolean { return isHashMap(x) || isVector(x); }
+export function identical_p(a: unknown, b: unknown): boolean { return a === b; }
+
+// -- Higher-order --
+
+export function complement(f: (...args: unknown[]) => unknown): (...args: unknown[]) => boolean {
+  return (...args: unknown[]) => !isTruthy(f(...args));
+}
+
+export function juxt(...fns: ((...args: unknown[]) => unknown)[]): (...args: unknown[]) => unknown {
+  return (...args: unknown[]) => vector(...fns.map(f => f(...args)));
+}
+
+export function every_pred(...preds: ((...args: unknown[]) => unknown)[]): (...args: unknown[]) => boolean {
+  return (...args: unknown[]) => {
+    for (const p of preds) {
+      for (const a of args) {
+        if (!isTruthy(p(a))) return false;
+      }
+    }
+    return true;
+  };
+}
+
+export function some_fn(...preds: ((...args: unknown[]) => unknown)[]): (...args: unknown[]) => unknown {
+  return (...args: unknown[]) => {
+    for (const p of preds) {
+      for (const a of args) {
+        const result = p(a);
+        if (isTruthy(result)) return result;
+      }
+    }
+    return null;
+  };
+}
+
+export function memoize(f: (...args: unknown[]) => unknown): (...args: unknown[]) => unknown {
+  const cache = new Map<string, unknown>();
+  return (...args: unknown[]) => {
+    const key = JSON.stringify(args);
+    if (cache.has(key)) return cache.get(key);
+    const result = f(...args);
+    cache.set(key, result);
+    return result;
+  };
+}
+
+// -- Printing --
+
+export function println(...args: unknown[]): void {
+  console.log(args.map(a => a === null || a === undefined ? '' : String(a)).join(' '));
+}
+
+export function print_fn(...args: unknown[]): void {
+  // In browser/Node, use process.stdout if available, else console.log without newline
+  const s = args.map(a => a === null || a === undefined ? '' : String(a)).join(' ');
+  if (typeof process !== 'undefined' && process.stdout) {
+    process.stdout.write(s);
+  } else {
+    console.log(s);
+  }
 }

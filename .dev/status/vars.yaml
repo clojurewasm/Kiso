@@ -104,15 +104,15 @@ vars:
     "*":              {type: function, status: done}
     "/":              {type: function, status: done}
     "mod":            {type: function, status: done}
-    "rem":            {type: function, status: todo}
+    "rem":            {type: function, status: done}
     "inc":            {type: function, status: done}
     "dec":            {type: function, status: done}
-    "max":            {type: function, status: todo}
-    "min":            {type: function, status: todo}
-    "abs":            {type: function, status: todo}
+    "max":            {type: function, status: done}
+    "min":            {type: function, status: done}
+    "abs":            {type: function, status: done}
     "quot":           {type: function, status: todo}
-    "rand":           {type: function, status: todo}
-    "rand-int":       {type: function, status: todo}
+    "rand":           {type: function, status: done}
+    "rand-int":       {type: function, status: done}
 
     # === Functions — Comparison ===
     "=":              {type: function, status: done, note: "structural equality via equiv"}
@@ -123,7 +123,7 @@ vars:
     "<=":             {type: function, status: done}
     ">=":             {type: function, status: done}
     "compare":        {type: function, status: todo}
-    "identical?":     {type: function, status: todo}
+    "identical?":     {type: function, status: done}
 
     # === Functions — Logic ===
     "not":            {type: function, status: done}
@@ -138,24 +138,24 @@ vars:
     "boolean?":       {type: function, status: done}
     "symbol?":        {type: function, status: done, note: "evaluator built-in"}
     "keyword?":       {type: function, status: done, note: "evaluator built-in"}
-    "fn?":            {type: function, status: todo}
+    "fn?":            {type: function, status: done}
     "ifn?":           {type: function, status: todo}
-    "integer?":       {type: function, status: todo}
+    "integer?":       {type: function, status: done}
     "float?":         {type: function, status: todo}
     "zero?":          {type: function, status: done}
     "pos?":           {type: function, status: done}
     "neg?":           {type: function, status: done}
-    "even?":          {type: function, status: todo}
-    "odd?":           {type: function, status: todo}
+    "even?":          {type: function, status: done}
+    "odd?":           {type: function, status: done}
     "empty?":         {type: function, status: done, note: "evaluator built-in"}
-    "coll?":          {type: function, status: todo}
+    "coll?":          {type: function, status: done}
     "seq?":           {type: function, status: done, note: "evaluator built-in"}
     "list?":          {type: function, status: done, note: "evaluator built-in"}
     "vector?":        {type: function, status: done, note: "evaluator built-in"}
     "map?":           {type: function, status: done, note: "evaluator built-in"}
     "set?":           {type: function, status: done, note: "evaluator built-in"}
-    "associative?":   {type: function, status: todo}
-    "sequential?":    {type: function, status: todo}
+    "associative?":   {type: function, status: done}
+    "sequential?":    {type: function, status: done}
     "counted?":       {type: function, status: todo}
     "reversible?":    {type: function, status: todo}
     "sorted?":        {type: function, status: todo}
@@ -166,21 +166,21 @@ vars:
     "get":            {type: function, status: done}
     "assoc":          {type: function, status: done}
     "dissoc":         {type: function, status: done}
-    "get-in":         {type: function, status: todo}
-    "assoc-in":       {type: function, status: todo}
-    "update":         {type: function, status: todo}
-    "update-in":      {type: function, status: todo}
-    "select-keys":    {type: function, status: todo}
-    "find":           {type: function, status: todo}
-    "keys":           {type: function, status: todo}
-    "vals":           {type: function, status: todo}
+    "get-in":         {type: function, status: done}
+    "assoc-in":       {type: function, status: done}
+    "update":         {type: function, status: done}
+    "update-in":      {type: function, status: done}
+    "select-keys":    {type: function, status: done}
+    "find":           {type: function, status: done}
+    "keys":           {type: function, status: done}
+    "vals":           {type: function, status: done}
     "contains?":      {type: function, status: done, note: "evaluator built-in"}
     "into":           {type: function, status: done}
-    "merge":          {type: function, status: todo}
+    "merge":          {type: function, status: done}
     "merge-with":     {type: function, status: todo}
     "zipmap":         {type: function, status: todo}
-    "frequencies":    {type: function, status: todo}
-    "group-by":       {type: function, status: todo}
+    "frequencies":    {type: function, status: done}
+    "group-by":       {type: function, status: done}
     "empty":          {type: function, status: todo}
     "not-empty":      {type: function, status: todo}
 
@@ -222,20 +222,20 @@ vars:
     "keep":           {type: function, status: todo}
     "keep-indexed":   {type: function, status: todo}
     "remove":         {type: function, status: todo}
-    "take":           {type: function, status: todo}
-    "take-while":     {type: function, status: todo}
+    "take":           {type: function, status: done}
+    "take-while":     {type: function, status: done}
     "take-last":      {type: function, status: todo}
     "take-nth":       {type: function, status: todo}
-    "drop":           {type: function, status: todo}
-    "drop-while":     {type: function, status: todo}
+    "drop":           {type: function, status: done}
+    "drop-while":     {type: function, status: done}
     "drop-last":      {type: function, status: todo}
-    "some":           {type: function, status: todo}
-    "every?":         {type: function, status: todo}
-    "not-every?":     {type: function, status: todo}
-    "not-any?":       {type: function, status: todo}
-    "sort":           {type: function, status: todo}
-    "sort-by":        {type: function, status: todo}
-    "reverse":        {type: function, status: todo}
+    "some":           {type: function, status: done}
+    "every?":         {type: function, status: done}
+    "not-every?":     {type: function, status: done}
+    "not-any?":       {type: function, status: done}
+    "sort":           {type: function, status: done}
+    "sort-by":        {type: function, status: done}
+    "reverse":        {type: function, status: done}
     "distinct":       {type: function, status: todo}
     "dedupe":         {type: function, status: todo}
     "flatten":        {type: function, status: todo}
@@ -245,9 +245,9 @@ vars:
     "partition-by":   {type: function, status: todo}
     "partition-all":  {type: function, status: todo}
     "iterate":        {type: function, status: todo}
-    "repeat":         {type: function, status: todo}
-    "repeatedly":     {type: function, status: todo}
-    "range":          {type: function, status: todo}
+    "repeat":         {type: function, status: done}
+    "repeatedly":     {type: function, status: done}
+    "range":          {type: function, status: done}
     "cycle":          {type: function, status: todo}
     "doall":          {type: function, status: todo}
     "dorun":          {type: function, status: todo}
@@ -260,12 +260,12 @@ vars:
     "constantly":     {type: function, status: done}
     "comp":           {type: function, status: done}
     "partial":        {type: function, status: done}
-    "complement":     {type: function, status: todo}
-    "juxt":           {type: function, status: todo}
-    "every-pred":     {type: function, status: todo}
-    "some-fn":        {type: function, status: todo}
+    "complement":     {type: function, status: done}
+    "juxt":           {type: function, status: done}
+    "every-pred":     {type: function, status: done}
+    "some-fn":        {type: function, status: done}
     "fnil":           {type: function, status: todo}
-    "memoize":        {type: function, status: todo}
+    "memoize":        {type: function, status: done}
     "trampoline":     {type: function, status: todo}
 
     # === Functions — String ===
@@ -318,8 +318,8 @@ vars:
     "reset-meta!":    {type: function, status: todo}
 
     # === Functions — Printing ===
-    "println":        {type: function, status: todo}
-    "print":          {type: function, status: todo}
+    "println":        {type: function, status: done}
+    "print":          {type: function, status: done}
     "prn":            {type: function, status: todo}
     "pr":             {type: function, status: todo}
 

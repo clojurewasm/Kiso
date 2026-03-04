@@ -26,4 +26,21 @@ export {
   map, filter, reduce, apply,
   identity, constantly, comp, partial,
   name,
+  // Map operations
+  get_in, assoc_in, update, update_in,
+  keys, vals, merge, select_keys, find,
+  // Numeric
+  max, min, abs, even_p, odd_p, rem, rand, rand_int,
+  // Seq operations
+  take, drop, take_while, drop_while,
+  some, every_p, not_every_p, not_any_p,
+  sort, sort_by, reverse,
+  range, repeat, repeatedly,
+  group_by, frequencies,
+  // Predicates
+  fn_p, integer_p, coll_p, sequential_p, associative_p, identical_p,
+  // Higher-order
+  complement, juxt, every_pred, some_fn, memoize,
+  // Printing
+  println, print_fn as print,
 } from './core.js';

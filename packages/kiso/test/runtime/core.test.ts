@@ -232,3 +232,337 @@ describe('partial', () => {
     expect(add5(3)).toBe(8);
   });
 });
+
+// -- Map operations --
+
+import { keyword } from '../../src/runtime/keyword.js';
+
+describe('get-in', () => {
+  it('navigates nested maps', () => {
+    const m = hashMap(keyword('a'), hashMap(keyword('b'), 42));
+    expect(core.get_in(m, vector(keyword('a'), keyword('b')))).toBe(42);
+  });
+
+  it('returns null for missing path', () => {
+    const m = hashMap(keyword('a'), 1);
+    expect(core.get_in(m, vector(keyword('x'), keyword('y')))).toBe(null);
+  });
+
+  it('returns not-found when provided', () => {
+    const m = hashMap(keyword('a'), 1);
+    expect(core.get_in(m, vector(keyword('x')), 'default')).toBe('default');
+  });
+
+  it('works with empty path', () => {
+    const m = hashMap(keyword('a'), 1);
+    expect(core.get_in(m, vector())).toBe(m);
+  });
+});
+
+describe('assoc-in', () => {
+  it('sets nested value', () => {
+    const m = hashMap(keyword('a'), hashMap(keyword('b'), 1));
+    const result = core.assoc_in(m, vector(keyword('a'), keyword('b')), 42) as any;
+    expect(core.get_in(result, vector(keyword('a'), keyword('b')))).toBe(42);
+  });
+
+  it('creates intermediate maps', () => {
+    const m = hashMap();
+    const result = core.assoc_in(m, vector(keyword('a'), keyword('b')), 42) as any;
+    expect(core.get_in(result, vector(keyword('a'), keyword('b')))).toBe(42);
+  });
+});
+
+describe('update', () => {
+  it('applies fn to value at key', () => {
+    const m = hashMap(keyword('a'), 1);
+    const result = core.update(m, keyword('a'), core.inc) as any;
+    expect(result.get(keyword('a'))).toBe(2);
+  });
+
+  it('passes extra args to fn', () => {
+    const m = hashMap(keyword('a'), 1);
+    const result = core.update(m, keyword('a'), core.add, 10) as any;
+    expect(result.get(keyword('a'))).toBe(11);
+  });
+});
+
+describe('update-in', () => {
+  it('applies fn to nested value', () => {
+    const m = hashMap(keyword('a'), hashMap(keyword('b'), 1));
+    const result = core.update_in(m, vector(keyword('a'), keyword('b')), core.inc) as any;
+    expect(core.get_in(result, vector(keyword('a'), keyword('b')))).toBe(2);
+  });
+});
+
+describe('keys', () => {
+  it('returns keys of a map as list', () => {
+    const m = hashMap(keyword('a'), 1, keyword('b'), 2);
+    const ks = toArray(core.keys(m) as any);
+    expect(ks).toHaveLength(2);
+    expect(ks).toContainEqual(keyword('a'));
+    expect(ks).toContainEqual(keyword('b'));
+  });
+
+  it('returns null for nil', () => {
+    expect(core.keys(null)).toBe(null);
+  });
+});
+
+describe('vals', () => {
+  it('returns vals of a map as list', () => {
+    const m = hashMap(keyword('a'), 1, keyword('b'), 2);
+    const vs = toArray(core.vals(m) as any);
+    expect(vs).toHaveLength(2);
+    expect(vs).toContain(1);
+    expect(vs).toContain(2);
+  });
+});
+
+describe('merge', () => {
+  it('merges two maps', () => {
+    const a = hashMap(keyword('a'), 1, keyword('b'), 2);
+    const b = hashMap(keyword('b'), 3, keyword('c'), 4);
+    const result = core.merge(a, b) as any;
+    expect(result.get(keyword('a'))).toBe(1);
+    expect(result.get(keyword('b'))).toBe(3);
+    expect(result.get(keyword('c'))).toBe(4);
+  });
+
+  it('handles nil args', () => {
+    const m = hashMap(keyword('a'), 1);
+    expect(core.merge(null, m)).toBe(m);
+    expect(core.merge(m, null)).toBe(m);
+  });
+});
+
+describe('select-keys', () => {
+  it('returns map with only selected keys', () => {
+    const m = hashMap(keyword('a'), 1, keyword('b'), 2, keyword('c'), 3);
+    const result = core.select_keys(m, vector(keyword('a'), keyword('c'))) as any;
+    expect(result.count).toBe(2);
+    expect(result.get(keyword('a'))).toBe(1);
+    expect(result.get(keyword('c'))).toBe(3);
+  });
+});
+
+describe('find', () => {
+  it('returns [key val] vector for existing key', () => {
+    const m = hashMap(keyword('a'), 1);
+    const result = core.find(m, keyword('a')) as any;
+    expect(result.nth(0)).toEqual(keyword('a'));
+    expect(result.nth(1)).toBe(1);
+  });
+
+  it('returns null for missing key', () => {
+    const m = hashMap(keyword('a'), 1);
+    expect(core.find(m, keyword('x'))).toBe(null);
+  });
+});
+
+// -- Numeric --
+
+describe('max/min/abs', () => {
+  it('max', () => {
+    expect(core.max(1, 3, 2)).toBe(3);
+    expect(core.max(5)).toBe(5);
+  });
+
+  it('min', () => {
+    expect(core.min(3, 1, 2)).toBe(1);
+    expect(core.min(5)).toBe(5);
+  });
+
+  it('abs', () => {
+    expect(core.abs(-5)).toBe(5);
+    expect(core.abs(3)).toBe(3);
+  });
+});
+
+describe('even?/odd?', () => {
+  it('even?', () => {
+    expect(core.even_p(2)).toBe(true);
+    expect(core.even_p(3)).toBe(false);
+  });
+
+  it('odd?', () => {
+    expect(core.odd_p(3)).toBe(true);
+    expect(core.odd_p(2)).toBe(false);
+  });
+});
+
+describe('rem', () => {
+  it('remainder', () => {
+    expect(core.rem(10, 3)).toBe(1);
+    expect(core.rem(-10, 3)).toBe(-1);
+  });
+});
+
+// -- Seq operations --
+
+describe('take / drop', () => {
+  it('take returns first n items', () => {
+    expect(toArray(core.take(2, vector(1, 2, 3, 4)) as any)).toEqual([1, 2]);
+  });
+
+  it('drop returns items after first n', () => {
+    expect(toArray(core.drop(2, vector(1, 2, 3, 4)) as any)).toEqual([3, 4]);
+  });
+});
+
+describe('take-while / drop-while', () => {
+  it('take-while', () => {
+    const result = core.take_while((x: number) => x < 3, vector(1, 2, 3, 4));
+    expect(toArray(result as any)).toEqual([1, 2]);
+  });
+
+  it('drop-while', () => {
+    const result = core.drop_while((x: number) => x < 3, vector(1, 2, 3, 4));
+    expect(toArray(result as any)).toEqual([3, 4]);
+  });
+});
+
+describe('some / every?', () => {
+  it('some returns first truthy result', () => {
+    expect(core.some((x: number) => x > 2, vector(1, 2, 3))).toBe(true);
+    expect(core.some((x: number) => x > 5, vector(1, 2, 3))).toBe(null);
+  });
+
+  it('every? checks all elements', () => {
+    expect(core.every_p((x: number) => x > 0, vector(1, 2, 3))).toBe(true);
+    expect(core.every_p((x: number) => x > 1, vector(1, 2, 3))).toBe(false);
+  });
+});
+
+describe('sort / sort-by / reverse', () => {
+  it('sort', () => {
+    expect(toArray(core.sort(vector(3, 1, 2)) as any)).toEqual([1, 2, 3]);
+  });
+
+  it('sort with comparator', () => {
+    expect(toArray(core.sort((a: number, b: number) => b - a, vector(3, 1, 2)) as any)).toEqual([3, 2, 1]);
+  });
+
+  it('sort-by', () => {
+    const v = vector(hashMap(keyword('n'), 3), hashMap(keyword('n'), 1));
+    const result = toArray(core.sort_by((x: any) => x.get(keyword('n')), v) as any);
+    expect(result[0].get(keyword('n'))).toBe(1);
+  });
+
+  it('reverse', () => {
+    expect(toArray(core.reverse(vector(1, 2, 3)) as any)).toEqual([3, 2, 1]);
+  });
+});
+
+describe('range / repeat / repeatedly', () => {
+  it('range with end', () => {
+    expect(toArray(core.range(5) as any)).toEqual([0, 1, 2, 3, 4]);
+  });
+
+  it('range with start and end', () => {
+    expect(toArray(core.range(2, 5) as any)).toEqual([2, 3, 4]);
+  });
+
+  it('range with step', () => {
+    expect(toArray(core.range(0, 10, 3) as any)).toEqual([0, 3, 6, 9]);
+  });
+
+  it('repeat', () => {
+    expect(toArray(core.repeat(3, 'x') as any)).toEqual(['x', 'x', 'x']);
+  });
+
+  it('repeatedly', () => {
+    let i = 0;
+    const result = toArray(core.repeatedly(3, () => ++i) as any);
+    expect(result).toEqual([1, 2, 3]);
+  });
+});
+
+describe('group-by / frequencies', () => {
+  it('group-by', () => {
+    const result = core.group_by(core.even_p, vector(1, 2, 3, 4)) as any;
+    expect(toArray(result.get(true))).toEqual([2, 4]);
+    expect(toArray(result.get(false))).toEqual([1, 3]);
+  });
+
+  it('frequencies', () => {
+    const result = core.frequencies(vector('a', 'b', 'a', 'c', 'b', 'a')) as any;
+    expect(result.get('a')).toBe(3);
+    expect(result.get('b')).toBe(2);
+    expect(result.get('c')).toBe(1);
+  });
+});
+
+// -- Predicates --
+
+describe('type predicates', () => {
+  it('fn?', () => {
+    expect(core.fn_p(() => {})).toBe(true);
+    expect(core.fn_p(42)).toBe(false);
+  });
+
+  it('integer?', () => {
+    expect(core.integer_p(42)).toBe(true);
+    expect(core.integer_p(3.14)).toBe(false);
+  });
+
+  it('coll?', () => {
+    expect(core.coll_p(vector(1))).toBe(true);
+    expect(core.coll_p(hashMap())).toBe(true);
+    expect(core.coll_p(42)).toBe(false);
+  });
+
+  it('sequential?', () => {
+    expect(core.sequential_p(vector(1))).toBe(true);
+    expect(core.sequential_p(list(1))).toBe(true);
+    expect(core.sequential_p(hashMap())).toBe(false);
+  });
+
+  it('associative?', () => {
+    expect(core.associative_p(hashMap())).toBe(true);
+    expect(core.associative_p(vector(1))).toBe(true);
+    expect(core.associative_p(list(1))).toBe(false);
+  });
+});
+
+// -- Higher-order --
+
+describe('complement', () => {
+  it('returns negated predicate', () => {
+    const notEven = core.complement(core.even_p);
+    expect(notEven(2)).toBe(false);
+    expect(notEven(3)).toBe(true);
+  });
+});
+
+describe('juxt', () => {
+  it('applies multiple fns', () => {
+    const f = core.juxt(core.inc, core.dec);
+    const result = f(5);
+    expect(result.nth(0)).toBe(6);
+    expect(result.nth(1)).toBe(4);
+  });
+});
+
+describe('memoize', () => {
+  it('caches results', () => {
+    let calls = 0;
+    const f = core.memoize((x: number) => { calls++; return x * 2; });
+    expect(f(5)).toBe(10);
+    expect(f(5)).toBe(10);
+    expect(calls).toBe(1);
+  });
+});
+
+// -- Printing --
+
+describe('println', () => {
+  it('calls console.log with space-separated str', () => {
+    const logs: string[] = [];
+    const orig = console.log;
+    console.log = (...args: unknown[]) => logs.push(args.join(' '));
+    core.println('hello', 'world');
+    console.log = orig;
+    expect(logs[0]).toBe('hello world');
+  });
+});
