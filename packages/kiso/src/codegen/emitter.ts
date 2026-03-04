@@ -668,6 +668,8 @@ const RUNTIME_FUNCTIONS = new Set([
   // Sorted collections
   'sorted-map', 'sorted-set',
   'sorted-map-by', 'subseq', 'rsubseq',
+  // Transient collections
+  'transient', 'persistent!', 'conj!', 'assoc!', 'dissoc!', 'disj!',
 ]);
 
 /** Scan AST for runtime function usage and return needed import names. */

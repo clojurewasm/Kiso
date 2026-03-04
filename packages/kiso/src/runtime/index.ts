@@ -91,3 +91,4 @@ export {
 } from './core.js';
 export { PersistentTreeMap, isSortedMap, EMPTY_SORTED_MAP } from './sorted-map.js';
 export { PersistentTreeSet, isSortedSet, EMPTY_SORTED_SET } from './sorted-set.js';
+export { transient, persistent_m, conj_m, assoc_m, dissoc_m, disj_m } from './transient.js';
