@@ -12,14 +12,21 @@ export class Atom {
   private state: unknown;
   private watches = new Map<unknown, WatchFn>();
 
+  /** Optional label for debugging/devtools. */
+  readonly label?: string;
+
   /** Optional per-instance deref tracking hook. */
   _onDeref: ((atom: Atom) => void) | undefined;
 
   /** Global deref hook. Set by @clojurewasm/su for dependency tracking. */
   static _globalOnDeref: ((atom: Atom) => void) | undefined;
 
-  constructor(initial: unknown) {
+  /** Global change hook. Set by devtools for tracing state changes. */
+  static _globalOnChange: ((atom: Atom, oldVal: unknown, newVal: unknown) => void) | undefined;
+
+  constructor(initial: unknown, label?: string) {
     this.state = initial;
+    if (label) this.label = label;
   }
 
   deref(): unknown {
@@ -31,6 +38,7 @@ export class Atom {
   reset(newVal: unknown): unknown {
     const oldVal = this.state;
     this.state = newVal;
+    if (Atom._globalOnChange) Atom._globalOnChange(this, oldVal, newVal);
     this.notifyWatches(oldVal, newVal);
     return newVal;
   }
@@ -39,6 +47,7 @@ export class Atom {
     const oldVal = this.state;
     const newVal = fn(this.state, ...args);
     this.state = newVal;
+    if (Atom._globalOnChange) Atom._globalOnChange(this, oldVal, newVal);
     this.notifyWatches(oldVal, newVal);
     return newVal;
   }
@@ -71,8 +80,8 @@ export class Atom {
   }
 }
 
-export function atom(initial: unknown): Atom {
-  return new Atom(initial);
+export function atom(initial: unknown, label?: string): Atom {
+  return new Atom(initial, label);
 }
 
 export function isAtom(x: unknown): x is Atom {

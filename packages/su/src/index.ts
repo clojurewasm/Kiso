@@ -8,3 +8,4 @@ export { onMount as on_mount, onUnmount as on_unmount, setHost as set_host, getH
 export { provide, useContext as use_context } from './context.js';
 export { registerRenderFn as register_render_fn, hotReplace as hot_replace } from './hmr.js';
 export { suCodegenHooks } from './codegen-hooks.js';
+export { enableTrace as enable_trace, disableTrace as disable_trace } from './devtools.js';

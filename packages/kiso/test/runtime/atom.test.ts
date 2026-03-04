@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { atom, isAtom } from '../../src/runtime/atom.js';
+import { describe, it, expect, afterEach } from 'vitest';
+import { atom, Atom, isAtom } from '../../src/runtime/atom.js';
 
 describe('atom creation', () => {
   it('creates atom with initial value', () => {
@@ -116,6 +116,50 @@ describe('addWatch / removeWatch', () => {
     unsub();
     a.reset(3);
     expect(calls.length).toBe(1); // unsubscribed
+  });
+});
+
+describe('atom label', () => {
+  it('creates atom with label', () => {
+    const a = atom(42, 'counter');
+    expect(a.label).toBe('counter');
+  });
+
+  it('label is undefined when not provided', () => {
+    const a = atom(42);
+    expect(a.label).toBeUndefined();
+  });
+});
+
+describe('_globalOnChange', () => {
+  afterEach(() => {
+    Atom._globalOnChange = undefined;
+  });
+
+  it('calls _globalOnChange on reset', () => {
+    const calls: unknown[][] = [];
+    Atom._globalOnChange = (a, oldVal, newVal) => calls.push([a, oldVal, newVal]);
+    const a = atom(1);
+    a.reset(2);
+    expect(calls).toHaveLength(1);
+    expect(calls[0]![1]).toBe(1);
+    expect(calls[0]![2]).toBe(2);
+  });
+
+  it('calls _globalOnChange on swap', () => {
+    const calls: unknown[][] = [];
+    Atom._globalOnChange = (a, oldVal, newVal) => calls.push([a, oldVal, newVal]);
+    const a = atom(10);
+    a.swap((v: number) => v + 5);
+    expect(calls).toHaveLength(1);
+    expect(calls[0]![1]).toBe(10);
+    expect(calls[0]![2]).toBe(15);
+  });
+
+  it('does not call when _globalOnChange is not set', () => {
+    const a = atom(1);
+    a.reset(2); // should not throw
+    expect(a.deref()).toBe(2);
   });
 });
 
