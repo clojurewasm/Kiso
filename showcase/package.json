@@ -1,0 +1,17 @@
+{
+  "name": "showcase",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@clojurewasm/kiso": "file:../packages/kiso",
+    "@clojurewasm/su": "file:../packages/su"
+  },
+  "devDependencies": {
+    "vite": "^6.0.0"
+  }
+}
