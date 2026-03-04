@@ -38,49 +38,30 @@ Give atoms a label for debugging (visible in DevTools trace):
 (def tasks (atom [] "tasks"))
 ```
 
-See the [DevTools guide](08-devtools.md) for tracing.
+See the [DevTools guide](009_devtools.md) for tracing.
 
 ## Reactive Rendering
 
-The key to reactivity in su is wrapping hiccup in a function:
+`defc` automatically wraps the final hiccup expression in a reactive function.
+Any atom dereferenced inside that body is tracked. When the atom changes, the
+render re-runs and the DOM updates.
 
 ```clojure
 (defc my-counter []
   (let [count (atom 0)]
-    (fn []
-      [:div
-       [:span (str "Count: " @count)]
-       [:button {:on-click (fn [_] (swap! count inc))} "+"]])))
+    [:div
+     [:span (str "Count: " @count)]
+     [:button {:on-click (fn [_] (swap! count inc))} "+"]]))
 ```
 
-When the component returns a function, su calls it inside a reactive context.
-Any atom dereferenced during that call is automatically tracked. When the atom
-changes, the function re-runs and the DOM updates.
-
-### Why the `fn` Wrapper Matters
-
-```clojure
-;; WRONG — static, never updates
-(defc broken-counter []
-  (let [count (atom 0)]
-    [:div [:span (str @count)]]))
-
-;; RIGHT — reactive, updates on change
-(defc working-counter []
-  (let [count (atom 0)]
-    (fn []
-      [:div [:span (str @count)]])))
-```
-
-In the "wrong" example, `@count` is evaluated once during setup. The resulting
-string `"0"` is baked into the hiccup. There is no reactive subscription.
-
-In the "right" example, the `fn` creates a reactive boundary. su tracks that
-`count` was dereferenced and re-runs the function when it changes.
+No manual `(fn [] ...)` wrapper is needed — `defc` handles it. The `let` body
+runs once to set up state, and the final expression (the hiccup vector) becomes
+the reactive render body.
 
 ### Partial Reactivity
 
-You can make only parts of the output reactive by using `fn` as a child:
+Within hiccup children, you can use `(fn [] ...)` to create fine-grained
+reactive boundaries:
 
 ```clojure
 (defc my-dashboard []
@@ -91,7 +72,7 @@ You can make only parts of the output reactive by using `fn` as a child:
       [:button {:on-click (fn [_] (swap! count inc))} "+"]]))
 ```
 
-The `[:h1 "Dashboard"]` is rendered once. Only the `(fn [] ...)` part
+The `[:h1 "Dashboard"]` is rendered once. Only the `(fn [] ...)` child
 re-renders when `count` changes. This is more efficient than re-rendering the
 entire component.
 
@@ -107,8 +88,7 @@ entire component.
       (fn []
         (js/console.log "Count is now:" @count)))
 
-    (fn []
-      [:button {:on-click (fn [_] (swap! count inc))} "Increment"])))
+    [:button {:on-click (fn [_] (swap! count inc))} "Increment"]))
 ```
 
 Effects are useful for:
@@ -137,10 +117,9 @@ Effects are useful for:
   (let [tasks (atom [{:done false} {:done true} {:done false}])
         done-count (su/computed
                      (fn [] (count (filter :done @tasks))))]
-    (fn []
-      [:div
-        [:span (str "Done: " (.deref done-count))]
-        [:span (str "Total: " (count @tasks))]])))
+    [:div
+      [:span (str "Done: " (.deref done-count))]
+      [:span (str "Total: " (count @tasks))]]))
 ```
 
 Key properties:
@@ -157,46 +136,44 @@ Access the value with `.deref`:
 
 ## Common Pitfalls
 
-### 1. Forgetting the `fn` Wrapper
+### 1. Reactive Children in Hiccup
 
-The most common mistake. Always wrap reactive hiccup in `(fn [] ...)`:
+Inside `defc`, the body is auto-wrapped. But when embedding reactive
+expressions as **hiccup children**, you still need `(fn [] ...)`:
 
 ```clojure
-;; Won't update:
+;; Won't update (evaluated once when parent renders):
 [:span (str @count)]
 
-;; Will update:
+;; Will update (reactive child):
 (fn [] [:span (str @count)])
 ```
 
-### 2. Creating Atoms Inside the Render Function
+### 2. Creating Atoms Inside the Render Body
 
-Atoms must be created in the setup phase (outer `let`), not in the render
-function:
+Atoms must be created in the setup phase (outer `let`), not as the final
+expression that becomes the render body:
 
 ```clojure
 ;; WRONG — creates a new atom on every render
 (defc broken []
-  (fn []
-    (let [count (atom 0)]  ;; BUG: new atom each render
-      [:span (str @count)])))
+  [:span (str @(atom 0))])  ;; BUG: new atom each render
 
-;; RIGHT — atom created once in setup
+;; RIGHT — atom created once in setup let
 (defc correct []
-  (let [count (atom 0)]    ;; created once
-    (fn []
-      [:span (str @count)])))
+  (let [count (atom 0)]
+    [:span (str @count)]))
 ```
 
 ### 3. Multiple Atoms
 
-When a render function dereferences multiple atoms, it re-runs when **any** of
+When a render body dereferences multiple atoms, it re-runs when **any** of
 them change:
 
 ```clojure
-(let [first-name (atom "Alice")
-      last-name (atom "Smith")]
-  (fn []
+(defc greeting []
+  (let [first-name (atom "Alice")
+        last-name (atom "Smith")]
     ;; Re-renders when EITHER atom changes
     [:span (str @first-name " " @last-name)]))
 ```
@@ -209,6 +186,7 @@ them change:
 | `@` / `deref` | Read atom value; subscribes in reactive context  |
 | `reset!`   | Set atom to new value                               |
 | `swap!`    | Update atom by applying a function                  |
-| `fn` wrapper | Creates reactive boundary for re-rendering        |
+| auto-wrap  | `defc` auto-wraps final expr as reactive render   |
+| `fn` child | Creates fine-grained reactive boundary in hiccup  |
 | `effect`   | Side effect that re-runs on atom changes            |
 | `computed` | Lazy derived value, cached until deps change        |

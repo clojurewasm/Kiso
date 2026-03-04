@@ -43,11 +43,10 @@ export default { plugins: [cljs()] };
   {:style [app-styles]}
   []
   (let [n (atom 0)]
-    (fn []
-      [:div.counter
-       [:button {:on-click #(swap! n dec)} "-"]
-       [:span (str @n)]
-       [:button {:on-click #(swap! n inc)} "+"]])))
+    [:div.counter
+     [:button {:on-click (fn [_] (swap! n dec))} "-"]
+     [:span (str @n)]
+     [:button {:on-click (fn [_] (swap! n inc))} "+"]]))
 
 (su/mount (js/document.getElementById "app") [::my-counter])
 ```
@@ -87,6 +86,10 @@ npx kiso compile src/ --out-dir dist/ --source-map
 ## Documentation
 
 See [docs/](docs/README.md) for the full guide, API reference, and cookbook.
+
+## Examples
+
+- [Task Manager](examples/task-manager/) — full app with components, context, and styling
 
 ## Development
 

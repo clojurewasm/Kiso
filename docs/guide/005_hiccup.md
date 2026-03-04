@@ -170,7 +170,7 @@ Use `map` to render a sequence of elements:
 
 ### Reactive Children
 
-Wrap children in a function to make them reactive:
+Within hiccup, wrap children in a function to make them individually reactive:
 
 ```clojure
 (let [count (atom 0)]
@@ -178,19 +178,23 @@ Wrap children in a function to make them reactive:
     (fn [] [:span (str "Count: " @count)])])
 ```
 
-**This is critical.** Without the `fn` wrapper, `@count` is evaluated once at
-component setup time and never updates. The `fn` wrapper creates a reactive
-binding that re-renders when the atom changes.
+The `fn` wrapper creates a reactive binding that re-renders only that child
+when the atom changes. This is useful for fine-grained updates within a larger
+static structure.
 
 ```clojure
-;; WRONG — won't update
+;; Static child — evaluated once:
 [:span (str "Count: " @count)]
 
-;; RIGHT — updates when count changes
+;; Reactive child — re-renders on change:
 (fn [] [:span (str "Count: " @count)])
 ```
 
-See the [Reactivity guide](03-reactivity.md) for more details.
+> **Note**: `defc` automatically wraps the component's final expression in a
+> reactive function, so you only need explicit `(fn [] ...)` for fine-grained
+> reactivity within hiccup children.
+
+See the [Reactivity guide](004_reactivity.md) for more details.
 
 ## Component References
 

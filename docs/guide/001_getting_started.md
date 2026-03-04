@@ -82,11 +82,10 @@ Create `src/main.cljs`:
   {:style [counter-styles]}
   []
   (let [count (atom 0)]
-    (fn []
-      [:div {:class "counter"}
-       [:button {:on-click (fn [_] (swap! count dec))} "-"]
-       [:span (str @count)]
-       [:button {:on-click (fn [_] (swap! count inc))} "+"]])))
+    [:div {:class "counter"}
+     [:button {:on-click (fn [_] (swap! count dec))} "-"]
+     [:span (str @count)]
+     [:button {:on-click (fn [_] (swap! count inc))} "+"]]))
 
 ;; Mount to the page
 (su/mount (js/document.getElementById "app")
@@ -111,17 +110,16 @@ Try editing `src/main.cljs` — changes appear instantly via HMR without losing 
    component via `:style [counter-styles]`.
 
 2. **`defc my-counter`** defined a Web Component (`<my-counter>`) with Shadow DOM.
-   The component function runs **once** to set up state, then returns a render
-   function that re-runs whenever atoms change.
+   The `let` body runs **once** to set up state. `defc` automatically wraps the
+   final hiccup expression in a reactive render function.
 
-3. **`(atom 0)`** created a reactive atom. Dereferencing it inside the render
-   function (`@count`) automatically subscribes to changes.
+3. **`(atom 0)`** created a reactive atom. Dereferencing it (`@count`) inside
+   the auto-wrapped render body automatically subscribes to changes.
 
 4. **`su/mount`** rendered the component into the `#app` div.
 
 ## Next Steps
 
-- [Counter Cookbook](cookbook/counter.md) — line-by-line walkthrough of this example
-- [Components Guide](guide/01-components.md) — deep dive into `defc`
-- [Reactivity Guide](guide/03-reactivity.md) — atoms, effects, and computed values
-- [Todo App](cookbook/todo-app.md) — full app walkthrough with state management
+- [Components Guide](002_components.md) — deep dive into `defc`
+- [Reactivity Guide](004_reactivity.md) — atoms, effects, and computed values
+- [Cookbook](010_cookbook.md) — counter walkthrough, todo app, and more
