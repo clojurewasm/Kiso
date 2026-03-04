@@ -89,7 +89,7 @@ export {
   sorted_map, sorted_map_p,
   sorted_set, sorted_set_p,
   sorted_map_by, subseq, rsubseq,
-  contains_p, subs,
+  contains_p, subs, invoke,
 } from './core.js';
 export { PersistentTreeMap, isSortedMap, EMPTY_SORTED_MAP } from './sorted-map.js';
 export { PersistentTreeSet, isSortedSet, EMPTY_SORTED_SET } from './sorted-set.js';

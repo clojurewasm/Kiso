@@ -283,6 +283,10 @@ function emitInvoke(node: { fn: Node; args: Node[] }, ctx: EmitCtx): string {
     const hook = ctx.hooks.get(node.fn.name);
     if (hook) return hook(node.args, makeHelpers(ctx));
   }
+  // IFn dispatch: set/map/vector in fn position → invoke() wrapper
+  if (node.fn.type === 'set' || node.fn.type === 'map' || node.fn.type === 'vector') {
+    return `invoke(${emitNode(node.fn, ctx)}, ${node.args.map((n) => emitNode(n, ctx)).join(', ')})`;
+  }
   return `${emitNode(node.fn, ctx)}(${node.args.map((n) => emitNode(n, ctx)).join(', ')})`;
 }
 
@@ -739,6 +743,8 @@ const RUNTIME_FUNCTIONS = new Set([
   'meta', 'with-meta', 'vary-meta', 'alter-meta!', 'reset-meta!',
   // I4: contains? and subs
   'contains?', 'subs',
+  // I3: IFn invoke for sets/maps/vectors in fn position
+  'invoke',
 ]);
 
 /** Scan AST for runtime function usage and return needed import names. */
@@ -783,6 +789,10 @@ function scanNodeForRuntime(node: Node, used: Set<string>): void {
       if (node.fn.type === 'var-ref' && !node.fn.local) {
         const name = node.fn.name;
         if (RUNTIME_FUNCTIONS.has(name)) used.add(munge(name));
+      }
+      // IFn dispatch: set/map/vector in fn position needs invoke
+      if (node.fn.type === 'set' || node.fn.type === 'map' || node.fn.type === 'vector') {
+        used.add('invoke');
       }
       scanNodeForRuntime(node.fn, used);
       for (const a of node.args) scanNodeForRuntime(a, used);

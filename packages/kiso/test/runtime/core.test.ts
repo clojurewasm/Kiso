@@ -4,6 +4,7 @@ import { vector } from '../../src/runtime/vector.js';
 import { list } from '../../src/runtime/list.js';
 import { hashMap } from '../../src/runtime/hash-map.js';
 import { hashSet } from '../../src/runtime/hash-set.js';
+import { keyword } from '../../src/runtime/keyword.js';
 import { sortedMap } from '../../src/runtime/sorted-map.js';
 import { toArray } from '../../src/runtime/seq.js';
 
@@ -186,6 +187,12 @@ describe('filter', () => {
   it('filters collection', () => {
     const result = core.filter((x: number) => x > 2, [1, 2, 3, 4]);
     expect(toArray(result)).toEqual([3, 4]);
+  });
+
+  it('accepts set as IFn predicate', () => {
+    const s = hashSet(keyword('a'), keyword('c'));
+    const result = core.filter(s, [keyword('a'), keyword('b'), keyword('c'), keyword('d')]);
+    expect(toArray(result)).toEqual([keyword('a'), keyword('c')]);
   });
 });
 

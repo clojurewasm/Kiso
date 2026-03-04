@@ -10,7 +10,7 @@ import { hashSet, PersistentHashSet } from '../../src/runtime/hash-set.js';
 import { list, EMPTY_LIST } from '../../src/runtime/list.js';
 import { symbol as runtimeSymbol } from '../../src/runtime/symbol.js';
 import { defprotocol, protocolFn } from '../../src/runtime/protocols.js';
-import { truthy, contains_p, subs } from '../../src/runtime/core.js';
+import { truthy, contains_p, subs, invoke } from '../../src/runtime/core.js';
 
 const analyzer = new Analyzer();
 
@@ -19,7 +19,7 @@ const runtime: Record<string, unknown> = {
   vector, keyword, hashMap, hashSet, list, EMPTY_LIST,
   symbol: runtimeSymbol,
   defprotocol, protocolFn,
-  truthy, contains_p, subs,
+  truthy, contains_p, subs, invoke,
 };
 const runtimeKeys = Object.keys(runtime);
 const runtimeVals = Object.values(runtime);
@@ -857,6 +857,30 @@ describe('metadata on def', () => {
   it('def with map metadata compiles without error', () => {
     const js = compile('(def ^{:doc "hi"} x 42)');
     expect(js).toContain('let x = 42');
+  });
+});
+
+describe('sets as IFn', () => {
+  it('set literal in function position looks up member', () => {
+    expect(run('(#{:a :b :c} :b)')).toEqual(keyword('b'));
+  });
+
+  it('set returns nil for non-member', () => {
+    expect(run('(#{:a :b} :z)')).toBe(null);
+  });
+
+  it('set with not-found returns nil', () => {
+    expect(run('(#{1 2 3} 99)')).toBe(null);
+  });
+});
+
+describe('maps as IFn', () => {
+  it('map literal in function position looks up key', () => {
+    expect(run('({:a 1 :b 2} :b)')).toBe(2);
+  });
+
+  it('map returns nil for missing key', () => {
+    expect(run('({:a 1} :z)')).toBe(null);
   });
 });
 

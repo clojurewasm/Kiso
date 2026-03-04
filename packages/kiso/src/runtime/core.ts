@@ -208,7 +208,8 @@ export function dissoc(coll: unknown, ...keys: unknown[]): unknown {
 
 // -- Higher-order --
 
-export function map(f: (...args: unknown[]) => unknown, coll: unknown): unknown {
+export function map(f_: unknown, coll: unknown): unknown {
+  const f = toFn(f_);
   const result: unknown[] = [];
   let s = seq(coll);
   while (s !== null) {
@@ -219,7 +220,8 @@ export function map(f: (...args: unknown[]) => unknown, coll: unknown): unknown 
   return list(...result);
 }
 
-export function filter(pred: (x: unknown) => unknown, coll: unknown): unknown {
+export function filter(pred_: unknown, coll: unknown): unknown {
+  const pred = toFn(pred_);
   const result: unknown[] = [];
   let s = seq(coll);
   while (s !== null) {
@@ -425,7 +427,8 @@ export function drop(n: number, coll: unknown): unknown {
   return list(...result);
 }
 
-export function take_while(pred: (x: unknown) => unknown, coll: unknown): unknown {
+export function take_while(pred_: unknown, coll: unknown): unknown {
+  const pred = toFn(pred_);
   const result: unknown[] = [];
   let s = seq(coll);
   while (s !== null) {
@@ -437,7 +440,8 @@ export function take_while(pred: (x: unknown) => unknown, coll: unknown): unknow
   return list(...result);
 }
 
-export function drop_while(pred: (x: unknown) => unknown, coll: unknown): unknown {
+export function drop_while(pred_: unknown, coll: unknown): unknown {
+  const pred = toFn(pred_);
   let s = seq(coll);
   while (s !== null && isTruthy(pred(seqFirst(s)))) { s = seqNext(s); }
   const result: unknown[] = [];
@@ -445,7 +449,8 @@ export function drop_while(pred: (x: unknown) => unknown, coll: unknown): unknow
   return list(...result);
 }
 
-export function some(pred: (x: unknown) => unknown, coll: unknown): unknown {
+export function some(pred_: unknown, coll: unknown): unknown {
+  const pred = toFn(pred_);
   let s = seq(coll);
   while (s !== null) {
     const result = pred(seqFirst(s));
@@ -455,7 +460,8 @@ export function some(pred: (x: unknown) => unknown, coll: unknown): unknown {
   return null;
 }
 
-export function every_p(pred: (x: unknown) => unknown, coll: unknown): boolean {
+export function every_p(pred_: unknown, coll: unknown): boolean {
+  const pred = toFn(pred_);
   let s = seq(coll);
   while (s !== null) {
     if (!isTruthy(pred(seqFirst(s)))) return false;
@@ -464,12 +470,12 @@ export function every_p(pred: (x: unknown) => unknown, coll: unknown): boolean {
   return true;
 }
 
-export function not_every_p(pred: (x: unknown) => unknown, coll: unknown): boolean {
-  return !every_p(pred, coll);
+export function not_every_p(pred_: unknown, coll: unknown): boolean {
+  return !every_p(pred_, coll);
 }
 
-export function not_any_p(pred: (x: unknown) => unknown, coll: unknown): boolean {
-  return !some(pred, coll);
+export function not_any_p(pred_: unknown, coll: unknown): boolean {
+  return !some(pred_, coll);
 }
 
 export function sort(...args: unknown[]): unknown {
@@ -484,7 +490,8 @@ export function sort(...args: unknown[]): unknown {
   return list(...arr);
 }
 
-export function sort_by(keyfn: (x: unknown) => unknown, ...args: unknown[]): unknown {
+export function sort_by(keyfn_: unknown, ...args: unknown[]): unknown {
+  const keyfn = toFn(keyfn_);
   let comp: ((a: unknown, b: unknown) => number) | null = null;
   let coll: unknown;
   if (args.length === 1) { coll = args[0]; }
@@ -528,7 +535,8 @@ export function repeatedly(n: number, f: () => unknown): unknown {
   return list(...result);
 }
 
-export function group_by(f: (x: unknown) => unknown, coll: unknown): unknown {
+export function group_by(f_: unknown, coll: unknown): unknown {
+  const f = toFn(f_);
   let result = hm();
   let s = seq(coll);
   while (s !== null) {
@@ -730,7 +738,8 @@ export function concat(...colls: unknown[]): unknown {
 
 // -- Seq operations batch 2 --
 
-export function mapcat(f: (...args: unknown[]) => unknown, coll: unknown): unknown {
+export function mapcat(f_: unknown, coll: unknown): unknown {
+  const f = toFn(f_);
   const result: unknown[] = [];
   let s = seq(coll);
   while (s !== null) {
@@ -742,7 +751,8 @@ export function mapcat(f: (...args: unknown[]) => unknown, coll: unknown): unkno
   return list(...result);
 }
 
-export function map_indexed(f: (i: number, v: unknown) => unknown, coll: unknown): unknown {
+export function map_indexed(f_: unknown, coll: unknown): unknown {
+  const f = toFn(f_);
   const result: unknown[] = [];
   let s = seq(coll);
   let i = 0;
@@ -750,11 +760,13 @@ export function map_indexed(f: (i: number, v: unknown) => unknown, coll: unknown
   return list(...result);
 }
 
-export function remove(pred: (x: unknown) => unknown, coll: unknown): unknown {
+export function remove(pred_: unknown, coll: unknown): unknown {
+  const pred = toFn(pred_);
   return filter((x: unknown) => !isTruthy(pred(x)), coll);
 }
 
-export function keep(f: (x: unknown) => unknown, coll: unknown): unknown {
+export function keep(f_: unknown, coll: unknown): unknown {
+  const f = toFn(f_);
   const result: unknown[] = [];
   let s = seq(coll);
   while (s !== null) {
@@ -854,7 +866,8 @@ export function partition_all(n: number, coll: unknown): unknown {
   return list(...result);
 }
 
-export function partition_by(f: (x: unknown) => unknown, coll: unknown): unknown {
+export function partition_by(f_: unknown, coll: unknown): unknown {
+  const f = toFn(f_);
   const result: unknown[] = [];
   let current: unknown[] = [];
   let currentKey: unknown = undefined;
@@ -998,7 +1011,8 @@ export function drop_last(n: number, coll: unknown): unknown {
   return list(...arr.slice(0, Math.max(0, arr.length - n)));
 }
 
-export function keep_indexed(f: (i: number, v: unknown) => unknown, coll: unknown): unknown {
+export function keep_indexed(f_: unknown, coll: unknown): unknown {
+  const f = toFn(f_);
   const result: unknown[] = [];
   let s = seq(coll);
   let i = 0;
@@ -1113,8 +1127,25 @@ export function rsubseq(sc: unknown, toKey: unknown, inclusive = true): unknown[
 // -- More predicates --
 
 export function float_p(x: unknown): boolean { return typeof x === 'number' && !Number.isInteger(x); }
-export function ifn_p(x: unknown): boolean { return typeof x === 'function' || isKeyword(x) || isHashMap(x) || isHashSet(x); }
+export function ifn_p(x: unknown): boolean { return typeof x === 'function' || isKeyword(x) || isHashMap(x) || isHashSet(x) || isVector(x); }
 export function counted_p(x: unknown): boolean { return isVector(x) || isList(x) || isHashMap(x) || isHashSet(x) || isSortedMap(x) || isSortedSet(x) || typeof x === 'string'; }
+
+/** Invoke an IFn-compatible value. Handles functions, maps, sets, vectors, keywords. */
+export function invoke(f: unknown, ...args: unknown[]): unknown {
+  if (typeof f === 'function') return (f as Function)(...args);
+  if (isHashMap(f)) return get(f, args[0], args[1] !== undefined ? args[1] : null);
+  if (isHashSet(f)) return (f as PersistentHashSet).has(args[0]) ? args[0] : (args[1] !== undefined ? args[1] : null);
+  if (isVector(f) && typeof args[0] === 'number') return nth(f, args[0] as number);
+  if (isSortedMap(f)) return get(f, args[0], args[1] !== undefined ? args[1] : null);
+  if (isSortedSet(f)) return (f as PersistentTreeSet).has(args[0]) ? args[0] : null;
+  throw new Error(`${f} is not IFn`);
+}
+
+/** Wrap an IFn (map, set, vector, keyword) into a callable function. No-op if already a function. */
+function toFn(f: unknown): (...args: unknown[]) => unknown {
+  if (typeof f === 'function') return f as (...args: unknown[]) => unknown;
+  return (...args: unknown[]) => invoke(f, ...args);
+}
 export function realized_p(x: unknown): boolean { return x instanceof LazySeq ? (x as any).realized : true; }
 
 // -- Numeric --
