@@ -142,9 +142,9 @@
               done-count (count (filter :done ts))
               active (- total done-count)]
           [:div {:class "stats"}
-           [:stat-card {:label "Total" :count (str total) :color "#6366f1"}]
-           [:stat-card {:label "Active" :count (str active) :color "#f59e0b"}]
-           [:stat-card {:label "Done" :count (str done-count) :color "#10b981"}]]))
+           [::stat-card {:label "Total" :count (str total) :color "#6366f1"}]
+           [::stat-card {:label "Active" :count (str active) :color "#f59e0b"}]
+           [::stat-card {:label "Done" :count (str done-count) :color "#10b981"}]]))
 
       ;; Input row
       [:div {:class "input-row"}
