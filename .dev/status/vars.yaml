@@ -94,8 +94,8 @@ vars:
     "defmulti":       {type: macro, status: done}
     "defmethod":      {type: macro, status: done}
     "defmacro":       {type: macro, status: done, note: "via mini evaluator"}
-    "binding":        {type: macro, status: todo}
-    "with-redefs":    {type: macro, status: todo}
+    "binding":        {type: macro, status: done, note: "works with let-bound vars"}
+    "with-redefs":    {type: macro, status: done, note: "works with let-bound vars"}
     "while":          {type: macro, status: done}
 
     # === Functions — Arithmetic ===

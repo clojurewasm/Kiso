@@ -8,9 +8,9 @@ Session handover document. Read at session start.
 - Phases 1-11 complete (reader, macros, analyzer, codegen, runtime, evaluator, vite, su, CLI, state mgmt).
 - Vite plugin: .cljs transform + HMR + cross-file resolveId (`.js` → `.cljs`).
 - Examples: `examples/task-manager/` (single-file) + `examples/multi-ns-app/` (multi-file, nested dirs).
-- Total: 1325 vitest + 14 Playwright E2E, types clean.
+- Total: 1327 vitest + 14 Playwright E2E, types clean.
 - CI: `.github/workflows/ci.yml` (Node 20/22, typecheck + test).
-- Var coverage: `.dev/status/vars.yaml` — 326 done / 338 tracked (~96%).
+- Var coverage: `.dev/status/vars.yaml` — 328 done / 338 tracked (~97%).
 - **Checklist: K01-K14 all resolved.**
 
 ## Current Task
@@ -30,8 +30,8 @@ Phases 12-16 in roadmap. All complete. Now expanding var coverage.
 
 ## Next Steps
 
-- 4 remaining todos: binding, with-redefs (dynamic binding), sorted-map, sorted-set (new data structures)
-- These are advanced features; consider implementing or deferring based on user demand
+- 2 remaining todos: sorted-map, sorted-set (new data structures — deferred)
+- All other vars, macros, dynamic vars, and protocols are done
 
 ## Key Design References
 

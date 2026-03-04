@@ -268,6 +268,39 @@ describe('dotimes edge cases', () => {
   });
 });
 
+// ── binding ──
+
+describe('binding macro', () => {
+  it('expands to save/set/restore pattern', () => {
+    // binding works with let-bound vars (which are mutable in JS)
+    const code = `
+      (let [x 10
+            during (binding [x 42] x)
+            after x]
+        [during after])
+    `;
+    const result = run(code);
+    expect(result.nth(0)).toBe(42);
+    expect(result.nth(1)).toBe(10);
+  });
+});
+
+// ── with-redefs ──
+
+describe('with-redefs macro', () => {
+  it('expands to save/set/restore pattern', () => {
+    const code = `
+      (let [x "original"
+            during (with-redefs [x "replaced"] x)
+            after x]
+        [during after])
+    `;
+    const result = run(code);
+    expect(result.nth(0)).toBe('replaced');
+    expect(result.nth(1)).toBe('original');
+  });
+});
+
 // ── while ──
 
 describe('while macro', () => {

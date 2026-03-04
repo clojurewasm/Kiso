@@ -914,6 +914,60 @@ defmacro('dotimes', (items, form) => {
   ], ...loc(form));
 });
 
+defmacro('binding', (items, form) => {
+  // (binding [var val ...] body...)
+  // → (let* [old__0 var] (set! var val) (try (do body...) (finally (set! var old__0))))
+  const bindings = nth(items, 1);
+  if (bindings.data.type !== 'vector') throw new Error('binding requires a vector');
+  const body = items.slice(2);
+  const pairs: [Form, Form][] = [];
+  for (let i = 0; i + 1 < bindings.data.items.length; i += 2) {
+    pairs.push([bindings.data.items[i]!, bindings.data.items[i + 1]!]);
+  }
+  // Build inside-out: start with body, wrap each binding pair
+  let result: Form = body.length === 1 ? body[0]! : makeList([sym('do'), ...body], ...loc(form));
+  for (let i = pairs.length - 1; i >= 0; i--) {
+    const [varSym, val] = pairs[i]!;
+    const oldSym = sym(`binding__old${i}`);
+    result = makeList([
+      sym('let*'), makeVector([oldSym, varSym]),
+      makeList([sym('do'),
+        makeList([sym('set!'), varSym, val]),
+        makeList([sym('try'), result,
+          makeList([sym('finally'), makeList([sym('set!'), varSym, oldSym])]),
+        ]),
+      ]),
+    ], ...loc(form));
+  }
+  return result;
+});
+
+defmacro('with-redefs', (items, form) => {
+  // Same as binding — in single-threaded JS, with-redefs is the same as binding
+  const bindings = nth(items, 1);
+  if (bindings.data.type !== 'vector') throw new Error('with-redefs requires a vector');
+  const body = items.slice(2);
+  const pairs: [Form, Form][] = [];
+  for (let i = 0; i + 1 < bindings.data.items.length; i += 2) {
+    pairs.push([bindings.data.items[i]!, bindings.data.items[i + 1]!]);
+  }
+  let result: Form = body.length === 1 ? body[0]! : makeList([sym('do'), ...body], ...loc(form));
+  for (let i = pairs.length - 1; i >= 0; i--) {
+    const [varSym, val] = pairs[i]!;
+    const oldSym = sym(`redef__old${i}`);
+    result = makeList([
+      sym('let*'), makeVector([oldSym, varSym]),
+      makeList([sym('do'),
+        makeList([sym('set!'), varSym, val]),
+        makeList([sym('try'), result,
+          makeList([sym('finally'), makeList([sym('set!'), varSym, oldSym])]),
+        ]),
+      ]),
+    ], ...loc(form));
+  }
+  return result;
+});
+
 defmacro('while', (items, form) => {
   // (while test body...) → (loop* [] (if test (do body... (recur)) nil))
   const test = nth(items, 1);
