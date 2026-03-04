@@ -19,9 +19,18 @@
   "files": [
     "dist/"
   ],
-  "publishConfig": { "access": "public" },
-  "repository": { "type": "git", "url": "https://github.com/clojurewasm/Kiso.git", "directory": "packages/kiso" },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/clojurewasm/Kiso.git",
+    "directory": "packages/kiso"
+  },
   "homepage": "https://github.com/clojurewasm/Kiso",
   "author": "chaploud",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^25.3.3"
+  }
 }
