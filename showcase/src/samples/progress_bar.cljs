@@ -51,18 +51,19 @@
      (fn []
        (when @timer-id
          (js/clearInterval @timer-id))))
-    [:div
-     [:div {:class "pct"} (fn [] (str @pct "%"))]
-     [:div {:class "track"}
-      [:div {:class "fill"
-             :style (fn [] {:width (str @pct "%")})}]]
-     [:div {:class "controls"}
-      [:button {:class "btn"
-                :on-click (fn [_] (swap! pct (fn [p] (min 100 (+ p 10)))))}
-       "+10%"]
-      [:button {:class "btn reset"
-                :on-click (fn [_] (reset! pct 0))}
-       "Reset"]]]))
+    (fn []
+      [:div
+       [:div {:class "pct"} (str @pct "%")]
+       [:div {:class "track"}
+        [:div {:class "fill"
+               :style {:width (str @pct "%")}}]]
+       [:div {:class "controls"}
+        [:button {:class "btn"
+                  :on-click (fn [_] (swap! pct (fn [p] (min 100 (+ p 10)))))}
+         "+10%"]
+        [:button {:class "btn reset"
+                  :on-click (fn [_] (reset! pct 0))}
+         "Reset"]]])))
 
 (defn mount! [container]
   (su/mount container [::sample-progress]))

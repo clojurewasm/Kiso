@@ -47,20 +47,21 @@
   {:style [accordion-styles]}
   []
   (let [open-idx (atom #{})]
-    [:div
-     (map-indexed
-      (fn [i item]
-        [:div {:class "item"}
-         [:div {:class "header"
-                :on-click (fn [_]
-                            (swap! open-idx
-                                   (fn [s] (if (s i) (disj s i) (conj s i)))))}
-          (:title item)
-          [:span {:class (fn [] (str "arrow" (when (@open-idx i) " open")))}
-           "\u25B6"]]
-         [:div {:class (fn [] (str "body" (when (@open-idx i) " open")))}
-          (:content item)]])
-      faq-items)]))
+    (fn []
+      [:div
+       (map-indexed
+        (fn [i item]
+          [:div {:class "item"}
+           [:div {:class "header"
+                  :on-click (fn [_]
+                              (swap! open-idx
+                                     (fn [s] (if (s i) (disj s i) (conj s i)))))}
+            (:title item)
+            [:span {:class (str "arrow" (when (@open-idx i) " open"))}
+             "\u25B6"]]
+           [:div {:class (str "body" (when (@open-idx i) " open"))}
+            (:content item)]])
+        faq-items)])))
 
 (defn mount! [container]
   (su/mount container [::sample-accordion]))

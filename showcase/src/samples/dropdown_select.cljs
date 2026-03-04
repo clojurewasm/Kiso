@@ -60,30 +60,30 @@
   []
   (let [open (atom false)
         selected (atom nil)]
-    [:div
-     [:div {:class "label"} "Choose a framework:"]
-     [:div {:class "select"}
-      [:button {:class "trigger"
-                :on-click (fn [_] (swap! open not))}
-       (fn []
-         (let [sel @selected
-               label (if sel
-                       (:label (first (filter (fn [o] (= (:value o) sel)) options)))
-                       "Select...")]
-           [:span label]))
-       [:span {:class "arrow"} "\u25BC"]]
-      (fn []
-        (when @open
-          [:div {:class "menu"}
-           (map (fn [opt]
-                  [:div {:class (fn [] (str "option" (when (= @selected (:value opt)) " selected")))
-                         :on-click (fn [_]
-                                     (reset! selected (:value opt))
-                                     (reset! open false))}
-                   (:label opt)])
-                options)]))]
-     [:div {:class "selected-display"}
-      (fn [] (str "Selected: " (or @selected "none")))]]))
+    (fn []
+      (let [sel @selected
+            is-open @open
+            sel-label (if sel
+                        (:label (first (filter (fn [o] (= (:value o) sel)) options)))
+                        "Select...")]
+        [:div
+         [:div {:class "label"} "Choose a framework:"]
+         [:div {:class "select"}
+          [:button {:class "trigger"
+                    :on-click (fn [_] (swap! open not))}
+           [:span sel-label]
+           [:span {:class "arrow"} "\u25BC"]]
+          (when is-open
+            [:div {:class "menu"}
+             (map (fn [opt]
+                    [:div {:class (str "option" (when (= sel (:value opt)) " selected"))
+                           :on-click (fn [_]
+                                       (reset! selected (:value opt))
+                                       (reset! open false))}
+                     (:label opt)])
+                  options)])]
+         [:div {:class "selected-display"}
+          (str "Selected: " (or sel "none"))]]))))
 
 (defn mount! [container]
   (su/mount container [::sample-dropdown]))

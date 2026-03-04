@@ -71,3 +71,80 @@ Custom Element names require a hyphen (web standard). `(defc counter ...)` fails
 `defc` web components use Shadow DOM — elements inside are invisible to `document.querySelector`.
 **Workaround**: For the showcase shell, use plain DOM manipulation instead of `defc`.
 Su components are only used for the sample demos themselves (counter, todo, task-manager).
+
+---
+
+## Round 2: Content Expansion (2026-03-05)
+
+Added 9 code samples, 7 interactive components, 8 example projects.
+
+### 7. `:class` / `:style` as function values silently ignored (hiccup.ts)
+
+**Severity**: High — silent rendering failure (no error, just missing attributes)
+
+**Symptom**: `{:class (fn [] (str "track" (when @active " on")))}` renders the element
+without any `class` attribute. No error thrown.
+
+**Root cause**: `applyAttrs` in `hiccup.ts` only handles:
+- `:class` → `string`
+- `:style` → `object` (plain map)
+
+Function values are silently skipped by the `if (typeof val === 'string')` guard.
+
+**Temporary workaround**: Wrap the entire hiccup subtree in a reactive `(fn [] ...)`:
+
+```clojure
+;; BROKEN — class is silently dropped
+[:div {:class (fn [] (str "active" (when @flag " on")))}]
+
+;; WORKAROUND — reactive fn re-creates hiccup on change
+(fn []
+  [:div {:class (str "active" (when @flag " on"))}])
+```
+
+**NOTE**: This is a regression / missing feature, NOT the intended design.
+The `defc` macro was specifically designed so users don't need to wrap in `(fn [] ...)`.
+The reactive attribute binding (`:class`, `:style` as functions) should be implemented
+properly in `applyAttrs` / `hiccup.ts` so that the ergonomic pattern works:
+
+```clojure
+;; DESIRED — should work with reactive attr binding
+(defc my-toggle []
+  (let [active (atom false)]
+    [:div {:class (fn [] (str "track" (when @active " on")))}]))
+```
+
+**Design consideration** — how to implement reactive attribute functions:
+
+| Option   | Description                                                       | Pros                              | Cons                                   |
+|----------|-------------------------------------------------------------------|-----------------------------------|----------------------------------------|
+| Option A | Reactive attrs via `effect()` per attribute                       | Ergonomic, fine-grained updates   | Complexity, many effects per component |
+| Option B | Keep current model, document `(fn [] hiccup)` pattern             | Simple, works today               | Less ergonomic, re-renders subtree     |
+| Option C | Support `:class` and `:style` as functions only (common patterns) | Targeted, low risk                | Inconsistent (why only those two?)     |
+
+**Affected**: toggle_switch, accordion, tabs, progress_bar, dropdown_select, pomodoro-timer.
+
+### 8. `clojure.string :as str` collision with runtime `str` (emitter.ts)
+
+**Severity**: High — build failure ("Identifier str has already been declared")
+
+**Symptom**: Files using `(:require [clojure.string :as str])` AND core `str` function
+fail at Rollup/Vite build time due to duplicate `str` identifier.
+
+**Root cause**: `emitModuleWithMappings()` collision detection only checked `userDefs`
+(top-level def names) but NOT namespace alias names.
+
+**Fix**: Added ns alias values to collision detection set in `emitter.ts:130-136`.
+Now emits `import { str as _rt_str } from '@clojurewasm/kiso/runtime'`.
+
+**Test**: `test/api/compiler.test.ts` — "aliases runtime import when ns alias collides"
+
+### 9. `innerHTML` not supported in su hiccup
+
+**Severity**: Low — design choice, not a bug
+
+su's hiccup renderer doesn't handle innerHTML as a special attribute.
+The markdown-editor example was reworked to produce hiccup directly (md to hiccup vectors).
+
+For cases where raw HTML insertion is needed, use `set!` on the DOM element via interop
+after mount.

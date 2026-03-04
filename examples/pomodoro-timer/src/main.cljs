@@ -89,18 +89,19 @@
               (reset! running false)
               (reset! is-work true)
               (reset! remaining work-secs))]
-      [:div {:class "card"}
-       [:div {:class (fn [] (str "mode" (if @is-work " work" " break-mode")))}
-        (fn [] (if @is-work "Work" "Break"))]
-       [:div {:class "time"} (fn [] (format-time @remaining))]
-       [:div {:class "controls"}
-        [:button {:class "btn btn-start"
-                  :on-click (fn [_] (toggle!))}
-         (fn [] (if @running "Pause" "Start"))]
-        [:button {:class "btn btn-reset"
-                  :on-click (fn [_] (reset-timer!))}
-         "Reset"]]
-       [:div {:class "sessions"}
-        (fn [] (str "Sessions completed: " @sessions))]])))
+      (fn []
+        [:div {:class "card"}
+         [:div {:class (str "mode" (if @is-work " work" " break-mode"))}
+          (if @is-work "Work" "Break")]
+         [:div {:class "time"} (format-time @remaining)]
+         [:div {:class "controls"}
+          [:button {:class "btn btn-start"
+                    :on-click (fn [_] (toggle!))}
+           (if @running "Pause" "Start")]
+          [:button {:class "btn btn-reset"
+                    :on-click (fn [_] (reset-timer!))}
+           "Reset"]]
+         [:div {:class "sessions"}
+          (str "Sessions completed: " @sessions)]]))))
 
 (su/mount (js/document.getElementById "app") [::pomodoro-app])
