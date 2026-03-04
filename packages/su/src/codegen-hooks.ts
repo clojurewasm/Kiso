@@ -46,11 +46,12 @@ const defineComponentHook: CodegenHook = (args, helpers) => {
   const [nameNode, configNode, renderFnNode] = args;
   if (!nameNode || !renderFnNode) return helpers.emit({ type: 'literal', value: null, jsType: 'null' });
 
+  const su = helpers.nsRef('su.core');
   const name = helpers.emit(nameNode);
   const config = configNode ? emitStatic(configNode, helpers) : '{}';
   const renderFn = helpers.emit(renderFnNode);
 
-  return `su.defineComponent(${name}, ${config}, ${renderFn})`;
+  return `${su}.defineComponent(${name}, ${config}, ${renderFn})`;
 };
 
 // Hook for su.core/create-stylesheet(name, cssText)
@@ -58,7 +59,8 @@ const createStylesheetHook: CodegenHook = (args, helpers) => {
   const [nameNode, cssNode] = args;
   if (!nameNode || !cssNode) return helpers.emit({ type: 'literal', value: null, jsType: 'null' });
 
-  return `su.createSheet(${helpers.emit(nameNode)}, ${helpers.emit(cssNode)})`;
+  const su = helpers.nsRef('su.core');
+  return `${su}.createSheet(${helpers.emit(nameNode)}, ${helpers.emit(cssNode)})`;
 };
 
 /** All su codegen hooks, keyed by fully-qualified Clojure name. */

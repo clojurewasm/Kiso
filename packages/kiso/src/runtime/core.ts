@@ -642,6 +642,23 @@ export function not_empty(coll: unknown): unknown {
   return count(coll) === 0 ? null : coll;
 }
 
+export function empty_p(coll: unknown): boolean {
+  return !seq(coll);
+}
+
+export function concat(...colls: unknown[]): unknown {
+  const items: unknown[] = [];
+  for (const coll of colls) {
+    let s = seq(coll);
+    while (s !== null) {
+      items.push(seqFirst(s));
+      s = seqNext(s);
+    }
+  }
+  if (items.length === 0) return EMPTY_LIST;
+  return list(...items);
+}
+
 // -- Seq operations batch 2 --
 
 export function mapcat(f: (...args: unknown[]) => unknown, coll: unknown): unknown {

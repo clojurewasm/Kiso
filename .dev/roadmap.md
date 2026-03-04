@@ -31,9 +31,11 @@ Monorepo: `@clojurewasm/kiso` (compiler + runtime), `@clojurewasm/su` (component
 | 22    | Performance Benchmarks | DONE   | Vitest bench suite, baseline measurements                 |
 | 23    | npm Publish Prep       | DONE   | Keywords, export map, build verification, dry-run         |
 
-Phases 1-23 complete. 1388 vitest + 14 Playwright E2E tests. Types clean.
+Phases 1-23 complete. 1403 vitest + 14 Playwright E2E tests. Types clean.
 Var coverage: 330/330 (100%). All vars implemented.
 Design: `.dev/design/08-quality-and-ecosystem.md` (Q1-Q7 details).
+
+| 24    | Release Polish         | WIP    | Codegen readability, WC emit, CI, bundle, docs, quality  |
 
 ## Phase 1: Reader — DONE
 
@@ -266,6 +268,18 @@ Prepare packages for npm registry.
 - 23.2 ~~Export map validation (added sorted-map, sorted-set, transient)~~ DONE
 - 23.3 ~~Build verification (tsc build, dist/ output checked)~~ DONE
 - 23.4 ~~Publish dry-run (kiso: 136KB/178 files, su: 16KB/41 files)~~ DONE
+
+## Phase 24: Release Polish — WIP
+
+Pre-release quality improvements across codegen, CI, documentation, and general quality.
+
+- 24.1 Codegen audit script (`.dev/scripts/compile-samples.mjs`)
+- 24.2 Codegen readability improvements (formatting, IIFE reduction, CSS multiline)
+- 24.3 Web Components class emit evaluation (defc → `class extends HTMLElement`)
+- 24.4 CI improvements (E2E Playwright job, bundle size check)
+- 24.5 Bundle size measurement and README documentation
+- 24.6 Documentation + examples update (docstring, defstyle D11, latest API)
+- 24.7 General quality audit and fixes
 
 ## Known Gaps / Future Work
 

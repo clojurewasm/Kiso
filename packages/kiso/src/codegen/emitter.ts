@@ -14,6 +14,7 @@ export type CodegenHelpers = {
   indent: string;
   deeper: () => CodegenHelpers;
   extractLiteral: (node: Node) => unknown | null;
+  nsRef: (ns: string) => string;
 };
 
 export type CodegenHook = (args: Node[], helpers: CodegenHelpers) => string;
@@ -24,6 +25,7 @@ type EmitCtx = {
   indent: number; // indentation level (0 = top-level)
   hooks?: Map<string, CodegenHook>;
   runtimeAliases?: Map<string, string>; // munged-name → alias for collided imports
+  autoImports?: Map<string, string>; // ns → auto-alias for hook-referenced namespaces
 };
 
 const DEFAULT_CTX: EmitCtx = { loopBindings: null, nsAliases: new Map(), indent: 0 };
@@ -45,6 +47,13 @@ function emitNode(node: Node, ctx: EmitCtx): string {
         const local = node.name.slice(slashIdx + 1);
         const alias = ctx.nsAliases?.get(ns);
         if (alias) return `${alias}.${munge(local)}`;
+        // No explicit alias: auto-generate namespace import
+        if (ctx.autoImports) {
+          if (!ctx.autoImports.has(ns)) {
+            ctx.autoImports.set(ns, ns.replace(/\./g, '_'));
+          }
+          return `${ctx.autoImports.get(ns)!}.${munge(local)}`;
+        }
       }
       const munged = munge(node.name);
       // Use aliased import for runtime functions that collide with user defs
@@ -121,7 +130,11 @@ export function emitModuleWithMappings(nodes: Node[], hooks?: Map<string, Codege
     }
   }
 
-  const ctx: EmitCtx = { loopBindings: null, nsAliases, indent: 0, hooks, runtimeAliases };
+  const autoImports = new Map<string, string>();
+  const ctx: EmitCtx = { loopBindings: null, nsAliases, indent: 0, hooks, runtimeAliases, autoImports };
+
+  // Extract the current ns name for resolving auto-import paths
+  const currentNs = nodes.find(n => n.type === 'ns')?.name ?? '';
 
   const allSegments = nodes.map(n => emitTopLevelCtx(n, ctx));
   // Track which node indices produced non-empty output
@@ -136,13 +149,23 @@ export function emitModuleWithMappings(nodes: Node[], hooks?: Map<string, Codege
 
   // Auto-import runtime functions (with aliases for collisions)
   let importOffset = 0;
+  const preambleLines: string[] = [];
   if (runtimeImports.length > 0) {
     const importParts = runtimeImports.map(name =>
       runtimeAliases.has(name) ? `${name} as ${runtimeAliases.get(name)!}` : name,
     );
-    const importLine = `import { ${importParts.join(', ')} } from '@clojurewasm/kiso/runtime';`;
-    segments.unshift(importLine);
-    importOffset = 2; // import line + blank line from \n\n join
+    preambleLines.push(`import { ${importParts.join(', ')} } from '@clojurewasm/kiso/runtime';`);
+  }
+
+  // Auto-generate namespace imports for hook-referenced namespaces
+  for (const [ns, alias] of autoImports) {
+    const path = nsToPath(currentNs, ns);
+    preambleLines.push(`import * as ${alias} from '${path}';`);
+  }
+
+  if (preambleLines.length > 0) {
+    segments.unshift(preambleLines.join('\n'));
+    importOffset = preambleLines.join('\n').split('\n').length + 1;
   }
 
   // Compute line offsets for each non-empty top-level node
@@ -219,6 +242,15 @@ function makeHelpers(ctx: EmitCtx): CodegenHelpers {
     indent: ind(ctx),
     deeper: () => makeHelpers(deeper(ctx)),
     extractLiteral: (node: Node) => node.type === 'literal' ? node.value : null,
+    nsRef: (ns: string) => {
+      const alias = ctx.nsAliases?.get(ns);
+      if (alias) return alias;
+      if (ctx.autoImports?.has(ns)) return ctx.autoImports.get(ns)!;
+      // Auto-generate alias: "su.core" → "su_core"
+      const autoAlias = ns.replace(/\./g, '_');
+      ctx.autoImports?.set(ns, autoAlias);
+      return autoAlias;
+    },
   };
 }
 
@@ -613,10 +645,10 @@ function nsToPath(currentNs: string, targetNs: string): string {
 const RUNTIME_FUNCTIONS = new Set([
   'atom', 'deref', 'reset!', 'swap!', 'isAtom',
   'cons', 'first', 'rest', 'count', 'list', 'seq', 'next',
-  'conj', 'get', 'assoc', 'dissoc',
+  'conj', 'get', 'assoc', 'dissoc', 'into', 'concat',
   'str', 'map', 'filter', 'reduce', 'apply',
   'identity', 'constantly', 'comp', 'partial',
-  'not', 'nil?', 'some?',
+  'not', 'nil?', 'some?', 'empty?',
   'inc', 'dec', 'zero?', 'pos?', 'neg?',
   'number?', 'string?', 'boolean?',
   'equiv', 'symbol', 'name',
@@ -681,7 +713,7 @@ const RUNTIME_FUNCTIONS = new Set([
   // Transient collections
   'transient', 'persistent!', 'conj!', 'assoc!', 'dissoc!', 'disj!',
   // Metadata
-  'meta', 'with-meta', 'vary-meta',
+  'meta', 'with-meta', 'vary-meta', 'alter-meta!', 'reset-meta!',
 ]);
 
 /** Scan AST for runtime function usage and return needed import names. */
