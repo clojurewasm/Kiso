@@ -234,6 +234,10 @@ function emitInteropTarget(target: Node, ctx: EmitCtx): string {
 
 function emitLiteral(node: { value: unknown; jsType: string }): string {
   if (node.value === null) return 'null';
+  if (node.jsType === 'regex') {
+    const escaped = String(node.value).replace(/(?<!\\)\//g, '\\/');
+    return `/${escaped}/`;
+  }
   if (typeof node.value === 'string') return JSON.stringify(node.value);
   if (typeof node.value === 'bigint') return `${node.value}n`;
   return String(node.value);

@@ -102,3 +102,21 @@ describe('generate', () => {
     expect(js).toBe('42');
   });
 });
+
+describe('regex literals', () => {
+  it('compiles regex literal to JS RegExp', () => {
+    const result = compile('#"\\n"');
+    expect(result.code).toContain('/\\n/');
+    expect(result.code).not.toContain('"\\\\n"');
+  });
+
+  it('compiles regex with special chars', () => {
+    const result = compile('#"[a-z]+"');
+    expect(result.code).toContain('/[a-z]+/');
+  });
+
+  it('escapes forward slashes in regex pattern', () => {
+    const result = compile('#"a/b"');
+    expect(result.code).toContain('/a\\/b/');
+  });
+});

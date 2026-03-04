@@ -58,7 +58,7 @@ export class Analyzer {
       case 'map': return this.analyzeMapLiteral(form, scope);
       case 'set': return { type: 'set', items: form.data.items.map((f) => this.analyzeForm(f, scope)) };
       case 'list': return this.analyzeList(form, scope);
-      case 'regex': return lit(form.data.pattern, 'string'); // simplified: regex as string
+      case 'regex': return lit(form.data.pattern, 'regex');
       case 'ratio': return lit(parseInt(form.data.numerator) / parseInt(form.data.denominator), 'number');
       case 'tagged': return this.analyzeForm(form.data.form, scope); // simplified: unwrap tagged
     }

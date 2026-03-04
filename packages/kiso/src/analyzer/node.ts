@@ -36,7 +36,7 @@ export type Node =
 export type LiteralNode = {
   type: 'literal';
   value: null | boolean | number | bigint | string;
-  jsType: 'null' | 'boolean' | 'number' | 'bigint' | 'string';
+  jsType: 'null' | 'boolean' | 'number' | 'bigint' | 'string' | 'regex';
 };
 
 export type KeywordNode = { type: 'keyword'; ns: string | null; name: string };
