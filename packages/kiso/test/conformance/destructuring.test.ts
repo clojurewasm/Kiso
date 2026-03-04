@@ -95,7 +95,7 @@ describe('nested sequential destructuring', () => {
 // ── Nested associative destructuring ──
 
 describe('nested associative destructuring', () => {
-  it.skip('nested map destructuring (K13: not yet implemented)', () => {
+  it('nested map destructuring', () => {
     const code = `(let [{{:keys [x]} :inner} {:inner {:x 42}}] x)`;
     expect(run(code)).toBe(42);
   });
@@ -105,7 +105,7 @@ describe('nested associative destructuring', () => {
     expect(run(code)).toBe(30);
   });
 
-  it.skip('vector inside map (K13: not yet implemented)', () => {
+  it('vector inside map', () => {
     const code = `(let [{[a b] :pair} {:pair [10 20]}] (+ a b))`;
     expect(run(code)).toBe(30);
   });

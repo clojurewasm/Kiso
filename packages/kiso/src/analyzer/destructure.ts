@@ -220,6 +220,14 @@ function expandAssociative(
           scope.locals.add(b.name);
         }
       }
+    } else if (val && val.data.type === 'keyword' && (key.data.type === 'map' || key.data.type === 'vector')) {
+      // Nested: {{:keys [x]} :inner} or {[a b] :pair} → (get map :inner) then recurse
+      const getCall = makeGetKeywordCall(mapRef, val.data.name, val.data.ns, null, analyzeForm, scope);
+      const expanded = expandBinding(key, getCall, analyzeForm, scope);
+      for (const b of expanded) {
+        bindings.push(b);
+        scope.locals.add(b.name);
+      }
     }
   }
 
