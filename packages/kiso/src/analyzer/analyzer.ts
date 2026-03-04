@@ -135,12 +135,20 @@ export class Analyzer {
   // -- Special Forms --
 
   private analyzeDef(items: Form[], scope: Scope): DefNode {
+    if (items.length > 4) throw new Error('Too many arguments to def');
     const nameSym = items[1]!;
     if (nameSym.data.type !== 'symbol') throw new Error('def requires a symbol');
     const name = nameSym.data.name;
-    const init = items.length > 2 ? this.analyzeForm(items[2]!, scope) : null;
+    let doc: string | null = null;
+    let initIdx = 2;
+    if (items.length === 4) {
+      if (items[2]!.data.type !== 'string') throw new Error('def docstring must be a string');
+      doc = items[2]!.data.value;
+      initIdx = 3;
+    }
+    const init = items.length > initIdx ? this.analyzeForm(items[initIdx]!, scope) : null;
     scope.locals.add(name);
-    return { type: 'def', name, init };
+    return { type: 'def', name, init, doc };
   }
 
   private analyzeIf(items: Form[], scope: Scope): Node {

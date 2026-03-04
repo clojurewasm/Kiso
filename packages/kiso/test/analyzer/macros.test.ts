@@ -162,7 +162,7 @@ describe('defn', () => {
   });
 
   it('handles docstring', () => {
-    expect(ex('(defn f "docs" [x] x)')).toBe('(def f (fn* f [x] x))');
+    expect(ex('(defn f "docs" [x] x)')).toBe('(def f "docs" (fn* f [x] x))');
   });
 
   it('handles multi-arity', () => {

@@ -441,15 +441,22 @@ defmacro('defn-', (items, form) => expandDefn(items, form));
 
 function expandDefn(items: Form[], form: Form): Form {
   // (defn name docstring? attr-map? [params] body...)
-  // → (def name (fn* name [params] body...))
+  // → (def name "doc" (fn* name [params] body...))  or  (def name (fn* ...))
   let idx = 1;
   const name = nth(items, idx++);
-  // Skip docstring
-  if (idx < items.length && items[idx]!.data.type === 'string') idx++;
+  // Capture docstring
+  let docForm: Form | null = null;
+  if (idx < items.length && items[idx]!.data.type === 'string') {
+    docForm = items[idx]!;
+    idx++;
+  }
   // Skip attr-map
   if (idx < items.length && items[idx]!.data.type === 'map') idx++;
   const fnBody = items.slice(idx);
   const fnForm = makeList([sym('fn*'), name, ...fnBody]);
+  if (docForm) {
+    return makeList([sym('def'), name, docForm, fnForm], ...loc(form));
+  }
   return makeList([sym('def'), name, fnForm], ...loc(form));
 }
 
@@ -1279,16 +1286,22 @@ function extractKeysFromDestructure(mapForm: Form): string[] {
 // -- defstyle macro --
 
 defmacro('defstyle', (items, form) => {
-  // (defstyle name [rule1] [rule2] ...)  or  (defstyle name [all-rules])
+  // (defstyle name "doc"? [rule1] [rule2] ...)  or  (defstyle name [all-rules])
   // → (su.core/create-stylesheet "name" "css-text")
   const nameForm = nth(items, 1);
   if (nameForm.data.type !== 'symbol') {
     throw new Error('defstyle: name must be a symbol');
   }
 
-  // Collect all CSS rule vectors from index 2 onwards
+  // Skip optional docstring
+  let startIdx = 2;
+  if (startIdx < items.length && items[startIdx]!.data.type === 'string') {
+    startIdx++;
+  }
+
+  // Collect all CSS rule vectors
   const cssRules: Form[] = [];
-  for (let i = 2; i < items.length; i++) {
+  for (let i = startIdx; i < items.length; i++) {
     cssRules.push(items[i]!);
   }
   if (cssRules.length === 0) {

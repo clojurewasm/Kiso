@@ -756,3 +756,45 @@ describe('auto-resolve keywords (::)', () => {
     expect(code).toContain('keyword("b", "my.app")');
   });
 });
+
+describe('docstring', () => {
+  it('def with 4-arg docstring emits JSDoc', () => {
+    const js = compile('(def x "my docstring" 42)');
+    expect(js).toBe('/** my docstring */\nlet x = 42');
+  });
+
+  it('def with 3-arg string is init, not docstring', () => {
+    const js = compile('(def x "not a doc")');
+    expect(js).toBe('let x = "not a doc"');
+  });
+
+  it('def with 2-arg has no doc', () => {
+    const js = compile('(def x)');
+    expect(js).toBe('let x = null');
+  });
+
+  it('def with 5+ args throws error', () => {
+    expect(() => compile('(def x "doc" 42 extra)')).toThrow('Too many arguments to def');
+  });
+
+  it('def with 4-arg non-string third arg is error', () => {
+    // 4 args but items[2] is not a string → invalid (no init without doc in 4-arg form)
+    expect(() => compile('(def x 42 43)')).toThrow();
+  });
+
+  it('def docstring in module emits export with JSDoc', () => {
+    const js = compileModule('(ns my.app)\n(def x "documented var" 42)');
+    expect(js).toContain('/** documented var */\nexport let x = 42;');
+  });
+
+  it('defn docstring emits JSDoc on def', () => {
+    const js = compile('(defn greet "Says hello" [name] name)');
+    expect(js).toContain('/** Says hello */');
+    expect(js).toContain('let greet =');
+  });
+
+  it('defn without docstring has no JSDoc', () => {
+    const js = compile('(defn greet [name] name)');
+    expect(js).not.toContain('/**');
+  });
+});

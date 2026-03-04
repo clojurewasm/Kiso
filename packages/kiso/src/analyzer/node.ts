@@ -55,7 +55,7 @@ export type FnNode = {
   name: string | null;
   arities: FnArity[];
 };
-export type DefNode = { type: 'def'; name: string; init: Node | null };
+export type DefNode = { type: 'def'; name: string; init: Node | null; doc: string | null };
 export type RecurNode = { type: 'recur'; args: Node[] };
 export type LoopNode = { type: 'loop'; bindings: LetBinding[]; body: Node };
 export type ThrowNode = { type: 'throw'; expr: Node };
