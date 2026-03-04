@@ -663,6 +663,202 @@ defmacro('time', (items, form) => {
   ], ...loc(form));
 });
 
+// ── Sequence comprehensions ──
+
+// Parse a for/doseq binding vector into segments:
+// [sym coll :when pred :let [bindings] :while pred ...]
+// Returns array of { type, ... } segments.
+type BindSeg =
+  | { type: 'bind'; name: Form; coll: Form }
+  | { type: 'when'; pred: Form }
+  | { type: 'let'; bindings: Form }
+  | { type: 'while'; pred: Form };
+
+function parseSeqBindings(items: Form[]): BindSeg[] {
+  const segs: BindSeg[] = [];
+  let i = 0;
+  while (i < items.length) {
+    const item = items[i]!;
+    if (item.data.type === 'keyword') {
+      const mod = item.data.name;
+      const val = items[i + 1]!;
+      if (mod === 'when') segs.push({ type: 'when', pred: val });
+      else if (mod === 'let') segs.push({ type: 'let', bindings: val });
+      else if (mod === 'while') segs.push({ type: 'while', pred: val });
+      i += 2;
+    } else {
+      // binding pair: name coll
+      segs.push({ type: 'bind', name: item, coll: items[i + 1]! });
+      i += 2;
+    }
+  }
+  return segs;
+}
+
+let doseqCounter = 0;
+
+// Build a single-level doseq loop: iterate seq, apply modifiers, execute inner
+function buildDoseqLoop(
+  segs: BindSeg[], segIdx: number, inner: Form, form: Form,
+): Form {
+  // Find the next binding segment from segIdx onward
+  // Collect modifiers that apply before the next binding
+  if (segIdx >= segs.length) return inner;
+
+  const seg = segs[segIdx]!;
+  if (seg.type === 'when') {
+    // (if (truthy pred) rest nil)
+    const rest = buildDoseqLoop(segs, segIdx + 1, inner, form);
+    return makeList([
+      sym('if'), seg.pred, rest, makeNil(),
+    ], ...loc(form));
+  }
+  if (seg.type === 'while') {
+    // (if (truthy pred) rest nil) — :while stops iteration at loop level
+    // For doseq, :while is like :when but we need to break the loop.
+    // We handle this by returning a sentinel in the loop.
+    // Simpler: just treat as :when for now (different from CLJS which breaks outer loop).
+    // Actually, :while should stop the current iteration level entirely.
+    // We'll use a flag approach: wrap in if, else return sentinel symbol.
+    const rest = buildDoseqLoop(segs, segIdx + 1, inner, form);
+    return makeList([
+      sym('if'), seg.pred, rest,
+      makeList([sym('js*'), makeStr('"__while_break__"')]),
+    ], ...loc(form));
+  }
+  if (seg.type === 'let') {
+    // (let* bindings rest)
+    const rest = buildDoseqLoop(segs, segIdx + 1, inner, form);
+    return makeList([sym('let*'), seg.bindings, rest], ...loc(form));
+  }
+  // seg.type === 'bind' — new iteration level
+  const id = doseqCounter++;
+  const sSym = sym(`ds__s${id}`);
+  const rest = buildDoseqLoop(segs, segIdx + 1, inner, form);
+  // (loop* [s (seq coll)]
+  //   (if s
+  //     (let* [name (first s)]
+  //       (do rest (recur (next s))))
+  //     nil))
+  return makeList([
+    sym('loop*'),
+    makeVector([sSym, makeList([sym('seq'), seg.coll])]),
+    makeList([
+      sym('if'), sSym,
+      makeList([
+        sym('let*'),
+        makeVector([seg.name, makeList([sym('first'), sSym])]),
+        makeList([sym('do'), rest,
+          makeList([sym('recur'), makeList([sym('next'), sSym])])]),
+      ]),
+      makeNil(),
+    ]),
+  ], ...loc(form));
+}
+
+defmacro('doseq', (items, form) => {
+  // (doseq [bindings...] body...)
+  const bindings = nth(items, 1);
+  if (bindings.data.type !== 'vector') throw new Error('doseq requires a vector');
+  const body = items.slice(2);
+  const bodyForm = body.length === 1 ? body[0]! : makeList([sym('do'), ...body], ...loc(form));
+  const segs = parseSeqBindings(bindings.data.items);
+  return buildDoseqLoop(segs, 0, bodyForm, form);
+});
+
+let forCounter = 0;
+
+function buildForLoop(
+  segs: BindSeg[], segIdx: number, bodyExpr: Form, resultSym: Form, form: Form,
+): Form {
+  if (segIdx >= segs.length) {
+    // Push body result onto the result array
+    // (js* "resultSym.push(bodyExpr)")
+    // We need to emit: resultSym.push(value)
+    // Use (do (let* [v body] (js* "resultSym.push(v)")))
+    const vSym = sym(`for__v${forCounter++}`);
+    return makeList([
+      sym('let*'),
+      makeVector([vSym, bodyExpr]),
+      makeList([sym('js*'), makeStr(`${(resultSym.data as { name: string }).name}.push(${(vSym.data as { name: string }).name})`)]),
+    ], ...loc(form));
+  }
+
+  const seg = segs[segIdx]!;
+  if (seg.type === 'when') {
+    const rest = buildForLoop(segs, segIdx + 1, bodyExpr, resultSym, form);
+    return makeList([
+      sym('if'), seg.pred, rest, makeNil(),
+    ], ...loc(form));
+  }
+  if (seg.type === 'while') {
+    const rest = buildForLoop(segs, segIdx + 1, bodyExpr, resultSym, form);
+    return makeList([
+      sym('if'), seg.pred, rest,
+      makeList([sym('js*'), makeStr('"__while_break__"')]),
+    ], ...loc(form));
+  }
+  if (seg.type === 'let') {
+    const rest = buildForLoop(segs, segIdx + 1, bodyExpr, resultSym, form);
+    return makeList([sym('let*'), seg.bindings, rest], ...loc(form));
+  }
+  // bind — iterate
+  const id = forCounter++;
+  const sSym = sym(`for__s${id}`);
+  const rest = buildForLoop(segs, segIdx + 1, bodyExpr, resultSym, form);
+  // Same loop structure as doseq but continues accumulating
+  return makeList([
+    sym('loop*'),
+    makeVector([sSym, makeList([sym('seq'), seg.coll])]),
+    makeList([
+      sym('if'), sSym,
+      makeList([
+        sym('let*'),
+        makeVector([seg.name, makeList([sym('first'), sSym])]),
+        makeList([
+          sym('do'),
+          // Check for :while break
+          makeList([
+            sym('let*'),
+            makeVector([sym(`for__r${id}`), rest]),
+            makeList([
+              sym('if'),
+              makeList([sym('js*'), makeStr(`for__r${id} === "__while_break__"`)]),
+              makeNil(),
+              makeList([sym('recur'), makeList([sym('next'), sSym])]),
+            ]),
+          ]),
+        ]),
+      ]),
+      makeNil(),
+    ]),
+  ], ...loc(form));
+}
+
+defmacro('for', (items, form) => {
+  // (for [bindings...] body)
+  const bindings = nth(items, 1);
+  if (bindings.data.type !== 'vector') throw new Error('for requires a vector');
+  const body = items.slice(2);
+  const bodyExpr = body.length === 1 ? body[0]! : makeList([sym('do'), ...body], ...loc(form));
+  const segs = parseSeqBindings(bindings.data.items);
+  const resultSym = sym(`for__result${forCounter++}`);
+  const loop = buildForLoop(segs, 0, bodyExpr, resultSym, form);
+
+  // (let* [result (js* "[]")]
+  //   loop
+  //   (vector(...result)))
+  return makeList([
+    sym('let*'),
+    makeVector([resultSym, makeList([sym('js*'), makeStr('[]')])]),
+    makeList([
+      sym('do'),
+      loop,
+      makeList([sym('js*'), makeStr(`vector(...${(resultSym.data as { name: string }).name})`)]),
+    ]),
+  ], ...loc(form));
+});
+
 defmacro('dotimes', (items, form) => {
   // (dotimes [i n] body...) → (let* [dt__limit n] (loop* [dt__i 0] (if (js* "dt__i < dt__limit") (let* [i dt__i] (do body... (recur (js* "dt__i + 1")))) nil)))
   const bindings = nth(items, 1);
