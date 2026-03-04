@@ -939,19 +939,25 @@ function extractKeysFromDestructure(mapForm: Form): string[] {
 // -- defstyle macro --
 
 defmacro('defstyle', (items, form) => {
-  // (defstyle name [...css-data...])
+  // (defstyle name [rule1] [rule2] ...)  or  (defstyle name [all-rules])
   // → (def name (su.core/create-stylesheet "name" "css-text"))
   const nameForm = nth(items, 1);
   if (nameForm.data.type !== 'symbol') {
     throw new Error('defstyle: name must be a symbol');
   }
 
-  const cssData = nth(items, 2);
-  if (cssData.data.type !== 'vector') {
-    throw new Error('defstyle: CSS data must be a vector');
+  // Collect all CSS rule vectors from index 2 onwards
+  const cssRules: Form[] = [];
+  for (let i = 2; i < items.length; i++) {
+    cssRules.push(items[i]!);
+  }
+  if (cssRules.length === 0) {
+    throw new Error('defstyle: expected at least one CSS rule vector');
   }
 
-  const cssText = compileCssData(cssData);
+  const cssText = cssRules.length === 1
+    ? compileCssData(cssRules[0]!)
+    : compileCssRulesFromMultipleVectors(cssRules);
 
   return makeList([
     makeSymbol(null, 'def', ...loc(form)),
@@ -963,6 +969,16 @@ defmacro('defstyle', (items, form) => {
     ], ...loc(form)),
   ], ...loc(form));
 });
+
+function compileCssRulesFromMultipleVectors(vecs: Form[]): string {
+  const rules: string[] = [];
+  for (const vec of vecs) {
+    if (vec.data.type === 'vector') {
+      compileCssRules(vec.data.items, '', rules);
+    }
+  }
+  return rules.join(' ');
+}
 
 function compileCssData(vec: Form): string {
   if (vec.data.type !== 'vector') return '';

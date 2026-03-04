@@ -90,6 +90,18 @@ describe('su todo-app dogfooding', () => {
       expect(js).toContain('.card h2 { font-size: 1.5em; }');
       expect(js).toContain('.card:hover');
     });
+
+    it('compiles defstyle with multiple top-level rule vectors', () => {
+      const js = compileForm(`
+        (defstyle stat-style
+          [:host {:display "block"}]
+          [:.card {:padding "16px"}]
+          [:.count {:font-size "28px"}])
+      `);
+      expect(js).toContain(':host { display: block; }');
+      expect(js).toContain('.card { padding: 16px; }');
+      expect(js).toContain('.count { font-size: 28px; }');
+    });
   });
 
   describe('macro expansion correctness', () => {
