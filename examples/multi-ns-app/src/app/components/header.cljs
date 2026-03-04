@@ -13,4 +13,4 @@
   (fn []
     [:div {:class "header"}
      [:h1 "Notes App"]
-     [:span {:class "count"} (format-count @note-count "note")]]))
+     [:span {:class "count"} (format-count (count @note-count) "note")]]))

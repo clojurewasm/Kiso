@@ -18,13 +18,13 @@ Monorepo: `@clojurewasm/kiso` (compiler + runtime), `@clojurewasm/su` (component
 | 9     | Codegen Readability    | DONE   | Readable munging, destructuring, IIFE cond, codegen hooks |
 | 10    | CLI                    | DONE   | kiso compile command, source map, out-dir, file/dir resolve |
 | 11    | State Management       | DONE   | Props channeling, context API, devtools trace             |
-| 12    | CI + Multi-File        | TODO   | GitHub Actions, multi-ns example, cross-file validation   |
-| 13    | Conformance Tests      | TODO   | Language spec tests, edge cases, complex patterns         |
-| 14    | Standard Library       | TODO   | clojure.string, var coverage tracking                     |
-| 15    | Browser E2E            | TODO   | Playwright, real browser validation                       |
-| 16    | JS Interop Layer       | TODO   | bean, js-obj, library interop ergonomics                  |
+| 12    | CI + Multi-File        | DONE   | GitHub Actions, multi-ns example, cross-file validation   |
+| 13    | Conformance Tests      | DONE   | Language spec tests, edge cases, complex patterns         |
+| 14    | Standard Library       | DONE   | clojure.string, for/doseq, defmulti/defmethod            |
+| 15    | Browser E2E            | DONE   | Playwright, real browser validation                       |
+| 16    | JS Interop Layer       | DONE   | bean, js-obj, js-array interop helpers                    |
 
-Phases 1-11 complete. 938 tests passing (846 kiso + 92 su). Types clean.
+Phases 1-16 complete. 1162 vitest + 12 Playwright E2E tests. Types clean.
 Design: `.dev/design/08-quality-and-ecosystem.md` (Q1-Q7 details).
 
 ## Phase 1: Reader — DONE

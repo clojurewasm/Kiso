@@ -8,14 +8,14 @@ Session handover document. Read at session start.
 - Phases 1-11 complete (reader, macros, analyzer, codegen, runtime, evaluator, vite, su, CLI, state mgmt).
 - Vite plugin: .cljs transform + HMR + cross-file resolveId (`.js` → `.cljs`).
 - Examples: `examples/task-manager/` (single-file) + `examples/multi-ns-app/` (multi-file, nested dirs).
-- Total: 1162 vitest + 12 Playwright E2E, types clean.
+- Total: 1163 vitest + 14 Playwright E2E, types clean.
 - CI: `.github/workflows/ci.yml` (Node 20/22, typecheck + test).
 - Var coverage: `.dev/status/vars.yaml` — 172 done / 338 tracked (~51%).
 - **Checklist: K01-K14 all resolved.**
 
 ## Current Task
 
-**Pick next work from Known Gaps.** All checklist items resolved.
+**Pick next work from Known Gaps.** All checklist items resolved. Multi-ns-app bug fixed.
 
 ## Task Queue
 
@@ -31,7 +31,7 @@ Phases 12-16 in roadmap. All complete.
 
 - All checklist items (K01-K14) resolved
 - Roadmap Known Gaps: transient collections, more cljs.core vars
-- Multi-ns-app runtime bug (deref null in notes atom)
+- Multi-ns-app runtime bug: FIXED (defc :atom annotation → richProps)
 
 ## Key Design References
 

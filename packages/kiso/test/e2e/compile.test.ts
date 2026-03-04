@@ -683,6 +683,21 @@ describe('ns-qualified symbols', () => {
     // observed-attrs should be empty vector (no non-atom attrs)
     expect(js).toContain('keyword("observed-attrs"), vector()');
   });
+
+  it('defc with :atom annotation in params infers rich-props', () => {
+    const js = compileModule(`
+      (ns my-app.core
+        (:require [su.core :as su]))
+      (defc app-header
+        [{:keys [note-count]} :atom]
+        [:div])
+    `);
+    // :atom annotation means all inferred props become rich-props
+    expect(js).toContain('keyword("rich-props")');
+    expect(js).toContain('"note-count"');
+    // observed-attrs should be empty (all props are rich)
+    expect(js).toContain('keyword("observed-attrs"), vector()');
+  });
 });
 
 describe('runtime auto-imports', () => {

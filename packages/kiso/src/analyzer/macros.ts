@@ -1035,9 +1035,19 @@ defmacro('defc', (items, form) => {
       }
     }
   } else {
-    observedAttrs = inferAttrsFromParams(paramsForm);
-    propTypes = new Map(observedAttrs.map(a => [a, 'string']));
-    richPropNames = [];
+    const allAttrs = inferAttrsFromParams(paramsForm);
+    const hasAtomAnnotation = paramsForm.data.items.length >= 2
+      && paramsForm.data.items[1]!.data.type === 'keyword'
+      && paramsForm.data.items[1]!.data.name === 'atom';
+    if (hasAtomAnnotation) {
+      observedAttrs = [];
+      propTypes = new Map();
+      richPropNames = allAttrs;
+    } else {
+      observedAttrs = allAttrs;
+      propTypes = new Map(allAttrs.map(a => [a, 'string']));
+      richPropNames = [];
+    }
   }
 
   // Build config map: {:observed-attrs ["a" "b"] :prop-types {:a "string" :b "number"}}
