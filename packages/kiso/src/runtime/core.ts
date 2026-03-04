@@ -14,9 +14,11 @@ import { seq, first as seqFirst, next as seqNext } from './seq.js';
 
 // -- Truthiness --
 
-function isTruthy(x: unknown): boolean {
+export function truthy(x: unknown): boolean {
   return x !== null && x !== undefined && x !== false;
 }
+
+const isTruthy = truthy;
 
 // -- Arithmetic --
 

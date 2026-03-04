@@ -10,6 +10,7 @@ import { hashSet, PersistentHashSet } from '../../src/runtime/hash-set.js';
 import { list, EMPTY_LIST } from '../../src/runtime/list.js';
 import { symbol as runtimeSymbol } from '../../src/runtime/symbol.js';
 import { defprotocol, protocolFn } from '../../src/runtime/protocols.js';
+import { truthy } from '../../src/runtime/core.js';
 
 const analyzer = new Analyzer();
 
@@ -18,6 +19,7 @@ const runtime: Record<string, unknown> = {
   vector, keyword, hashMap, hashSet, list, EMPTY_LIST,
   symbol: runtimeSymbol,
   defprotocol, protocolFn,
+  truthy,
 };
 const runtimeKeys = Object.keys(runtime);
 const runtimeVals = Object.values(runtime);
@@ -134,6 +136,12 @@ describe('if compilation', () => {
 
   it('Clojure truthiness: empty string is truthy', () => {
     expect(run('(if "" "yes" "no")')).toBe('yes');
+  });
+
+  it('emits truthy() helper instead of inline check', () => {
+    const js = compile('(if x 1 2)');
+    expect(js).toContain('truthy(');
+    expect(js).not.toContain('!= null');
   });
 });
 

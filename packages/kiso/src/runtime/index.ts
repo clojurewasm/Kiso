@@ -13,6 +13,7 @@ export { defprotocol, protocolFn } from './protocols.js';
 export { arrayMap, isArrayMap } from './array-map.js';
 export { cljToJs, jsToClj } from './interop.js';
 export {
+  truthy,
   add, subtract, multiply, divide, mod,
   inc, dec,
   lt, gt, lte, gte,

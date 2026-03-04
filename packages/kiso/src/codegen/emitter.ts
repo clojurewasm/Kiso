@@ -1,7 +1,7 @@
 // Emitter — Generates ES6 JavaScript from Node AST.
 //
 // Key design decisions (from CW knowledge):
-// - Clojure truthiness: (x != null && x !== false)
+// - Clojure truthiness: truthy(x) runtime helper
 // - recur → while(true) + temp vars + continue
 // - Multi-arity fn → switch(args.length)
 // - Name munging for special characters
@@ -145,7 +145,7 @@ function emitIf(node: { test: Node; then: Node; else: Node }, ctx: EmitCtx): str
   const test = emitNode(node.test, ctx);
   const then = emitNode(node.then, ctx);
   const els = emitNode(node.else, ctx);
-  return `((${test} != null && ${test} !== false) ? ${then} : ${els})`;
+  return `(truthy(${test}) ? ${then} : ${els})`;
 }
 
 function emitCase(node: CaseNode, ctx: EmitCtx): string {
@@ -329,7 +329,7 @@ function emitStmt(node: Node, ctx: EmitCtx): string {
     const test = emitNode(node.test, ctx);
     const thenStmt = emitStmt(node.then, ctx);
     const elseStmt = emitStmt(node.else, ctx);
-    return `if (${test} != null && ${test} !== false) { ${thenStmt} } else { ${elseStmt} }`;
+    return `if (truthy(${test})) { ${thenStmt} } else { ${elseStmt} }`;
   }
   if (node.type === 'recur') {
     return emitRecurStmt(node, ctx);
@@ -518,6 +518,7 @@ function scanNodeForRuntime(node: Node, used: Set<string>): void {
       break;
     }
     case 'if': {
+      used.add('truthy');
       scanNodeForRuntime(node.test, used);
       scanNodeForRuntime(node.then, used);
       scanNodeForRuntime(node.else, used);
