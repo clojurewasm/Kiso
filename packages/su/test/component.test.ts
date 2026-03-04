@@ -292,6 +292,37 @@ describe('K12: mount with container', () => {
   });
 });
 
+describe('richProps / setProp', () => {
+  it('setProp updates propsAtom with keyword key (HashMap)', () => {
+    const renderFn = vi.fn((propsAtom) => ['div', propsAtom.deref()]);
+    const def = defineComponent('rich-test', {
+      observedAttrs: [],
+      propTypes: {},
+      richProps: ['tasks'],
+    }, renderFn);
+
+    const instance = def.createInstance(hashMap(keyword('tasks'), null));
+    instance.setProp('tasks', [1, 2, 3]);
+    const props = instance.propsAtom.deref() as any;
+    // Should have updated the :tasks key
+    expect(props.get(keyword('tasks'))).toEqual([1, 2, 3]);
+  });
+
+  it('setProp updates propsAtom with plain object fallback', () => {
+    const renderFn = vi.fn(() => ['div']);
+    const def = defineComponent('rich-plain', {
+      observedAttrs: [],
+      propTypes: {},
+      richProps: ['items'],
+    }, renderFn);
+
+    const instance = def.createInstance({ items: null });
+    instance.setProp('items', { a: 1 });
+    const props = instance.propsAtom.deref() as Record<string, unknown>;
+    expect(props['items']).toEqual({ a: 1 });
+  });
+});
+
 describe('mount()', () => {
   beforeEach(() => {
     vi.stubGlobal('document', {

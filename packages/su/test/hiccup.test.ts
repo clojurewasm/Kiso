@@ -267,6 +267,22 @@ describe('renderHiccup', () => {
     expect(node.style['color']).toBe('var(--su-color)');
   });
 
+  it('sets non-primitive attr as JS property on custom elements', () => {
+    const node = renderHiccup(['my-widget', { tasks: { items: [1, 2] } }]) as unknown as MockNode;
+    expect(node.attrs['tasks']).toBeUndefined();
+    expect((node as any).tasks).toEqual({ items: [1, 2] });
+  });
+
+  it('still uses setAttribute for primitives on custom elements', () => {
+    const node = renderHiccup(['my-widget', { title: 'hello' }]) as unknown as MockNode;
+    expect(node.attrs['title']).toBe('hello');
+  });
+
+  it('still uses setAttribute for objects on standard elements', () => {
+    const node = renderHiccup(['div', { data: { x: 1 } }]) as unknown as MockNode;
+    expect(node.attrs['data']).toBe('[object Object]');
+  });
+
   it('handles kebab-case style properties via setProperty', () => {
     const setPropertySpy = vi.fn();
     vi.stubGlobal('document', {

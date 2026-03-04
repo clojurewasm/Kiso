@@ -789,12 +789,24 @@ defmacro('defc', (items, form) => {
   // If no explicit props, infer from destructuring
   let observedAttrs: string[];
   let propTypes: Map<string, string>;
+  let richPropNames: string[];
   if (propsMap) {
-    observedAttrs = [...propsMap.keys()];
-    propTypes = propsMap;
+    // Separate :atom props into richProps
+    observedAttrs = [];
+    richPropNames = [];
+    propTypes = new Map();
+    for (const [k, v] of propsMap) {
+      if (v === 'atom') {
+        richPropNames.push(k);
+      } else {
+        observedAttrs.push(k);
+        propTypes.set(k, v);
+      }
+    }
   } else {
     observedAttrs = inferAttrsFromParams(paramsForm);
     propTypes = new Map(observedAttrs.map(a => [a, 'string']));
+    richPropNames = [];
   }
 
   // Build config map: {:observed-attrs ["a" "b"] :prop-types {:a "string" :b "number"}}
@@ -808,6 +820,10 @@ defmacro('defc', (items, form) => {
     ptItems.push(makeStr(v));
   }
   configItems.push(makeMap(ptItems));
+  if (richPropNames.length > 0) {
+    configItems.push(makeKeyword(null, 'rich-props'));
+    configItems.push(makeVector(richPropNames.map(n => makeStr(n))));
+  }
   if (formAssociated) {
     configItems.push(makeKeyword(null, 'form-associated'));
     configItems.push(makeBool(true));

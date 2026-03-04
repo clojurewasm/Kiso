@@ -106,7 +106,7 @@ export function renderHiccup(hiccup: HiccupNode): Node {
 
   let childStart = 0;
   if (rest.length > 0 && isAttrsMap(rest[0])) {
-    applyAttrs(el, rest[0]);
+    applyAttrs(el, rest[0], tag);
     childStart = 1;
   }
 
@@ -126,7 +126,7 @@ export function renderHiccup(hiccup: HiccupNode): Node {
   return el;
 }
 
-function applyAttrs(el: HTMLElement, attrs: Record<string, unknown>): void {
+function applyAttrs(el: HTMLElement, attrs: Record<string, unknown>, tag: string): void {
   for (const [key, val] of Object.entries(attrs)) {
     if (key === 'class') {
       if (typeof val === 'string') {
@@ -139,6 +139,8 @@ function applyAttrs(el: HTMLElement, attrs: Record<string, unknown>): void {
     } else if (key.startsWith('on-')) {
       const event = key.slice(3);
       el.addEventListener(event, val as EventListener);
+    } else if (tag.includes('-') && typeof val === 'object' && val !== null) {
+      (el as unknown as Record<string, unknown>)[key] = val;
     } else {
       el.setAttribute(key, String(val));
     }

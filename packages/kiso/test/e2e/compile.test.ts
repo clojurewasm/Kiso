@@ -652,6 +652,22 @@ describe('ns-qualified symbols', () => {
     expect(js).toContain('su.define_component');
     expect(js).not.toContain('su.core.define_component');
   });
+
+  it('defc with :atom prop type emits rich-props in config', () => {
+    const js = compileModule(`
+      (ns my-app.core
+        (:require [su.core :as su]))
+      (defc task-list
+        {:props {:tasks :atom}}
+        [{:keys [tasks]}]
+        [:div])
+    `);
+    // :atom props go into rich-props, not observed-attrs
+    expect(js).toContain('keyword("rich-props")');
+    expect(js).toContain('"tasks"');
+    // observed-attrs should be empty vector (no non-atom attrs)
+    expect(js).toContain('keyword("observed-attrs"), vector()');
+  });
 });
 
 describe('runtime auto-imports', () => {
