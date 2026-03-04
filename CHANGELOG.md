@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.1.1] - 2026-03-04
+
+### Fixed
+
+- **defc**: `:atom` prop annotation ignored when options map has `:style` but no `:props` key — Props Channeling was broken for `[{:keys [x]} :atom]` syntax with `{:style [...]}` option
+- npm package READMEs now included (were missing in 0.1.0)
+- CI: E2E tests for examples now install dependencies from npm registry
+
 ## [0.1.0] - 2026-03-04
 
 Initial public release.
@@ -32,4 +40,5 @@ Initial public release.
 - DevTools: `enable-trace` for atom state logging
 - ~17 KB package size
 
+[0.1.1]: https://github.com/clojurewasm/Kiso/releases/tag/v0.1.1
 [0.1.0]: https://github.com/clojurewasm/Kiso/releases/tag/v0.1.0

@@ -1,6 +1,6 @@
 {
   "name": "@clojurewasm/su",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Su — ClojureScript Web Component framework with fine-grained reactivity",
   "keywords": [
     "clojurescript",
