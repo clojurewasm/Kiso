@@ -90,26 +90,37 @@ export function emitModuleWithMappings(nodes: Node[]): { code: string; mappings:
   }
   const ctx: EmitCtx = { loopBindings: null, nsAliases, indent: 0 };
 
-  const segments = nodes.map(n => emitTopLevelCtx(n, ctx));
+  const allSegments = nodes.map(n => emitTopLevelCtx(n, ctx));
+  // Track which node indices produced non-empty output
+  const segments: string[] = [];
+  const nodeIndices: number[] = [];
+  for (let i = 0; i < allSegments.length; i++) {
+    if (allSegments[i]!.length > 0) {
+      segments.push(allSegments[i]!);
+      nodeIndices.push(i);
+    }
+  }
+
   // Auto-import runtime functions used by collection literals
   const runtimeImports = collectRuntimeImports(nodes);
   let importOffset = 0;
   if (runtimeImports.length > 0) {
     const importLine = `import { ${runtimeImports.join(', ')} } from '@clojurewasm/kiso/runtime';`;
     segments.unshift(importLine);
-    importOffset = 2; // import line + blank line
+    importOffset = 2; // import line + blank line from \n\n join
   }
 
-  // Compute line offsets for each top-level node
+  // Compute line offsets for each non-empty top-level node
+  // Top-level forms are separated by blank lines (\n\n), so +1 for the blank line
   const mappings: TopLevelMapping[] = [];
   let genLine = importOffset;
-  for (let i = 0; i < nodes.length; i++) {
-    mappings.push({ genLine, nodeIndex: i });
+  for (let i = 0; i < nodeIndices.length; i++) {
+    mappings.push({ genLine, nodeIndex: nodeIndices[i]! });
     const segIdx = runtimeImports.length > 0 ? i + 1 : i;
-    genLine += segments[segIdx]!.split('\n').length;
+    genLine += segments[segIdx]!.split('\n').length + 1; // +1 for blank line separator
   }
 
-  return { code: segments.join('\n'), mappings };
+  return { code: segments.join('\n\n'), mappings };
 }
 
 function emitTopLevelCtx(node: Node, ctx: EmitCtx): string {
