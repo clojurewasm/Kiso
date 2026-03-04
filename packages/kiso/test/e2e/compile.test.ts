@@ -269,6 +269,22 @@ describe('name munging', () => {
   });
 });
 
+// -- pretty-print --
+
+describe('pretty-print', () => {
+  it('emits function body on new line with indentation', () => {
+    const js = compileModule('(ns test) (defn add1 [x] (+ x 1))');
+    expect(js).toContain('function add1(x) {\n');
+    expect(js).toContain('  return');
+  });
+
+  it('emits let bindings on separate lines', () => {
+    const js = compile('(let [x 1 y 2] y)');
+    expect(js).toContain('let x = 1;\n');
+    expect(js).toContain('let y = 2;\n');
+  });
+});
+
 // -- module compilation --
 
 describe('module compilation', () => {

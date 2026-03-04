@@ -12,9 +12,13 @@ import { isMacro } from '../analyzer/macros.js';
 type EmitCtx = {
   loopBindings: string[] | null; // current loop/fn binding names for recur
   nsAliases?: Map<string, string>; // ns → alias (e.g. "su.core" → "su")
+  indent: number; // indentation level (0 = top-level)
 };
 
-const DEFAULT_CTX: EmitCtx = { loopBindings: null, nsAliases: new Map() };
+const DEFAULT_CTX: EmitCtx = { loopBindings: null, nsAliases: new Map(), indent: 0 };
+
+function ind(ctx: EmitCtx): string { return '  '.repeat(ctx.indent); }
+function deeper(ctx: EmitCtx): EmitCtx { return { ...ctx, indent: ctx.indent + 1 }; }
 
 function emitNode(node: Node, ctx: EmitCtx): string {
   switch (node.type) {
@@ -41,7 +45,7 @@ function emitNode(node: Node, ctx: EmitCtx): string {
     case 'do': return emitDo(node, ctx);
     case 'let': return emitLet(node, ctx);
     case 'letfn': return emitLetfn(node, ctx);
-    case 'fn': return emitFn(node);
+    case 'fn': return emitFn(node, ctx);
     case 'def': return emitDef(node, ctx);
     case 'recur': return emitRecur(node, ctx);
     case 'loop': return emitLoop(node, ctx);
@@ -77,7 +81,7 @@ export function emitModule(nodes: Node[]): string {
       }
     }
   }
-  const ctx: EmitCtx = { loopBindings: null, nsAliases };
+  const ctx: EmitCtx = { loopBindings: null, nsAliases, indent: 0 };
 
   const lines = nodes.map(n => emitTopLevelCtx(n, ctx));
   // Auto-import runtime functions used by collection literals
@@ -171,57 +175,66 @@ function emitDo(node: { statements: Node[]; ret: Node }, ctx: EmitCtx): string {
 }
 
 function emitLet(node: { bindings: LetBinding[]; body: Node }, ctx: EmitCtx): string {
+  const inner = deeper(ctx);
+  const i = ind(inner);
   const seen = new Set<string>();
   const bindings = node.bindings.map((b) => {
     const name = munge(b.name);
-    const init = emitNode(b.init, ctx);
-    if (seen.has(name)) return `${name} = ${init};`;
+    const init = emitNode(b.init, inner);
+    if (seen.has(name)) return `${i}${name} = ${init};`;
     seen.add(name);
-    return `let ${name} = ${init};`;
-  }).join(' ');
-  return `(() => { ${bindings} return ${emitNode(node.body, ctx)}; })()`;
+    return `${i}let ${name} = ${init};`;
+  }).join('\n');
+  return `(() => {\n${bindings}\n${i}return ${emitNode(node.body, inner)};\n${ind(ctx)}})()`;
 }
 
 function emitLetfn(node: { bindings: LetBinding[]; body: Node }, ctx: EmitCtx): string {
-  // Declare all names first with let, then assign — enables mutual recursion
+  const inner = deeper(ctx);
+  const i = ind(inner);
   const decls = node.bindings.map((b) => munge(b.name)).join(', ');
   const assigns = node.bindings.map(
-    (b) => `${munge(b.name)} = ${emitNode(b.init, ctx)};`,
-  ).join(' ');
-  return `(() => { let ${decls}; ${assigns} return ${emitNode(node.body, ctx)}; })()`;
+    (b) => `${i}${munge(b.name)} = ${emitNode(b.init, inner)};`,
+  ).join('\n');
+  return `(() => {\n${i}let ${decls};\n${assigns}\n${i}return ${emitNode(node.body, inner)};\n${ind(ctx)}})()`;
 }
 
-function emitFn(node: { name: string | null; arities: FnArity[] }): string {
+function emitFn(node: { name: string | null; arities: FnArity[] }, outerCtx: EmitCtx): string {
   const name = node.name ? munge(node.name) : '';
 
   if (node.arities.length === 1) {
     const arity = node.arities[0]!;
-    return emitSingleArity(name, arity);
+    return emitSingleArity(name, arity, outerCtx);
   }
 
   // Multi-arity: switch on arguments.length
+  const inner = deeper(outerCtx);
+  const caseCtx = deeper(inner);
+  const ci = ind(caseCtx);
+  const bi = ind(deeper(caseCtx));
   const cases = node.arities.map((arity) => {
     const n = arity.params.length;
     const params = arity.params.map(munge).join(', ');
-    const ctx: EmitCtx = { loopBindings: arity.params };
+    const ctx: EmitCtx = { ...deeper(caseCtx), loopBindings: arity.params };
     const body = emitNode(arity.body, ctx);
     if (arity.restParam) {
-      return `default: { const [${params}${params ? ', ' : ''}...${munge(arity.restParam)}] = args; return ${body}; }`;
+      return `${ci}default: {\n${bi}const [${params}${params ? ', ' : ''}...${munge(arity.restParam)}] = args;\n${bi}return ${body};\n${ci}}`;
     }
-    return `case ${n}: { const [${params}] = args; return ${body}; }`;
-  }).join(' ');
+    return `${ci}case ${n}: {\n${bi}const [${params}] = args;\n${bi}return ${body};\n${ci}}`;
+  }).join('\n');
 
-  return `function ${name}(...args) { switch(args.length) { ${cases} } }`;
+  const si = ind(inner);
+  return `function ${name}(...args) {\n${si}switch(args.length) {\n${cases}\n${si}}\n${ind(outerCtx)}}`;
 }
 
-function emitSingleArity(name: string, arity: FnArity): string {
+function emitSingleArity(name: string, arity: FnArity, outerCtx: EmitCtx): string {
   const params = arity.params.map(munge);
   if (arity.restParam) {
     params.push(`...${munge(arity.restParam)}`);
   }
-  const ctx: EmitCtx = { loopBindings: arity.params };
+  const inner = deeper(outerCtx);
+  const ctx: EmitCtx = { ...inner, loopBindings: arity.params };
   const body = emitNode(arity.body, ctx);
-  return `function ${name}(${params.join(', ')}) { return ${body}; }`;
+  return `function ${name}(${params.join(', ')}) {\n${ind(inner)}return ${body};\n${ind(outerCtx)}}`;
 }
 
 function emitDeftype(node: DeftypeNode, ctx: EmitCtx): string {
@@ -317,7 +330,7 @@ function emitLoop(node: { bindings: LetBinding[]; body: Node }, ctx: EmitCtx): s
   const decls = node.bindings.map(
     (b) => `let ${munge(b.name)} = ${emitNode(b.init, ctx)};`,
   ).join(' ');
-  const loopCtx: EmitCtx = { loopBindings: names };
+  const loopCtx: EmitCtx = { ...ctx, loopBindings: names };
   const body = emitStmt(node.body, loopCtx);
   return `(() => { ${decls} while (true) { ${body} } })()`;
 }
