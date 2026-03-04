@@ -566,3 +566,207 @@ describe('println', () => {
     expect(logs[0]).toBe('hello world');
   });
 });
+
+// -- Batch 2: Collection ops --
+
+describe('second/last/butlast', () => {
+  it('second', () => {
+    expect(core.second(vector(1, 2, 3))).toBe(2);
+    expect(core.second(vector(1))).toBe(null);
+  });
+
+  it('last', () => {
+    expect(core.last(vector(1, 2, 3))).toBe(3);
+    expect(core.last(vector())).toBe(null);
+  });
+
+  it('butlast', () => {
+    expect(toArray(core.butlast(vector(1, 2, 3)) as any)).toEqual([1, 2]);
+    expect(core.butlast(vector(1))).toBe(null);
+  });
+});
+
+describe('peek/pop', () => {
+  it('peek on vector returns last', () => {
+    expect(core.peek(vector(1, 2, 3))).toBe(3);
+  });
+
+  it('pop on vector returns without last', () => {
+    const result = core.pop(vector(1, 2, 3)) as any;
+    expect(result.count).toBe(2);
+    expect(result.nth(0)).toBe(1);
+    expect(result.nth(1)).toBe(2);
+  });
+
+  it('peek on list returns first', () => {
+    expect(core.peek(list(1, 2, 3))).toBe(1);
+  });
+});
+
+describe('subvec', () => {
+  it('returns sub-vector', () => {
+    const v = vector(1, 2, 3, 4, 5);
+    const result = core.subvec(v, 1, 4) as any;
+    expect(toArray(result)).toEqual([2, 3, 4]);
+  });
+
+  it('subvec with only start', () => {
+    const result = core.subvec(vector(1, 2, 3), 1) as any;
+    expect(toArray(result)).toEqual([2, 3]);
+  });
+});
+
+describe('not-empty / empty', () => {
+  it('not-empty returns coll when non-empty', () => {
+    const v = vector(1);
+    expect(core.not_empty(v)).toBe(v);
+  });
+
+  it('not-empty returns null when empty', () => {
+    expect(core.not_empty(vector())).toBe(null);
+    expect(core.not_empty(null)).toBe(null);
+  });
+});
+
+describe('mapcat / map-indexed / remove / keep', () => {
+  it('mapcat', () => {
+    const result = core.mapcat(
+      (x: number) => vector(x, x * 10),
+      vector(1, 2, 3)
+    );
+    expect(toArray(result as any)).toEqual([1, 10, 2, 20, 3, 30]);
+  });
+
+  it('map-indexed', () => {
+    const result = core.map_indexed(
+      (i: number, v: string) => `${i}:${v}`,
+      vector('a', 'b', 'c')
+    );
+    expect(toArray(result as any)).toEqual(['0:a', '1:b', '2:c']);
+  });
+
+  it('remove', () => {
+    const result = core.remove(core.even_p, vector(1, 2, 3, 4));
+    expect(toArray(result as any)).toEqual([1, 3]);
+  });
+
+  it('keep', () => {
+    const result = core.keep(
+      (x: number) => x > 2 ? x * 10 : null,
+      vector(1, 2, 3, 4)
+    );
+    expect(toArray(result as any)).toEqual([30, 40]);
+  });
+});
+
+describe('flatten / distinct / dedupe', () => {
+  it('flatten', () => {
+    const v = vector(1, vector(2, vector(3)), 4);
+    expect(toArray(core.flatten(v) as any)).toEqual([1, 2, 3, 4]);
+  });
+
+  it('distinct', () => {
+    expect(toArray(core.distinct(vector(1, 2, 1, 3, 2)) as any)).toEqual([1, 2, 3]);
+  });
+
+  it('dedupe', () => {
+    expect(toArray(core.dedupe(vector(1, 1, 2, 2, 3, 1)) as any)).toEqual([1, 2, 3, 1]);
+  });
+});
+
+describe('interleave / interpose', () => {
+  it('interleave', () => {
+    expect(toArray(core.interleave(vector(1, 2, 3), vector('a', 'b', 'c')) as any)).toEqual([1, 'a', 2, 'b', 3, 'c']);
+  });
+
+  it('interpose', () => {
+    expect(toArray(core.interpose(',', vector(1, 2, 3)) as any)).toEqual([1, ',', 2, ',', 3]);
+  });
+});
+
+describe('partition / partition-all / partition-by', () => {
+  it('partition', () => {
+    const result = toArray(core.partition(2, vector(1, 2, 3, 4, 5)) as any);
+    expect(result).toHaveLength(2);
+    expect(toArray(result[0] as any)).toEqual([1, 2]);
+    expect(toArray(result[1] as any)).toEqual([3, 4]);
+  });
+
+  it('partition-all', () => {
+    const result = toArray(core.partition_all(2, vector(1, 2, 3, 4, 5)) as any);
+    expect(result).toHaveLength(3);
+    expect(toArray(result[2] as any)).toEqual([5]);
+  });
+
+  it('partition-by', () => {
+    const result = toArray(core.partition_by(core.even_p, vector(1, 1, 2, 2, 3)) as any);
+    expect(result).toHaveLength(3);
+    expect(toArray(result[0] as any)).toEqual([1, 1]);
+    expect(toArray(result[1] as any)).toEqual([2, 2]);
+    expect(toArray(result[2] as any)).toEqual([3]);
+  });
+});
+
+describe('merge-with / zipmap', () => {
+  it('merge-with', () => {
+    const a = hashMap('x', 1, 'y', 2);
+    const b = hashMap('y', 3, 'z', 4);
+    const result = core.merge_with(core.add, a, b) as any;
+    expect(result.get('x')).toBe(1);
+    expect(result.get('y')).toBe(5);
+    expect(result.get('z')).toBe(4);
+  });
+
+  it('zipmap', () => {
+    const result = core.zipmap(vector('a', 'b', 'c'), vector(1, 2, 3)) as any;
+    expect(result.get('a')).toBe(1);
+    expect(result.get('b')).toBe(2);
+    expect(result.get('c')).toBe(3);
+  });
+});
+
+describe('reduce-kv', () => {
+  it('reduces map with key-value-accumulator', () => {
+    const m = hashMap('a', 1, 'b', 2);
+    const result = core.reduce_kv((acc: string, k: string, v: number) => acc + k + v, '', m);
+    // Order may vary, so just check length
+    expect((result as string).length).toBe(4); // "a1b2" or "b2a1"
+  });
+});
+
+describe('re-find / re-matches / re-seq', () => {
+  it('re-find returns first match', () => {
+    expect(core.re_find(/\d+/, 'abc123def')).toBe('123');
+    expect(core.re_find(/\d+/, 'abcdef')).toBe(null);
+  });
+
+  it('re-matches returns match only if entire string matches', () => {
+    expect(core.re_matches(/\d+/, '123')).toBe('123');
+    expect(core.re_matches(/\d+/, 'abc123')).toBe(null);
+  });
+
+  it('re-seq returns all matches', () => {
+    const result = toArray(core.re_seq(/\d+/g, 'a1b2c3') as any);
+    expect(result).toEqual(['1', '2', '3']);
+  });
+});
+
+describe('fnil', () => {
+  it('replaces nil args with defaults', () => {
+    const safe_inc = core.fnil(core.inc, 0);
+    expect(safe_inc(5)).toBe(6);
+    expect(safe_inc(null)).toBe(1);
+  });
+});
+
+describe('trampoline', () => {
+  it('bounces until non-function result', () => {
+    let n = 0;
+    const bounce = (x: number): unknown => {
+      if (x <= 0) return n;
+      n += x;
+      return () => bounce(x - 1);
+    };
+    expect(core.trampoline(bounce, 3)).toBe(6); // 3+2+1
+  });
+});

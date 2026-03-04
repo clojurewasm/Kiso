@@ -569,3 +569,276 @@ export function print_fn(...args: unknown[]): void {
     console.log(s);
   }
 }
+
+// -- Collection access --
+
+export function second(coll: unknown): unknown {
+  const s = seq(coll);
+  if (s === null) return null;
+  const n = seqNext(s);
+  return n === null ? null : seqFirst(n);
+}
+
+export function last(coll: unknown): unknown {
+  let s = seq(coll);
+  if (s === null) return null;
+  let result: unknown = null;
+  while (s !== null) { result = seqFirst(s); s = seqNext(s); }
+  return result;
+}
+
+export function butlast(coll: unknown): unknown {
+  const arr: unknown[] = [];
+  let s = seq(coll);
+  if (s === null) return null;
+  let next = seqNext(s);
+  while (next !== null) { arr.push(seqFirst(s)!); s = next; next = seqNext(s); }
+  return arr.length === 0 ? null : list(...arr);
+}
+
+export function peek(coll: unknown): unknown {
+  if (isVector(coll)) return (coll as PersistentVector).count > 0 ? (coll as PersistentVector).nth((coll as PersistentVector).count - 1) : null;
+  if (isList(coll)) return seqFirst(coll);
+  return null;
+}
+
+export function pop(coll: unknown): unknown {
+  if (isVector(coll)) return (coll as PersistentVector).pop();
+  if (isList(coll)) return (coll as any)._rest ?? EMPTY_LIST;
+  throw new Error('pop not supported on this type');
+}
+
+export function subvec(v: unknown, start: number, end?: number): unknown {
+  const vec = v as PersistentVector;
+  const e = end !== undefined ? end : vec.count;
+  const result: unknown[] = [];
+  for (let i = start; i < e; i++) result.push(vec.nth(i));
+  return vector(...result);
+}
+
+export function not_empty(coll: unknown): unknown {
+  if (coll === null || coll === undefined) return null;
+  return count(coll) === 0 ? null : coll;
+}
+
+// -- Seq operations batch 2 --
+
+export function mapcat(f: (...args: unknown[]) => unknown, coll: unknown): unknown {
+  const result: unknown[] = [];
+  let s = seq(coll);
+  while (s !== null) {
+    const mapped = f(seqFirst(s));
+    let ms = seq(mapped);
+    while (ms !== null) { result.push(seqFirst(ms)); ms = seqNext(ms); }
+    s = seqNext(s);
+  }
+  return list(...result);
+}
+
+export function map_indexed(f: (i: number, v: unknown) => unknown, coll: unknown): unknown {
+  const result: unknown[] = [];
+  let s = seq(coll);
+  let i = 0;
+  while (s !== null) { result.push(f(i++, seqFirst(s))); s = seqNext(s); }
+  return list(...result);
+}
+
+export function remove(pred: (x: unknown) => unknown, coll: unknown): unknown {
+  return filter((x: unknown) => !isTruthy(pred(x)), coll);
+}
+
+export function keep(f: (x: unknown) => unknown, coll: unknown): unknown {
+  const result: unknown[] = [];
+  let s = seq(coll);
+  while (s !== null) {
+    const v = f(seqFirst(s));
+    if (v !== null && v !== undefined) result.push(v);
+    s = seqNext(s);
+  }
+  return list(...result);
+}
+
+export function flatten(coll: unknown): unknown {
+  const result: unknown[] = [];
+  function walk(x: unknown): void {
+    if (x === null || x === undefined) return;
+    if (isVector(x) || isList(x)) {
+      let s = seq(x);
+      while (s !== null) { walk(seqFirst(s)); s = seqNext(s); }
+    } else {
+      result.push(x);
+    }
+  }
+  let s = seq(coll);
+  while (s !== null) { walk(seqFirst(s)); s = seqNext(s); }
+  return list(...result);
+}
+
+export function distinct(coll: unknown): unknown {
+  const seen = new Set<unknown>();
+  const result: unknown[] = [];
+  let s = seq(coll);
+  while (s !== null) {
+    const v = seqFirst(s);
+    const key = typeof v === 'object' ? JSON.stringify(v) : v;
+    if (!seen.has(key)) { seen.add(key); result.push(v); }
+    s = seqNext(s);
+  }
+  return list(...result);
+}
+
+export function dedupe(coll: unknown): unknown {
+  const result: unknown[] = [];
+  let prev: unknown = undefined;
+  let s = seq(coll);
+  while (s !== null) {
+    const v = seqFirst(s);
+    if (!equiv(v, prev)) { result.push(v); prev = v; }
+    s = seqNext(s);
+  }
+  return list(...result);
+}
+
+export function interleave(...colls: unknown[]): unknown {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const seqs: any[] = colls.map(c => seq(c));
+  const result: unknown[] = [];
+  while (seqs.every((s: any) => s !== null)) {
+    for (let i = 0; i < seqs.length; i++) {
+      result.push(seqFirst(seqs[i]));
+      seqs[i] = seqNext(seqs[i]);
+    }
+  }
+  return list(...result);
+}
+
+export function interpose(sep: unknown, coll: unknown): unknown {
+  const result: unknown[] = [];
+  let s = seq(coll);
+  let isFirst = true;
+  while (s !== null) {
+    if (!isFirst) result.push(sep);
+    result.push(seqFirst(s));
+    isFirst = false;
+    s = seqNext(s);
+  }
+  return list(...result);
+}
+
+export function partition(n: number, coll: unknown): unknown {
+  const result: unknown[] = [];
+  const arr: unknown[] = [];
+  let s = seq(coll);
+  while (s !== null) { arr.push(seqFirst(s)); s = seqNext(s); }
+  for (let i = 0; i + n <= arr.length; i += n) {
+    result.push(list(...arr.slice(i, i + n)));
+  }
+  return list(...result);
+}
+
+export function partition_all(n: number, coll: unknown): unknown {
+  const result: unknown[] = [];
+  const arr: unknown[] = [];
+  let s = seq(coll);
+  while (s !== null) { arr.push(seqFirst(s)); s = seqNext(s); }
+  for (let i = 0; i < arr.length; i += n) {
+    result.push(list(...arr.slice(i, i + n)));
+  }
+  return list(...result);
+}
+
+export function partition_by(f: (x: unknown) => unknown, coll: unknown): unknown {
+  const result: unknown[] = [];
+  let current: unknown[] = [];
+  let currentKey: unknown = undefined;
+  let isFirst = true;
+  let s = seq(coll);
+  while (s !== null) {
+    const v = seqFirst(s);
+    const key = f(v);
+    if (isFirst || equiv(key, currentKey)) {
+      current.push(v);
+    } else {
+      result.push(list(...current));
+      current = [v];
+    }
+    currentKey = key;
+    isFirst = false;
+    s = seqNext(s);
+  }
+  if (current.length > 0) result.push(list(...current));
+  return list(...result);
+}
+
+export function merge_with(f: (...args: unknown[]) => unknown, ...maps: unknown[]): unknown {
+  let result: PersistentHashMap | null = null;
+  for (const m of maps) {
+    if (m === null || m === undefined) continue;
+    if (result === null) { result = m as PersistentHashMap; continue; }
+    const r = result;
+    (m as PersistentHashMap).forEach((k, v) => {
+      const existing = r.get(k);
+      result = result!.assoc(k, existing !== undefined ? f(existing, v) : v);
+    });
+  }
+  return result;
+}
+
+export function zipmap(ks: unknown, vs: unknown): unknown {
+  let result = hm();
+  let sk = seq(ks), sv = seq(vs);
+  while (sk !== null && sv !== null) {
+    result = result.assoc(seqFirst(sk), seqFirst(sv));
+    sk = seqNext(sk);
+    sv = seqNext(sv);
+  }
+  return result;
+}
+
+export function reduce_kv(f: (acc: unknown, k: unknown, v: unknown) => unknown, init: unknown, coll: unknown): unknown {
+  let acc = init;
+  if (isHashMap(coll)) {
+    (coll as PersistentHashMap).forEach((k, v) => { acc = f(acc, k, v); });
+  }
+  return acc;
+}
+
+// -- Regex --
+
+export function re_find(re: RegExp, s: string): unknown {
+  const m = s.match(re);
+  if (!m) return null;
+  return m.length === 1 ? m[0] : vector(...m);
+}
+
+export function re_matches(re: RegExp, s: string): unknown {
+  const anchored = new RegExp(`^${re.source}$`, re.flags);
+  const m = s.match(anchored);
+  if (!m) return null;
+  return m.length === 1 ? m[0] : vector(...m);
+}
+
+export function re_seq(re: RegExp, s: string): unknown {
+  const matches: string[] = [];
+  let m: RegExpExecArray | null;
+  const r = new RegExp(re.source, re.flags.includes('g') ? re.flags : re.flags + 'g');
+  while ((m = r.exec(s)) !== null) { matches.push(m[0]); }
+  return list(...matches);
+}
+
+// -- Misc --
+
+export function fnil(f: (...args: unknown[]) => unknown, ...defaults: unknown[]): (...args: unknown[]) => unknown {
+  return (...args: unknown[]) => {
+    const fixed = args.map((a, i) => (a === null || a === undefined) && i < defaults.length ? defaults[i] : a);
+    return f(...fixed);
+  };
+}
+
+export function trampoline(f: (...args: unknown[]) => unknown, ...args: unknown[]): unknown {
+  let result = f(...args);
+  while (typeof result === 'function') {
+    result = (result as () => unknown)();
+  }
+  return result;
+}

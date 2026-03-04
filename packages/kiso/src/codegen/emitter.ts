@@ -632,6 +632,18 @@ const RUNTIME_FUNCTIONS = new Set([
   'complement', 'juxt', 'every-pred', 'some-fn', 'memoize',
   // Printing
   'println', 'print',
+  // Collection access
+  'second', 'last', 'butlast', 'peek', 'pop', 'subvec', 'not-empty',
+  // Seq batch 2
+  'mapcat', 'map-indexed', 'remove', 'keep',
+  'flatten', 'distinct', 'dedupe',
+  'interleave', 'interpose',
+  'partition', 'partition-all', 'partition-by',
+  'merge-with', 'zipmap', 'reduce-kv',
+  // Regex
+  're-find', 're-matches', 're-seq',
+  // Misc
+  'fnil', 'trampoline',
 ]);
 
 /** Scan AST for runtime function usage and return needed import names. */

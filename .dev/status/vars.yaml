@@ -177,12 +177,12 @@ vars:
     "contains?":      {type: function, status: done, note: "evaluator built-in"}
     "into":           {type: function, status: done}
     "merge":          {type: function, status: done}
-    "merge-with":     {type: function, status: todo}
-    "zipmap":         {type: function, status: todo}
+    "merge-with":     {type: function, status: done}
+    "zipmap":         {type: function, status: done}
     "frequencies":    {type: function, status: done}
     "group-by":       {type: function, status: done}
     "empty":          {type: function, status: todo}
-    "not-empty":      {type: function, status: todo}
+    "not-empty":      {type: function, status: done}
 
     # === Functions — Sequence Core ===
     "seq":            {type: function, status: done}
@@ -199,13 +199,13 @@ vars:
     "set":            {type: function, status: todo}
     "sorted-map":     {type: function, status: todo}
     "sorted-set":     {type: function, status: todo}
-    "subvec":         {type: function, status: todo}
+    "subvec":         {type: function, status: done}
     "nth":            {type: function, status: done, note: "evaluator built-in"}
-    "peek":           {type: function, status: todo}
-    "pop":            {type: function, status: todo}
-    "last":           {type: function, status: todo}
-    "butlast":        {type: function, status: todo}
-    "second":         {type: function, status: todo}
+    "peek":           {type: function, status: done}
+    "pop":            {type: function, status: done}
+    "last":           {type: function, status: done}
+    "butlast":        {type: function, status: done}
+    "second":         {type: function, status: done}
     "ffirst":         {type: function, status: todo}
     "nfirst":         {type: function, status: todo}
     "fnext":          {type: function, status: todo}
@@ -217,11 +217,11 @@ vars:
     "reduce":         {type: function, status: done}
     "apply":          {type: function, status: done}
     "concat":         {type: function, status: done, note: "evaluator built-in"}
-    "mapcat":         {type: function, status: todo}
-    "map-indexed":    {type: function, status: todo}
-    "keep":           {type: function, status: todo}
+    "mapcat":         {type: function, status: done}
+    "map-indexed":    {type: function, status: done}
+    "keep":           {type: function, status: done}
     "keep-indexed":   {type: function, status: todo}
-    "remove":         {type: function, status: todo}
+    "remove":         {type: function, status: done}
     "take":           {type: function, status: done}
     "take-while":     {type: function, status: done}
     "take-last":      {type: function, status: todo}
@@ -236,14 +236,14 @@ vars:
     "sort":           {type: function, status: done}
     "sort-by":        {type: function, status: done}
     "reverse":        {type: function, status: done}
-    "distinct":       {type: function, status: todo}
-    "dedupe":         {type: function, status: todo}
-    "flatten":        {type: function, status: todo}
-    "interleave":     {type: function, status: todo}
-    "interpose":      {type: function, status: todo}
-    "partition":      {type: function, status: todo}
-    "partition-by":   {type: function, status: todo}
-    "partition-all":  {type: function, status: todo}
+    "distinct":       {type: function, status: done}
+    "dedupe":         {type: function, status: done}
+    "flatten":        {type: function, status: done}
+    "interleave":     {type: function, status: done}
+    "interpose":      {type: function, status: done}
+    "partition":      {type: function, status: done}
+    "partition-by":   {type: function, status: done}
+    "partition-all":  {type: function, status: done}
     "iterate":        {type: function, status: todo}
     "repeat":         {type: function, status: done}
     "repeatedly":     {type: function, status: done}
@@ -252,7 +252,7 @@ vars:
     "doall":          {type: function, status: todo}
     "dorun":          {type: function, status: todo}
     "realized?":      {type: function, status: todo}
-    "reduce-kv":      {type: function, status: todo}
+    "reduce-kv":      {type: function, status: done}
     "reductions":     {type: function, status: todo}
 
     # === Functions — Higher-Order ===
@@ -264,9 +264,9 @@ vars:
     "juxt":           {type: function, status: done}
     "every-pred":     {type: function, status: done}
     "some-fn":        {type: function, status: done}
-    "fnil":           {type: function, status: todo}
+    "fnil":           {type: function, status: done}
     "memoize":        {type: function, status: done}
-    "trampoline":     {type: function, status: todo}
+    "trampoline":     {type: function, status: done}
 
     # === Functions — String ===
     "str":            {type: function, status: done}
@@ -277,9 +277,9 @@ vars:
     "print-str":      {type: function, status: todo}
     "println-str":    {type: function, status: todo}
     "subs":           {type: function, status: done, note: "evaluator built-in"}
-    "re-find":        {type: function, status: todo}
-    "re-matches":     {type: function, status: todo}
-    "re-seq":         {type: function, status: todo}
+    "re-find":        {type: function, status: done}
+    "re-matches":     {type: function, status: done}
+    "re-seq":         {type: function, status: done}
     "re-pattern":     {type: function, status: todo}
 
     # === Functions — Atom / State ===

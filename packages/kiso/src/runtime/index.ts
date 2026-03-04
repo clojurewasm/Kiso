@@ -43,4 +43,16 @@ export {
   complement, juxt, every_pred, some_fn, memoize,
   // Printing
   println, print_fn as print,
+  // Collection access
+  second, last, butlast, peek, pop, subvec, not_empty,
+  // Seq batch 2
+  mapcat, map_indexed, remove, keep,
+  flatten, distinct, dedupe,
+  interleave, interpose,
+  partition, partition_all, partition_by,
+  merge_with, zipmap, reduce_kv,
+  // Regex
+  re_find, re_matches, re_seq,
+  // Misc
+  fnil, trampoline,
 } from './core.js';
