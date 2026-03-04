@@ -15,3 +15,8 @@ export function createSheet(name: string, cssText: string): CSSStyleSheet {
   }
   return sheet;
 }
+
+/** Retrieve a cached stylesheet by name. Returns null if not found. */
+export function getSheet(name: string): CSSStyleSheet | null {
+  return sheetCache.get(name) ?? null;
+}

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { createSheet } from '../src/css.js';
+import { createSheet, getSheet } from '../src/css.js';
 
 describe('createSheet', () => {
   let mockSheet: { replaceSync: ReturnType<typeof vi.fn> };
@@ -33,5 +33,30 @@ describe('createSheet', () => {
     const sheet1 = createSheet('style-a', '.a { }');
     const sheet2 = createSheet('style-b', '.b { }');
     expect(sheet1).not.toBe(sheet2);
+  });
+});
+
+describe('getSheet', () => {
+  let mockSheet: { replaceSync: ReturnType<typeof vi.fn> };
+
+  beforeEach(() => {
+    mockSheet = { replaceSync: vi.fn() };
+    vi.stubGlobal('CSSStyleSheet', class {
+      replaceSync = mockSheet.replaceSync;
+    });
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('returns the same sheet created by createSheet', () => {
+    const created = createSheet('get-test', '.x { color: blue; }');
+    const retrieved = getSheet('get-test');
+    expect(retrieved).toBe(created);
+  });
+
+  it('returns null for unknown names', () => {
+    expect(getSheet('nonexistent')).toBeNull();
   });
 });
