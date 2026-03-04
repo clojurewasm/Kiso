@@ -161,6 +161,24 @@ export function get(coll: unknown, key: unknown, notFound?: unknown): unknown {
   return defaultVal;
 }
 
+export function contains_p(coll: unknown, key: unknown): boolean {
+  if (coll === null || coll === undefined) return false;
+  if (isHashMap(coll)) return (coll as PersistentHashMap).get(key) !== undefined;
+  if (isHashSet(coll)) return (coll as PersistentHashSet).has(key);
+  if (isVector(coll) && typeof key === 'number') {
+    return key >= 0 && key < (coll as PersistentVector).count;
+  }
+  if (isSortedMap(coll)) return (coll as PersistentTreeMap).get(key) !== undefined;
+  if (isSortedSet(coll)) return (coll as PersistentTreeSet).has(key);
+  return false;
+}
+
+export function subs(s: unknown, start: unknown, end?: unknown): string {
+  const str = s as string;
+  const startIdx = start as number;
+  return end !== undefined ? str.substring(startIdx, end as number) : str.substring(startIdx);
+}
+
 export function assoc(coll: unknown, key: unknown, val: unknown): unknown {
   if (isHashMap(coll)) {
     return (coll as PersistentHashMap).assoc(key, val);

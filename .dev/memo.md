@@ -10,7 +10,8 @@ Session handover document. Read at session start.
 
 ## Current Task
 
-Ready for npm publish.
+Phase 25: Known Issues Resolution (I1-I6).
+Order: I4 → I3 → I2 → I1 → I6 → I5.
 
 ## Task Queue
 

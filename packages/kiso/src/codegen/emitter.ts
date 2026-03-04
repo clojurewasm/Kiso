@@ -737,6 +737,8 @@ const RUNTIME_FUNCTIONS = new Set([
   'transient', 'persistent!', 'conj!', 'assoc!', 'dissoc!', 'disj!',
   // Metadata
   'meta', 'with-meta', 'vary-meta', 'alter-meta!', 'reset-meta!',
+  // I4: contains? and subs
+  'contains?', 'subs',
 ]);
 
 /** Scan AST for runtime function usage and return needed import names. */

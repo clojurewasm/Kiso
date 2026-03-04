@@ -35,16 +35,27 @@ Monorepo: `@clojurewasm/kiso` (compiler + runtime), `@clojurewasm/su` (component
 Phases 1-24 complete. 1435 vitest + 14 Playwright E2E tests. Types clean.
 Var coverage: 330/330 (100%). Phase details: `.dev/archive/phases.md`.
 
-## Phase 25: Macro Plugin System (Future)
+## Phase 25: Known Issues Resolution — WIP
+
+Resolve all Known Issues (I1-I6) from `tracker.md`. Order: quick fixes first, then reactivity improvements.
+
+- 25.1 I4: Add `contains?`/`subs` to RUNTIME_FUNCTIONS
+- 25.2 I3: Sets callable as IFn (`(#{:a :b} :a)` → `:a`)
+- 25.3 I2: `#js` tagged literal support (`#js [1 2]` → JS array, `#js {:a 1}` → JS object)
+- 25.4 I1: Reactive `:class`/`:style` attrs (fn values → per-attr `effect()`)
+- 25.5 I6: Fine-grained DOM updates in `bind()` (text/attr patching, avoid full replaceChild)
+- 25.6 I5: `:inner-html` attribute support in su hiccup
+
+## Phase 26: Macro Plugin System (Future)
 
 Extract su-specific macros (`defc`, `defstyle`) from kiso core into a plugin architecture.
 Currently these 2 macros are hard-coded in `kiso/analyzer/macros.ts`, creating
 an implicit reverse dependency from kiso → su. This phase fixes that.
 
-- 25.1 TypeScript-level macro plugin API (`MacroPlugin` interface in `CompileOptions`)
-- 25.2 Move `defc` expansion to `su/src/macros.ts` (su-side plugin registration)
-- 25.3 Move `defstyle` expansion to `su/src/macros.ts`
-- 25.4 Verify kiso has zero su-specific knowledge after migration
+- 26.1 TypeScript-level macro plugin API (`MacroPlugin` interface in `CompileOptions`)
+- 26.2 Move `defc` expansion to `su/src/macros.ts` (su-side plugin registration)
+- 26.3 Move `defstyle` expansion to `su/src/macros.ts`
+- 26.4 Verify kiso has zero su-specific knowledge after migration
 
 **Rationale**: kiso should be a pure compiler + runtime with no framework-specific macros.
 The existing `codegenHooks` pattern (su registers hooks at compile time) is the right model —

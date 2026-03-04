@@ -10,7 +10,7 @@ import { hashSet, PersistentHashSet } from '../../src/runtime/hash-set.js';
 import { list, EMPTY_LIST } from '../../src/runtime/list.js';
 import { symbol as runtimeSymbol } from '../../src/runtime/symbol.js';
 import { defprotocol, protocolFn } from '../../src/runtime/protocols.js';
-import { truthy } from '../../src/runtime/core.js';
+import { truthy, contains_p, subs } from '../../src/runtime/core.js';
 
 const analyzer = new Analyzer();
 
@@ -19,7 +19,7 @@ const runtime: Record<string, unknown> = {
   vector, keyword, hashMap, hashSet, list, EMPTY_LIST,
   symbol: runtimeSymbol,
   defprotocol, protocolFn,
-  truthy,
+  truthy, contains_p, subs,
 };
 const runtimeKeys = Object.keys(runtime);
 const runtimeVals = Object.values(runtime);
@@ -857,5 +857,36 @@ describe('metadata on def', () => {
   it('def with map metadata compiles without error', () => {
     const js = compile('(def ^{:doc "hi"} x 42)');
     expect(js).toContain('let x = 42');
+  });
+});
+
+describe('contains? and subs', () => {
+  it('contains? on map returns true for existing key', () => {
+    expect(run('(contains? {:a 1 :b 2} :a)')).toBe(true);
+  });
+
+  it('contains? on map returns false for missing key', () => {
+    expect(run('(contains? {:a 1} :z)')).toBe(false);
+  });
+
+  it('contains? on set returns true for member', () => {
+    expect(run('(contains? #{:x :y} :x)')).toBe(true);
+  });
+
+  it('contains? on vector checks index', () => {
+    expect(run('(contains? [10 20 30] 1)')).toBe(true);
+    expect(run('(contains? [10 20 30] 5)')).toBe(false);
+  });
+
+  it('contains? on nil returns false', () => {
+    expect(run('(contains? nil :a)')).toBe(false);
+  });
+
+  it('subs returns substring', () => {
+    expect(run('(subs "hello" 1)')).toBe('ello');
+  });
+
+  it('subs with start and end', () => {
+    expect(run('(subs "hello" 1 3)')).toBe('el');
   });
 });
