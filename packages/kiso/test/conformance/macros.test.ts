@@ -4,7 +4,7 @@
  * Tests: multi-arity + variadic + destructuring, case/cond, letfn mutual recursion
  */
 import { describe, it, expect } from 'vitest';
-import { readStr } from '../../src/reader/reader.js';
+import { readStr, readAllStr } from '../../src/reader/reader.js';
 import { Analyzer } from '../../src/analyzer/analyzer.js';
 import { emit } from '../../src/codegen/emitter.js';
 import { vector } from '../../src/runtime/vector.js';
@@ -43,6 +43,28 @@ function run(source: string): unknown {
   const js = compile(source);
   // eslint-disable-next-line no-new-func -- test-only: evaluating compiler output
   const fn = new Function(...runtimeKeys, `return ${js}`);
+  return fn(...runtimeVals);
+}
+
+/** Run multiple forms as a module — returns the last expression's value. */
+function runModule(source: string): unknown {
+  const forms = readAllStr(source);
+  const nodes = analyzer.analyzeAll(forms);
+  const stmts: string[] = [];
+  for (let i = 0; i < nodes.length; i++) {
+    const node = nodes[i]!;
+    const isLast = i === nodes.length - 1;
+    if (node.type === 'def') {
+      stmts.push(`var ${emit(node).replace(/^let /, '')}`);
+    } else if (isLast) {
+      stmts.push(`return ${emit(node)};`);
+    } else {
+      stmts.push(`${emit(node)};`);
+    }
+  }
+  const js = stmts.join('\n');
+  // eslint-disable-next-line no-new-func -- test-only
+  const fn = new Function(...runtimeKeys, js);
   return fn(...runtimeVals);
 }
 
@@ -350,5 +372,40 @@ describe('or/and edge cases', () => {
 
   it('or with no args returns nil', () => {
     expect(run('(or)')).toBe(null);
+  });
+});
+
+// ── binding / with-redefs with def-bound vars ──
+
+describe('binding with def-bound vars', () => {
+  it('binding temporarily overrides a def', () => {
+    const result = runModule(`
+      (def x 10)
+      (let [during (binding [x 42] x)
+            after x]
+        [during after])
+    `);
+    expect((result as any).nth(0)).toBe(42);
+    expect((result as any).nth(1)).toBe(10);
+  });
+
+  it('with-redefs temporarily overrides a def', () => {
+    const result = runModule(`
+      (def greeting "hello")
+      (let [during (with-redefs [greeting "goodbye"] greeting)
+            after greeting]
+        [during after])
+    `);
+    expect((result as any).nth(0)).toBe('goodbye');
+    expect((result as any).nth(1)).toBe('hello');
+  });
+
+  it('binding restores even after body completes', () => {
+    const result = runModule(`
+      (def val 1)
+      (binding [val 99] val)
+    `);
+    // binding should return 99 (the value during binding)
+    expect(result).toBe(99);
   });
 });
