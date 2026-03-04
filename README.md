@@ -263,16 +263,18 @@ su provides reactive Web Components using ClojureScript + Shadow DOM:
 (ns my.app
   (:require [su.core :refer [defc defstyle mount]]))
 
-(defc my-counter [{:keys [initial]}]
+(defstyle counter-styles
+  [:.counter {:display "flex" :gap "8px" :align-items "center"}]
+  [:button {:padding "4px 12px"}])
+
+(defc my-counter
+  {:style [counter-styles]}
+  [{:keys [initial]}]
   (let [count (atom (or initial 0))]
     [:div.counter
       [:span "Count: " @count]
       [:button {:on-click #(swap! count inc)} "+"]
       [:button {:on-click #(swap! count dec)} "-"]]))
-
-(defstyle my-counter
-  [:.counter {:display "flex" :gap "8px" :align-items "center"}]
-  [:button {:padding "4px 12px"}])
 
 (mount (js/document.getElementById "app")
   [:my-counter {:initial 0}])

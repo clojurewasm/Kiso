@@ -69,7 +69,7 @@ Create `src/main.cljs`:
   (:require [su.core :as su :refer [defc defstyle]]))
 
 ;; Define styles (Shadow DOM scoped)
-(defstyle my-counter
+(defstyle counter-styles
   [:.counter {:display "flex"
               :gap "8px"
               :align-items "center"
@@ -82,8 +82,10 @@ Create `src/main.cljs`:
             :cursor "pointer"
             :font-size "18px"}])
 
-;; Define component
-(defc my-counter []
+;; Define component with styles
+(defc my-counter
+  {:style [counter-styles]}
+  []
   (let [count (atom 0)]
     (fn []
       [:div {:class "counter"}
@@ -110,8 +112,8 @@ Try editing `src/main.cljs` — changes appear instantly via HMR without losing 
 
 ## What Just Happened?
 
-1. **`defstyle my-counter`** created a scoped CSS stylesheet. Because the name
-   matches the component, it is automatically linked.
+1. **`defstyle counter-styles`** created a scoped CSS stylesheet, passed to the
+   component via `:style [counter-styles]`.
 
 2. **`defc my-counter`** defined a Web Component (`<my-counter>`) with Shadow DOM.
    The component function runs **once** to set up state, then returns a render

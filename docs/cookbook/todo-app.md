@@ -128,7 +128,7 @@ came from Context or Props Channeling.
 A presentational component with no state:
 
 ```clojure
-(defstyle stat-card
+(defstyle stat-card-styles
   [:host {:display "block"}]
   [:.card {:padding "16px"
            :background "#fff"
@@ -140,7 +140,8 @@ A presentational component with no state:
   [:.label {:font-size "13px" :color "#64748b" :margin-top "4px"}])
 
 (defc stat-card
-  {:props {:label "string" :count "number" :color "string"}}
+  {:props {:label "string" :count "number" :color "string"}
+   :style [stat-card-styles]}
   [{:keys [label count color]}]
   [:div {:class "card"
          :style {:border-top (str "3px solid " (or color "#6366f1"))}}
@@ -150,7 +151,7 @@ A presentational component with no state:
 ```
 
 **Patterns used:**
-- `defstyle` + `defc` share the name `stat-card` (auto-linked)
+- `defstyle` creates a stylesheet value, passed to `defc` via `:style`
 - `:host {:display "block"}` makes the component block-level
 - Dynamic inline styles via `:style` map
 - Prop defaults with `(or color "#6366f1")`
@@ -161,7 +162,8 @@ Each task row uses Context to access the shared `tasks` atom:
 
 ```clojure
 (defc task-item
-  {:props {:task-id "number" :text "string" :done "boolean"}}
+  {:props {:task-id "number" :text "string" :done "boolean"}
+   :style [task-item-styles]}
   [{:keys [task-id text done]}]
   (let [tasks (su/use-context :tasks)]
     [:div {:class "row"}
@@ -188,7 +190,9 @@ Each task row uses Context to access the shared `tasks` atom:
 Combines Context for shared state with a local atom for the input value:
 
 ```clojure
-(defc task-input []
+(defc task-input
+  {:style [task-input-styles]}
+  []
   (let [tasks   (su/use-context :tasks)
         next-id (su/use-context :next-id)
         input-text (atom "" "input-text")]
@@ -221,7 +225,9 @@ The filter bar must re-render when the filter mode changes. Note the inner
 `(fn [] ...)` wrapper:
 
 ```clojure
-(defc filter-bar []
+(defc filter-bar
+  {:style [filter-bar-styles]}
+  []
   (let [filter-mode (su/use-context :filter-mode)]
     (fn []
       (let [mode @filter-mode]
@@ -247,7 +253,8 @@ Receives the tasks atom via Props Channeling and filter-mode via Context:
 
 ```clojure
 (defc task-list
-  {:props {:tasks :atom}}
+  {:props {:tasks :atom}
+   :style [task-list-styles]}
   [{:keys [tasks]}]
   (let [filter-mode (su/use-context :filter-mode)]
     (fn []
@@ -274,7 +281,9 @@ Receives the tasks atom via Props Channeling and filter-mode via Context:
 Owns all state and provides it to descendants:
 
 ```clojure
-(defc task-app []
+(defc task-app
+  {:style [task-app-styles]}
+  []
   (let [tasks       (atom [] "tasks")
         next-id     (atom 0 "next-id")
         filter-mode (atom :all "filter-mode")]

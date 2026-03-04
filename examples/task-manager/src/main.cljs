@@ -36,7 +36,7 @@
 
 ;; -- stat-card --
 
-(defstyle stat-card
+(defstyle stat-card-styles
   [:host {:display "block"}]
   [:.card {:padding "16px"
            :background "#fff"
@@ -48,7 +48,8 @@
   [:.label {:font-size "13px" :color "#64748b" :margin-top "4px"}])
 
 (defc stat-card
-  {:props {:label "string" :count "number" :color "string"}}
+  {:props {:label "string" :count "number" :color "string"}
+   :style [stat-card-styles]}
   [{:keys [label count color]}]
   [:div {:class "card"
          :style {:border-top (str "3px solid " (or color "#6366f1"))}}
@@ -60,7 +61,7 @@
 ;; Receives the tasks atom via Props Channeling (:atom prop type)
 ;; and the task-id as a regular attribute prop.
 
-(defstyle task-item
+(defstyle task-item-styles
   [:host {:display "block"}]
   [:.row {:display "flex"
           :align-items "center"
@@ -83,7 +84,8 @@
              :padding "2px 6px"}])
 
 (defc task-item
-  {:props {:task-id "number" :text "string" :done "boolean"}}
+  {:props {:task-id "number" :text "string" :done "boolean"}
+   :style [task-item-styles]}
   [{:keys [task-id text done]}]
   (let [;; Context API: get tasks atom from ancestor component
         tasks (su/use-context :tasks)]
@@ -102,7 +104,7 @@
 ;; -- task-input --
 ;; Uses Context API to get tasks and next-id atoms from ancestor.
 
-(defstyle task-input
+(defstyle task-input-styles
   [:host {:display "block"}]
   [:.row {:display "flex" :gap "8px" :margin-bottom "16px"}]
   [:.text-input {:flex "1"
@@ -120,7 +122,9 @@
               :cursor "pointer"
               :font-weight "500"}])
 
-(defc task-input []
+(defc task-input
+  {:style [task-input-styles]}
+  []
   (let [;; Context API: get shared atoms from ancestor
         tasks   (su/use-context :tasks)
         next-id (su/use-context :next-id)
@@ -145,7 +149,7 @@
 ;; -- filter-bar --
 ;; Uses Context API to get filter-mode atom from ancestor.
 
-(defstyle filter-bar
+(defstyle filter-bar-styles
   [:host {:display "block"}]
   [:.filters {:display "flex" :gap "6px" :margin-bottom "16px"}]
   [:.btn {:padding "6px 16px"
@@ -154,7 +158,9 @@
           :font-size "13px"
           :cursor "pointer"}])
 
-(defc filter-bar []
+(defc filter-bar
+  {:style [filter-bar-styles]}
+  []
   (let [;; Context API: get filter-mode from ancestor
         filter-mode (su/use-context :filter-mode)]
     (fn []
@@ -172,7 +178,7 @@
 ;; Receives tasks atom via Props Channeling (:atom prop type).
 ;; Gets filter-mode from Context API.
 
-(defstyle task-list
+(defstyle task-list-styles
   [:host {:display "block"}]
   [:.empty {:text-align "center"
             :color "#94a3b8"
@@ -180,7 +186,8 @@
             :padding "24px 0"}])
 
 (defc task-list
-  {:props {:tasks :atom}}
+  {:props {:tasks :atom}
+   :style [task-list-styles]}
   [{:keys [tasks]}]
   (let [;; Context API: get filter-mode from ancestor
         filter-mode (su/use-context :filter-mode)]
@@ -200,7 +207,7 @@
 ;; Provides atoms to descendants via Context API.
 ;; Passes tasks atom to task-list via Props Channeling.
 
-(defstyle task-app
+(defstyle task-app-styles
   [:host {:font-family "'Inter', system-ui, sans-serif"
           :color "#1e293b"}]
   [:.container {:max-width "520px"
@@ -218,7 +225,9 @@
            :border-top "none"}]
   [:.stats {:display "flex" :gap "12px" :margin-bottom "20px"}])
 
-(defc task-app []
+(defc task-app
+  {:style [task-app-styles]}
+  []
   (let [;; All state owned here, with DevTools labels
         tasks       (atom [] "tasks")
         next-id     (atom 0 "next-id")

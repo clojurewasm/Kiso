@@ -29,6 +29,7 @@ Define a Custom Element with Shadow DOM.
 | Key                | Type                          | Description                        |
 |--------------------|-------------------------------|------------------------------------|
 | `:props`           | `{name type}`                 | Prop declarations                  |
+| `:style`           | `[stylesheet ...]`            | Stylesheets to apply (from `defstyle`) |
 | `:formAssociated`  | `boolean`                     | Enable form participation          |
 | `:delegatesFocus`  | `boolean`                     | Delegate focus to Shadow Root      |
 
@@ -48,15 +49,19 @@ Define a Custom Element with Shadow DOM.
 - If the body returns a function, that function is the reactive render function
 - If the body returns a hiccup vector, it is rendered statically
 - The component is auto-registered via `customElements.define()`
-- Styles with the same name are automatically linked
+- Pass stylesheets via `:style` option (from `defstyle`)
 
 **Example:**
 
 ```clojure
+(defstyle my-widget-styles
+  [:.widget {:padding "16px"}])
+
 (defc my-widget
-  {:props {:title "string" :count "number"}}
+  {:props {:title "string" :count "number"}
+   :style [my-widget-styles]}
   [{:keys [title count]}]
-  [:div
+  [:div.widget
     [:h2 title]
     [:span (str "Count: " count)]])
 ```
@@ -100,9 +105,9 @@ Define a scoped CSS stylesheet.
 **Behavior:**
 
 - Creates a `CSSStyleSheet` via Constructable Stylesheets API
+- Returns a stylesheet value — pass it to `defc` via `:style [...]`
 - Cached by name (created once, shared across instances)
-- Auto-linked to `defc` with the same name
-- Styles are scoped to the component's Shadow DOM
+- Styles are scoped to the component's Shadow DOM when used with `defc`
 
 **Selector syntax:**
 
@@ -124,6 +129,36 @@ Define a scoped CSS stylesheet.
            :border-radius "8px"}]
   [:.title {:font-size "18px"
             :font-weight "bold"}])
+```
+
+---
+
+### `global-style!`
+
+Apply a stylesheet to the document (outside Shadow DOM).
+
+```clojure
+(su/global-style! stylesheet)
+```
+
+| Parameter    | Type         | Description                          |
+|--------------|--------------|--------------------------------------|
+| `stylesheet` | stylesheet   | A stylesheet created by `defstyle`   |
+
+**Behavior:**
+
+- Appends the stylesheet to `document.adoptedStyleSheets`
+- Useful for CSS resets, global typography, or page-level styles
+- The stylesheet is the same value returned by `defstyle`
+
+**Example:**
+
+```clojure
+(defstyle global-reset
+  [:body {:margin "0" :font-family "sans-serif"}]
+  ["*" {:box-sizing "border-box"}])
+
+(su/global-style! global-reset)
 ```
 
 ---

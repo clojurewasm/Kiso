@@ -24,21 +24,28 @@ The syntax is Garden-style CSS-as-data:
 [selector {property value, ...}]
 ```
 
-### Auto-Linking
+### Linking Styles to Components
 
-When `defstyle` and `defc` share the same name, the stylesheet is
-automatically applied to the component:
+Pass the stylesheet to `defc` via the `:style` option:
 
 ```clojure
-(defstyle my-card
+(defstyle my-card-styles
   [:.card {:padding "16px" :border-radius "8px"}])
 
-(defc my-card []           ;; <-- same name, auto-linked
+(defc my-card
+  {:style [my-card-styles]}
+  []
   [:div {:class "card"}
     "Card content"])
 ```
 
-No extra wiring needed.
+The `:style` vector can include multiple stylesheets:
+
+```clojure
+(defc my-widget
+  {:style [base-styles theme-styles widget-styles]}
+  []
+  [:div "Styled widget"])
 
 ## Selector Syntax
 
@@ -152,10 +159,21 @@ For styles that change based on state, use inline `:style` maps in hiccup:
 
 Use `defstyle` for static styles and inline `:style` for dynamic values.
 
+### Global Styles
+
+Use `global-style!` to apply a stylesheet to the document (outside Shadow DOM):
+
+```clojure
+(defstyle reset-styles
+  [:body {:margin "0" :font-family "sans-serif"}])
+
+(su/global-style! reset-styles)
+```
+
 ## Complete Example
 
 ```clojure
-(defstyle stat-card
+(defstyle stat-card-styles
   [:host {:display "block"}]
   [:.card {:padding "16px"
            :background "#fff"
@@ -167,7 +185,8 @@ Use `defstyle` for static styles and inline `:style` for dynamic values.
   [:.label {:font-size "13px" :color "#64748b" :margin-top "4px"}])
 
 (defc stat-card
-  {:props {:label "string" :count "number" :color "string"}}
+  {:props {:label "string" :count "number" :color "string"}
+   :style [stat-card-styles]}
   [{:keys [label count color]}]
   [:div {:class "card"
          :style {:border-top (str "3px solid " (or color "#6366f1"))}}
@@ -182,7 +201,8 @@ Use `defstyle` for static styles and inline `:style` for dynamic values.
 | Concept                  | Description                                   |
 |--------------------------|-----------------------------------------------|
 | `defstyle`               | Define scoped CSS (Garden-style syntax)       |
-| Auto-linking             | Same name as `defc` = automatically applied   |
+| `:style [...]`           | Pass stylesheets to `defc` explicitly         |
+| `global-style!`          | Apply stylesheet to document (outside Shadow) |
 | `:host`                  | Style the component's outer element           |
 | CSS custom properties    | Penetrate Shadow DOM for theming              |
 | `::part`                 | Expose internals for external styling         |

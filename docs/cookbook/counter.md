@@ -59,7 +59,7 @@ export default {
   (:require [su.core :as su :refer [defc defstyle]]))
 
 ;; 1. Define scoped styles
-(defstyle my-counter
+(defstyle counter-styles
   [:.counter {:display "flex"
               :gap "12px"
               :align-items "center"
@@ -77,7 +77,9 @@ export default {
             :font-size "20px"}])
 
 ;; 2. Define component
-(defc my-counter []
+(defc my-counter
+  {:style [counter-styles]}
+  []
   ;; Setup phase: runs ONCE when component mounts.
   ;; Create local reactive state.
   (let [count (atom 0)]
@@ -109,7 +111,7 @@ The `su` alias is used for `su/mount`.
 ### Styles with `defstyle`
 
 ```clojure
-(defstyle my-counter
+(defstyle counter-styles
   [:.counter { ... }]
   [:span { ... }]
   [:button { ... }])
@@ -120,13 +122,14 @@ The `su` alias is used for `su/mount`.
 - `[:.counter {...}]` targets elements with `class="counter"`
 - Styles are scoped to the component's Shadow DOM — they won't leak out
 
-The name `my-counter` matches the component name, so the stylesheet is
-automatically applied.
+The stylesheet is passed to the component via `:style [counter-styles]`.
 
 ### Component with `defc`
 
 ```clojure
-(defc my-counter []
+(defc my-counter
+  {:style [counter-styles]}
+  []
   (let [count (atom 0)]
     (fn []
       [:div {:class "counter"}

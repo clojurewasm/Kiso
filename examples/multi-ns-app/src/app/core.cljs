@@ -8,11 +8,12 @@
 (su/enable-trace)
 
 (defstyle app-style
-  ".app { max-width: 600px; margin: 0 auto; }"
-  ".note-list { display: flex; flex-direction: column; }")
+  [:.app {:max-width "600px" :margin "0 auto"}]
+  [:.note-list {:display "flex" :flex-direction "column"}])
 
 (defc notes-app
   "Root component. Assembles header, input, and note list."
+  {:style [app-style]}
   []
   (fn []
     [:div {:class "app"}

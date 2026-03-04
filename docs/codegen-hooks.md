@@ -37,6 +37,7 @@ type CodegenHelpers = {
   indent: string;                             // Current indentation string
   deeper: () => CodegenHelpers;               // Return helpers with +1 indent level
   extractLiteral: (node: Node) => unknown | null;  // Extract static value or null
+  nsRef: (ns: string) => string;             // Resolve namespace to JS import alias
 };
 ```
 
@@ -47,12 +48,13 @@ Returns a JavaScript expression string.
 
 ### `CodegenHelpers`
 
-| Method           | Description                                                 |
-|------------------|-------------------------------------------------------------|
-| `emit(node)`     | Emit any AST node to JS. Use for dynamic sub-expressions.   |
-| `indent`         | Current indentation (e.g. `"  "` at depth 1).               |
-| `deeper()`       | Returns new helpers at indent+1. Use for multi-line output.  |
-| `extractLiteral` | Returns the static JS value if node is a literal, else null. |
+| Method           | Description                                                        |
+|------------------|--------------------------------------------------------------------|
+| `emit(node)`     | Emit any AST node to JS. Use for dynamic sub-expressions.          |
+| `indent`         | Current indentation (e.g. `"  "` at depth 1).                      |
+| `deeper()`       | Returns new helpers at indent+1. Use for multi-line output.         |
+| `extractLiteral` | Returns the static JS value if node is a literal, else null.        |
+| `nsRef(ns)`      | Resolve a namespace to its JS import alias (auto-imports if needed). |
 
 ### `Node`
 
