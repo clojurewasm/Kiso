@@ -1219,8 +1219,8 @@ function extractFormOpt(optsForm: Form, name: string): Form | null {
   return null;
 }
 
-function extractPropsFromOpts(optsForm: Form): Map<string, string> {
-  if (optsForm.data.type !== 'map') return new Map();
+function extractPropsFromOpts(optsForm: Form): Map<string, string> | null {
+  if (optsForm.data.type !== 'map') return null;
   const items = optsForm.data.items;
   // Find :props key
   for (let i = 0; i < items.length - 1; i += 2) {
@@ -1230,7 +1230,7 @@ function extractPropsFromOpts(optsForm: Form): Map<string, string> {
       return extractPropTypes(val);
     }
   }
-  return new Map();
+  return null;
 }
 
 function extractPropTypes(propsVal: Form): Map<string, string> {
