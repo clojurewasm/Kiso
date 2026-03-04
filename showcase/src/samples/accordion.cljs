@@ -46,21 +46,22 @@
 (defc sample-accordion
   {:style [accordion-styles]}
   []
-  (let [open-idx (atom #{})]
+  (let [open-map (atom {})]
     (fn []
       [:div
        (map-indexed
         (fn [i item]
-          [:div {:class "item"}
-           [:div {:class "header"
-                  :on-click (fn [_]
-                              (swap! open-idx
-                                     (fn [s] (if (s i) (disj s i) (conj s i)))))}
-            (:title item)
-            [:span {:class (str "arrow" (when (@open-idx i) " open"))}
-             "\u25B6"]]
-           [:div {:class (str "body" (when (@open-idx i) " open"))}
-            (:content item)]])
+          (let [is-open (get @open-map i)]
+            [:div {:class "item"}
+             [:div {:class "header"
+                    :on-click (fn [_]
+                                (swap! open-map
+                                       (fn [m] (assoc m i (not (get m i))))))}
+              (:title item)
+              [:span {:class (str "arrow" (when is-open " open"))}
+               "\u25B6"]]
+             [:div {:class (str "body" (when is-open " open"))}
+              (:content item)]]))
         faq-items)])))
 
 (defn mount! [container]

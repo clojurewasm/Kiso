@@ -148,3 +148,43 @@ The markdown-editor example was reworked to produce hiccup directly (md to hiccu
 
 For cases where raw HTML insertion is needed, use `set!` on the DOM element via interop
 after mount.
+
+### 10. Regex literals compiled as strings, not RegExp (analyzer.ts, emitter.ts)
+
+**Severity**: High — all regex usage silently broken
+
+**Symptom**: `(string/split text #"\n")` doesn't split — the entire text stays as one string.
+`(re-find #"[0-9]+" "abc123")` would also fail to match.
+
+**Root cause**: `analyzer.ts:61` had `case 'regex': return lit(form.data.pattern, 'string')` which
+treated regex literals as string literals. `#"\n"` compiled to `"\\n"` (string) instead of `/\n/` (RegExp).
+
+**Fix**:
+1. `analyzer.ts`: Changed jsType from `'string'` to `'regex'`
+2. `node.ts`: Added `'regex'` to `LiteralNode.jsType` union
+3. `emitter.ts`: Added regex case in `emitLiteral` — emits `/pattern/` with forward-slash escaping
+
+**Test**: `test/api/compiler.test.ts` — "regex literals" suite (3 tests)
+
+### 11. `#js` tagged literal not supported
+
+**Severity**: Medium — `#js [1 2 3]` silently produces PersistentVector, not JS array
+
+**Root cause**: Reader parses `#js` as a tagged literal, but analyzer (line 63) simply unwraps
+the tag and analyzes the inner form: `case 'tagged': return this.analyzeForm(form.data.form, scope)`.
+So `#js [1 2 3]` produces the same code as `[1 2 3]`.
+
+**Workaround**: Use the `array` runtime function: `(array 1 2 3)` creates a real JS array.
+
+### 12. Sets are not callable as IFn
+
+**Severity**: Low — unlike Clojure, `(#{:a :b} :a)` doesn't work
+
+In Clojure, sets implement IFn for membership testing. Kiso sets don't.
+**Workaround**: Use `(get my-set val)` or `(contains? ...)` (once `contains?` is in RUNTIME_FUNCTIONS).
+
+### 13. `contains?` and `subs` missing from RUNTIME_FUNCTIONS
+
+**Severity**: Low — these functions exist in runtime but aren't auto-imported
+
+**Workaround**: Use JS interop: `.substring` for `subs`, `(get coll key)` for `contains?`.
