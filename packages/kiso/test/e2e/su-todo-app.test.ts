@@ -43,6 +43,19 @@ describe('su todo-app dogfooding', () => {
       expect(js).toContain('define_component');
     });
 
+    it('defc props shorthand {:name "type"} sets prop-types correctly', () => {
+      const js = compileForm(`
+        (defc task-item
+          {:props {:task-id "number" :text "string" :done "boolean"}}
+          [{:keys [task-id text done]}]
+          [:div text])
+      `);
+      // prop-types should contain actual types, not default "string" for all
+      expect(js).toContain('keyword("prop-types")');
+      expect(js).toContain('"number"');
+      expect(js).toContain('"boolean"');
+    });
+
     it('defc infers attrs from destructuring', () => {
       const js = compileForm(`
         (defc nav-bar [{:keys [brand links]}]

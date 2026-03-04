@@ -902,6 +902,7 @@ function extractPropTypes(propsVal: Form): Map<string, string> {
     if (key.data.type === 'keyword') {
       let type = 'string';
       if (val.data.type === 'map') {
+        // Full format: {:task-id {:type :number}}
         const valItems = val.data.items;
         for (let j = 0; j < valItems.length - 1; j += 2) {
           const vk = valItems[j]!;
@@ -910,6 +911,12 @@ function extractPropTypes(propsVal: Form): Map<string, string> {
             type = vv.data.name;
           }
         }
+      } else if (val.data.type === 'string') {
+        // Shorthand: {:task-id "number"}
+        type = val.data.value as string;
+      } else if (val.data.type === 'keyword') {
+        // Keyword shorthand: {:task-id :number}
+        type = val.data.name;
       }
       result.set(key.data.name, type);
     }
