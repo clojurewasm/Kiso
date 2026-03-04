@@ -30,12 +30,12 @@ export default defineConfig({
   ],
   webServer: [
     {
-      command: 'cd ../../examples/task-manager && npm run build && npm run preview -- --port 4173',
+      command: 'cd ../../examples/task-manager && npm install && npm run build && npm run preview -- --port 4173',
       port: 4173,
       reuseExistingServer: !process.env.CI,
     },
     {
-      command: 'cd ../../examples/multi-ns-app && npm run build && npm run preview -- --port 4174',
+      command: 'cd ../../examples/multi-ns-app && npm install && npm run build && npm run preview -- --port 4174',
       port: 4174,
       reuseExistingServer: !process.env.CI,
     },
