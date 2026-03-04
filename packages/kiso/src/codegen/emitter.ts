@@ -127,11 +127,17 @@ export function emitModuleWithMappings(nodes: Node[], hooks?: Map<string, Codege
     if (node.type === 'defrecord') { userDefs.add(node.name); userDefs.add(`_to_${node.name}`); userDefs.add(`map_to_${node.name}`); }
   }
 
+  // Collect ns alias names (e.g. "str" from `:as str`) that will become `import * as str`
+  const nsAliasNames = new Set<string>();
+  for (const [, alias] of nsAliases) {
+    nsAliasNames.add(alias);
+  }
+
   // Detect runtime import collisions and build alias map
   const runtimeImports = collectRuntimeImports(nodes);
   const runtimeAliases = new Map<string, string>();
   for (const name of runtimeImports) {
-    if (userDefs.has(name)) {
+    if (userDefs.has(name) || nsAliasNames.has(name)) {
       runtimeAliases.set(name, `_rt_${name}`);
     }
   }

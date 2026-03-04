@@ -43,6 +43,17 @@ describe('compile', () => {
     expect(result.code).toContain('export let add =');
   });
 
+  it('aliases runtime import when ns alias collides', () => {
+    // `:as str` collides with runtime `str` function when both are used
+    const result = compile('(ns test (:require [clojure.string :as str]))\n(def x (str (str/join "," ["a" "b"])))');
+    // Runtime `str` should be aliased to avoid collision with `import * as str`
+    expect(result.code).toContain('str as _rt_str');
+    // The ns import should still use `str` as namespace alias
+    expect(result.code).toContain('import * as str from');
+    // The runtime str should use the aliased name
+    expect(result.code).toContain('_rt_str(str.join');
+  });
+
   it('maps each top-level form to its generated line', () => {
     const src = '(def x 1)\n(def y 2)\n(def z 3)';
     const result = compile(src, { sourceMap: true });
