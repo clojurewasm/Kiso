@@ -299,13 +299,14 @@ vars:
     # === Functions — Interop ===
     "clj->js":        {type: function, status: done}
     "js->clj":        {type: function, status: done}
-    "bean":           {type: function, status: todo}
+    "bean":           {type: function, status: done}
     "array":          {type: function, status: todo}
     "aclone":         {type: function, status: todo}
     "aget":           {type: function, status: todo}
     "aset":           {type: function, status: todo}
     "alength":        {type: function, status: todo}
-    "js-obj":         {type: function, status: todo}
+    "js-obj":         {type: function, status: done}
+    "js-array":       {type: function, status: done}
     "js-keys":        {type: function, status: todo}
     "js-delete":      {type: function, status: todo}
 

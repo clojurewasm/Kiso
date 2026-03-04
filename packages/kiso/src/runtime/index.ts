@@ -11,7 +11,7 @@ export { equiv } from './equiv.js';
 export { seq, first, rest, next, toArray, into } from './seq.js';
 export { defprotocol, protocolFn } from './protocols.js';
 export { arrayMap, isArrayMap } from './array-map.js';
-export { cljToJs, jsToClj } from './interop.js';
+export { clj_to_js, cljToJs, js_to_clj, jsToClj, bean, js_obj, js_array } from './interop.js';
 export { defmultiFn } from './multifn.js';
 export {
   truthy,

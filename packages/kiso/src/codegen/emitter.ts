@@ -614,7 +614,7 @@ const RUNTIME_FUNCTIONS = new Set([
   '>', '<', '>=', '<=',
   'defprotocol', 'protocolFn',
   'defmultiFn',
-  'cljToJs', 'jsToClj',
+  'clj->js', 'js->clj', 'bean', 'js-obj', 'js-array',
 ]);
 
 /** Scan AST for runtime function usage and return needed import names. */
