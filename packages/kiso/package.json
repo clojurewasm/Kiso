@@ -11,13 +11,17 @@
     "./vite": "./dist/api/vite-plugin.js",
     "./compiler": "./dist/api/compiler.js"
   },
+  "bin": {
+    "kiso": "./bin/kiso.mjs"
+  },
   "scripts": {
     "build": "tsc",
     "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },
   "files": [
-    "dist/"
+    "dist/",
+    "bin/"
   ],
   "publishConfig": {
     "access": "public"
