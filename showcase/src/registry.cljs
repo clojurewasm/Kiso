@@ -5,6 +5,13 @@
   [{:id "counter"          :label "Counter"          :category :components :live true}
    {:id "todo"             :label "Todo App"         :category :components :live true}
    {:id "task-manager"     :label "Task Manager"     :category :components :live true}
+   {:id "toggle-switch"   :label "Toggle Switch"   :category :components :live true}
+   {:id "accordion"       :label "Accordion"       :category :components :live true}
+   {:id "tabs"            :label "Tab Panel"        :category :components :live true}
+   {:id "progress-bar"    :label "Progress Bar"     :category :components :live true}
+   {:id "modal-dialog"    :label "Modal Dialog"     :category :components :live true}
+   {:id "dropdown-select" :label "Dropdown Select"  :category :components :live true}
+   {:id "data-table"      :label "Data Table"       :category :components :live true}
    {:id "basics"           :label "Basics"           :category :code}
    {:id "data-structures"  :label "Data Structures"  :category :code}
    {:id "higher-order"     :label "Higher-Order Fns" :category :code}
