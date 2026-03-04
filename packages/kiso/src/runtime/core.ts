@@ -314,18 +314,32 @@ export function update_in(m: unknown, ks: unknown, f: (...args: unknown[]) => un
 
 export function keys(m: unknown): unknown {
   if (m === null || m === undefined) return null;
-  if (!isHashMap(m)) return null;
-  const ks: unknown[] = [];
-  (m as PersistentHashMap).forEach((k) => ks.push(k));
-  return list(...ks);
+  if (isHashMap(m)) {
+    const ks: unknown[] = [];
+    (m as PersistentHashMap).forEach((k) => ks.push(k));
+    return list(...ks);
+  }
+  if (isSortedMap(m)) {
+    const ks: unknown[] = [];
+    (m as PersistentTreeMap).forEach((k) => ks.push(k));
+    return list(...ks);
+  }
+  return null;
 }
 
 export function vals(m: unknown): unknown {
   if (m === null || m === undefined) return null;
-  if (!isHashMap(m)) return null;
-  const vs: unknown[] = [];
-  (m as PersistentHashMap).forEach((_, v) => vs.push(v));
-  return list(...vs);
+  if (isHashMap(m)) {
+    const vs: unknown[] = [];
+    (m as PersistentHashMap).forEach((_, v) => vs.push(v));
+    return list(...vs);
+  }
+  if (isSortedMap(m)) {
+    const vs: unknown[] = [];
+    (m as PersistentTreeMap).forEach((_, v) => vs.push(v));
+    return list(...vs);
+  }
+  return null;
 }
 
 export function merge(...maps: unknown[]): unknown {

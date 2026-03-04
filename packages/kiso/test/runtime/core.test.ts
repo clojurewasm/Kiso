@@ -4,6 +4,7 @@ import { vector } from '../../src/runtime/vector.js';
 import { list } from '../../src/runtime/list.js';
 import { hashMap } from '../../src/runtime/hash-map.js';
 import { hashSet } from '../../src/runtime/hash-set.js';
+import { sortedMap } from '../../src/runtime/sorted-map.js';
 import { toArray } from '../../src/runtime/seq.js';
 
 // -- Arithmetic --
@@ -307,6 +308,12 @@ describe('keys', () => {
   it('returns null for nil', () => {
     expect(core.keys(null)).toBe(null);
   });
+
+  it('returns keys of a sorted map', () => {
+    const m = sortedMap('c', 3, 'a', 1, 'b', 2);
+    const ks = toArray(core.keys(m) as any);
+    expect(ks).toEqual(['a', 'b', 'c']);
+  });
 });
 
 describe('vals', () => {
@@ -316,6 +323,12 @@ describe('vals', () => {
     expect(vs).toHaveLength(2);
     expect(vs).toContain(1);
     expect(vs).toContain(2);
+  });
+
+  it('returns vals of a sorted map in key order', () => {
+    const m = sortedMap('c', 3, 'a', 1, 'b', 2);
+    const vs = toArray(core.vals(m) as any);
+    expect(vs).toEqual([1, 2, 3]);
   });
 });
 

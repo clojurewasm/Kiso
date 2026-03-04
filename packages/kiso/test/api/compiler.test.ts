@@ -69,6 +69,18 @@ describe('analyze', () => {
     const node = analyze(form);
     expect(node.type).toBe('literal');
   });
+
+  it('errors on odd-length map literal', () => {
+    expect(() => compile('{:a 1 :b}')).toThrow('even number');
+  });
+
+  it('errors on odd-length let binding vector', () => {
+    expect(() => compile('(let [x 1 y] x)')).toThrow('even number');
+  });
+
+  it('errors on odd-length loop binding vector', () => {
+    expect(() => compile('(loop [x 1 y] x)')).toThrow('even number');
+  });
 });
 
 describe('generate', () => {

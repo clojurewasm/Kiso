@@ -830,7 +830,7 @@ function scanNodeForRuntime(node: Node, used: Set<string>): void {
       scanNodeForRuntime(node.default, used);
       break;
     }
-    case 'deftype': case 'extend-type': case 'reify': {
+    case 'deftype': case 'defrecord': case 'extend-type': case 'reify': {
       if ('target' in node) scanNodeForRuntime(node.target, used);
       for (const impl of node.protocols) {
         scanNodeForRuntime(impl.protocol, used);

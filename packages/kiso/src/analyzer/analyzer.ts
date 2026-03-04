@@ -73,6 +73,7 @@ export class Analyzer {
   private analyzeMapLiteral(form: Form, scope: Scope): Node {
     if (form.data.type !== 'map') throw new Error('Expected map');
     const items = form.data.items;
+    if (items.length % 2 !== 0) throw new Error('Map literal must contain an even number of forms');
     const keys: Node[] = [];
     const vals: Node[] = [];
     for (let i = 0; i < items.length; i += 2) {
@@ -170,6 +171,7 @@ export class Analyzer {
     const bindingsForm = items[1]!;
     if (bindingsForm.data.type !== 'vector') throw new Error('let* requires a vector');
     const bindItems = bindingsForm.data.items;
+    if (bindItems.length % 2 !== 0) throw new Error('let requires an even number of forms in binding vector');
     const bindings: LetBinding[] = [];
     const letScope = makeScope(scope);
 
@@ -321,6 +323,7 @@ export class Analyzer {
     const bindingsForm = items[1]!;
     if (bindingsForm.data.type !== 'vector') throw new Error('loop* requires a vector');
     const bindItems = bindingsForm.data.items;
+    if (bindItems.length % 2 !== 0) throw new Error('loop requires an even number of forms in binding vector');
     const bindings: LetBinding[] = [];
     const loopScope = makeScope(scope);
 
