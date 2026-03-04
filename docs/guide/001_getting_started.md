@@ -22,11 +22,6 @@ npm install @clojurewasm/kiso @clojurewasm/su
 npm install -D vite
 ```
 
-> **Note:** Kiso is not yet published to npm. Clone the repository and use
-> `file:` paths in your `package.json` for now. See the
-> [task-manager example](https://github.com/chaploud/Kiso/tree/main/examples/task-manager)
-> for reference.
-
 ## Configure Vite
 
 Create `vite.config.js`:

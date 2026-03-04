@@ -16,7 +16,7 @@
     ".": "./dist/index.js"
   },
   "dependencies": {
-    "@clojurewasm/kiso": "*"
+    "@clojurewasm/kiso": "^0.1.0"
   },
   "peerDependencies": {
     "@clojurewasm/kiso": "^0.1.0"
