@@ -223,24 +223,45 @@ import { helper } from './util.js';
 
 Clojure symbols contain characters invalid in JS identifiers.
 
+**Standalone operators** get readable names:
+
+| Source | Munged     |
+|--------|------------|
+| `+`    | `add`      |
+| `-`    | `subtract` |
+| `*`    | `multiply` |
+| `/`    | `divide`   |
+| `=`    | `eq`       |
+| `not=` | `notEq`    |
+| `<`    | `lt`       |
+| `>`    | `gt`       |
+| `<=`   | `lte`      |
+| `>=`   | `gte`      |
+
+**Character replacements** use short suffixes:
+
 ```typescript
 function munge(name: string): string {
+  // Standalone operators → readable names (switch)
+  // Earmuffs: *debug* → _debug_
   return name
+    .replace(/\//g, '.')
+    .replace(/->/g, '_to_')    // -> arrow
     .replace(/-/g, '_')
-    .replace(/\?/g, '_QMARK_')
-    .replace(/!/g, '_BANG_')
-    .replace(/\*/g, '_STAR_')
-    .replace(/\+/g, '_PLUS_')
-    .replace(/>/g, '_GT_')
-    .replace(/</g, '_LT_')
-    .replace(/=/g, '_EQ_')
-    .replace(/\//g, '_SLASH_')
-    .replace(/'/g, '_SINGLEQUOTE_')
-    .replace(/&/g, '_AMPERSAND_');
+    .replace(/\?/g, '_p')     // ? predicate
+    .replace(/!/g, '_m')      // ! mutate
+    .replace(/=/g, '_eq_')
+    .replace(/%/g, '_PCT_')
+    // ... remaining special chars
 }
 ```
 
-Same munging rules as CW. Reverse munging (demunge) needed for Source Maps.
+Examples: `nil?` → `nil_p`, `swap!` → `swap_m`, `->Person` → `_to_Person`,
+`*debug*` → `_debug_`.
+
+**Runtime import collision**: when a user-defined name (e.g. `(defn add ...)`)
+shadows a munged operator name, the runtime import gets an `_rt_` prefix alias:
+`import { add as _rt_add } from '@clojurewasm/kiso/runtime'`.
 
 ---
 

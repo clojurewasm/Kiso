@@ -15,8 +15,10 @@ Monorepo: `@clojurewasm/kiso` (compiler + runtime), `@clojurewasm/su` (component
 | 6     | Vite Integration       | DONE   | compile API + Vite plugin + HMR                          |
 | 7     | su Framework           | DONE   | reactive, component, hiccup, css, lifecycle, HMR         |
 | 8     | Codegen Quality        | DONE   | Pretty-print, constructor fix, munge fix, truthy, srcmap |
+| 9     | Codegen Readability    | DONE   | Readable munging, destructuring, IIFE cond, codegen hooks |
+| 10    | CLI                    | DONE   | kiso compile command, source map, out-dir, file/dir resolve |
 
-All 8 phases complete. 879 tests passing. Types clean.
+All 10 phases complete. 916 tests passing (840 kiso + 76 su). Types clean.
 
 ## Phase 1: Reader — DONE
 
@@ -102,6 +104,30 @@ Improve generated JS readability and fix codegen bugs discovered during review.
 - 8.3 ~~Fix arithmetic munge: `-` → `subtract`, `/` → `divide`~~ DONE
 - 8.4 ~~Reduce truthiness verbosity: `truthy(x)` runtime helper~~ DONE
 - 8.5 ~~Line-level source map mappings (per-form positions)~~ DONE
+
+## Phase 9: Codegen Readability — DONE
+
+Improve generated JS output to be human-readable, not "auto-generated" looking.
+
+- 9.1 ~~Readable operator names: +→add, *→multiply, =→eq, etc.~~ DONE
+- 9.2 ~~Clean character munging: ?→_p, !→_m, *x*→_x_, ->→_to_~~ DONE
+- 9.3 ~~Shorter destructuring gensyms: _sc0/_ss1/_m2 format, skip redundant temps~~ DONE
+- 9.4 ~~Cond as if-else chain: deep if-chains emit IIFE with early returns~~ DONE
+- 9.5 ~~Codegen hooks API: codegenHooks in CompileOptions~~ DONE
+- 9.6 ~~su codegen hooks: define-component/create-stylesheet emit JS object literals~~ DONE
+- 9.7 ~~Bug fix: runtime import collision when user def shadows operator name~~ DONE
+- 9.8 ~~Bug fix: seq destructuring with multiple elements before &~~ DONE
+- 9.9 ~~Bug fix: munge % character from #() reader macro~~ DONE
+- 9.10 ~~Bug fix: shorten function parameter gensyms to _p0 format~~ DONE
+
+## Phase 10: CLI — DONE
+
+Command-line interface for standalone compilation.
+
+- 10.1 ~~Argument parser (node:util.parseArgs)~~ DONE
+- 10.2 ~~File/directory target resolver~~ DONE
+- 10.3 ~~compile command with source map and out-dir support~~ DONE
+- 10.4 ~~bin wrapper (npx kiso compile ...)~~ DONE
 
 ## Known Gaps / Future Work
 

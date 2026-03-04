@@ -169,3 +169,28 @@ Custom Element re-registration is not possible — HMR uses render function repl
 **Affected**: `@clojurewasm/su` package (separate from `@clojurewasm/kiso`).
 `@clojurewasm/kiso` impact: atom tracking hook (F1), watch unsubscribe (F2),
 CE tag validation and hiccup ns-keyword resolution (F8) — see design doc.
+
+## D9: Codegen Readability — Short Munging + Codegen Hooks
+
+**Date**: 2026-03-04
+
+Overhauled name munging and added codegen hooks API for human-readable JS output.
+
+**Munging changes**:
+- Standalone operators get English names: `+`→`add`, `*`→`multiply`, `=`→`eq`, etc.
+- Special characters use short suffixes: `?`→`_p`, `!`→`_m`, `->`→`_to_`
+- Earmuffs preserved: `*debug*`→`_debug_`
+- Runtime import collision detection: `_rt_` prefix alias when user def shadows operator
+
+**Codegen hooks API**: `codegenHooks` option in `CompileOptions` allows libraries to
+register custom JS emitters for namespace-qualified invocations. Hooks intercept in
+`emitInvoke` when the function is a var-ref matching a registered key.
+
+**Rationale**: Generated JS should look like hand-written code. `_QMARK_`/`_BANG_`/`_STAR_`
+are noisy and unreadable. Short suffixes (`_p`, `_m`) are conventional and scannable.
+Codegen hooks enable su (and future libraries) to emit idiomatic JS instead of raw
+runtime function calls.
+
+**Affected**: `packages/kiso/src/codegen/emitter.ts`, `packages/kiso/src/api/compiler.ts`,
+`packages/kiso/src/api/codegen-hooks.ts` (new), `packages/su/src/codegen-hooks.ts` (new).
+See `docs/codegen-hooks.md` for API documentation.

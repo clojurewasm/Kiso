@@ -12,17 +12,18 @@ Session handover document. Read at session start.
 - @clojurewasm/su: reactive, component (formAssociated, delegatesFocus), hiccup, css, lifecycle, hmr.
 - Vite plugin: .cljs transform + HMR + alias resolution.
 - Demo: examples/task-manager (task manager app in browser).
-- Total: 879 tests passing (807 cljs + 72 su), types clean.
+- Total: 916 tests passing (840 kiso + 76 su), types clean.
 - **All checklist items (K01-K11) resolved.**
 
 ## Current Task
 
-**Phase 8: Codegen Quality** — DONE. All 5 items resolved:
-1. ~~Fix constructor emit~~ — namespaced Ctor. (js/Error.) now emits `new`
-2. ~~Fix arithmetic munge~~ — `-`→`subtract`, `/`→`divide`
-3. ~~Reduce truthiness verbosity~~ — `truthy(x)` runtime helper
-4. ~~Pretty-print~~ — multi-line with 2-space indentation
-5. ~~Line-level source maps~~ — per-form mapping via `emitModuleWithMappings`
+**Codegen Readability** — DONE. 6 commits:
+1. ~~Readable operator names~~ — standalone operators (+→add, *→multiply, =→eq, etc.)
+2. ~~Clean character munging~~ — ?→_p, !→_m, *x*→_x_, ->→_to_
+3. ~~Cleaner destructuring gensyms~~ — _sc0/_ss1/_m2 format, skip redundant temps
+4. ~~Cond as if-else chain~~ — deep if-chains emit IIFE with early returns
+5. ~~Codegen hooks API~~ — codegenHooks in CompileOptions, intercept ns-qualified calls
+6. ~~su codegen hooks~~ — define-component/create-stylesheet emit JS object literals
 
 ## Task Queue
 

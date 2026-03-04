@@ -61,9 +61,15 @@ kiso/                             (monorepo root)
 │   │   │   ├── array-map.ts      ArrayMap (<=8 entries)
 │   │   │   ├── interop.ts        clj->js, js->clj
 │   │   │   └── protocol-ext.ts   Protocol extensions for built-in types
+│   │   ├── cli/                  CLI (kiso command)
+│   │   │   ├── index.ts          Entry point
+│   │   │   ├── args.ts           Argument parser
+│   │   │   ├── resolve.ts        File/directory target resolver
+│   │   │   └── compile-command.ts  compile subcommand
 │   │   └── api/                  Public API
 │   │       ├── compiler.ts       compile(), compileFile()
-│   │       └── vite-plugin.ts    Vite plugin
+│   │       ├── vite-plugin.ts    Vite plugin
+│   │       └── codegen-hooks.ts  Codegen hooks type re-exports
 │   └── test/
 │
 ├── packages/su/                  @clojurewasm/su (component framework)
@@ -76,6 +82,7 @@ kiso/                             (monorepo root)
 │   │   ├── css.ts                createSheet(), adoptedStyleSheets
 │   │   ├── lifecycle.ts          on-mount, on-unmount hooks
 │   │   ├── hmr.ts                Hot module replacement
+│   │   ├── codegen-hooks.ts      Codegen hooks for defc/defstyle
 │   │   └── index.ts              Barrel export
 │   └── test/
 │
@@ -163,7 +170,7 @@ Vite / esbuild / Rollup processes output
 ## su Positioning
 
 ```
-@clojurewasm/kiso (packages/cljs)
+@clojurewasm/kiso (packages/kiso)
   ↑ dependency (workspace link)
 @clojurewasm/su (packages/su)
   ├── src/                reactive, component, hiccup, css, lifecycle, hmr (~3KB)
@@ -172,6 +179,8 @@ Vite / esbuild / Rollup processes output
 
 su is a regular library consumer of `@clojurewasm/kiso`.
 defc/defstyle macros are implemented in `@clojurewasm/kiso` analyzer and expand to `su.core/*` calls.
+su provides codegen hooks (`suCodegenHooks`) that convert macro output to idiomatic JS
+(object literals instead of `hashMap`/`keyword` calls). See `docs/codegen-hooks.md`.
 
 ---
 
