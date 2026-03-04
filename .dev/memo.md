@@ -118,9 +118,9 @@ if (node.type === 'def') {
 
 ## Task Queue
 
-1. **Docstring対応**（上記）
-2. `.gitignore`のコミット
-3. README（APIリファレンス、Getting Started）
+1. ~~Docstring support~~ DONE
+2. ~~`.gitignore` commit~~ DONE
+3. ~~README (API reference, Getting Started)~~ DONE
 4. npm publish
 
 ## Key Design References
