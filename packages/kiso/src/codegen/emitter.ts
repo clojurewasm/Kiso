@@ -130,13 +130,13 @@ function emitTopLevelCtx(node: Node, ctx: EmitCtx): string {
   }
   if (node.type === 'deftype') {
     const code = emitDeftype(node, ctx);
-    const factoryName = `__GT_${node.name}`;
+    const factoryName = `_to_${node.name}`;
     return `${code}\nexport { ${node.name}, ${factoryName} };`;
   }
   if (node.type === 'defrecord') {
     const code = emitDefrecord(node, ctx);
-    const factoryName = `__GT_${node.name}`;
-    const mapFactoryName = `map__GT_${node.name}`;
+    const factoryName = `_to_${node.name}`;
+    const mapFactoryName = `map_to_${node.name}`;
     return `${code}\nexport { ${node.name}, ${factoryName}, ${mapFactoryName} };`;
   }
   if (node.type === 'ns') {
@@ -289,7 +289,7 @@ function emitDeftype(node: DeftypeNode, ctx: EmitCtx): string {
       members.push(`${i}[${protoVar}.methods.${m.name}](${mParams.join(', ')}) {\n${i2}return ${body};\n${i}}`);
     }
   }
-  const factoryName = `__GT_${name}`;
+  const factoryName = `_to_${name}`;
   return `class ${name} {\n${members.join('\n\n')}\n}\nfunction ${factoryName}(${ctorParams}) {\n${i}return new ${name}(${ctorParams});\n}`;
 }
 
@@ -313,8 +313,8 @@ function emitDefrecord(node: DefrecordNode, ctx: EmitCtx): string {
       members.push(`${i}[${protoVar}.methods.${m.name}](${mParams.join(', ')}) {\n${i2}return ${body};\n${i}}`);
     }
   }
-  const factoryName = `__GT_${name}`;
-  const mapFactoryName = `map__GT_${name}`;
+  const factoryName = `_to_${name}`;
+  const mapFactoryName = `map_to_${name}`;
   const mapFactoryParams = fields.map((f) => `keyword("${f}")`);
   const mapFactoryBody = fields.map((_f, idx) => `m.get(${mapFactoryParams[idx]})`).join(', ');
 
@@ -673,16 +673,22 @@ export function munge(name: string): string {
     case '<=': return 'lte';
     case '>=': return 'gte';
   }
+  // Earmuffs: *foo* → _foo_ (but lone * is handled above)
+  const earmuffed = name.replace(/^\*(.+)\*$/, '_$1_');
+  if (earmuffed !== name) {
+    return earmuffed.replace(/-/g, '_');
+  }
   return name
     .replace(/\//g, '.')
+    .replace(/->/g, '_to_')
     .replace(/-/g, '_')
-    .replace(/\?/g, '_QMARK_')
-    .replace(/!/g, '_BANG_')
+    .replace(/\?/g, '_p')
+    .replace(/!/g, '_m')
     .replace(/\*/g, '_STAR_')
     .replace(/\+/g, '_PLUS_')
     .replace(/>/g, '_GT_')
     .replace(/</g, '_LT_')
-    .replace(/=/g, '_EQ_')
+    .replace(/=/g, '_eq_')
     .replace(/'/g, '_SINGLEQUOTE_')
     .replace(/&/g, '_AMPERSAND_');
 }

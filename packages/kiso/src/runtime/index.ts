@@ -6,7 +6,7 @@ export { hashSet, isHashSet } from './hash-set.js';
 export { keyword, isKeyword } from './keyword.js';
 export { symbol, isSymbol } from './symbol.js';
 export { list, cons, EMPTY_LIST, isList } from './list.js';
-export { Atom, atom, isAtom, deref, reset_BANG_ as reset_BANG_, swap_BANG_ as swap_BANG_ } from './atom.js';
+export { Atom, atom, isAtom, deref, reset_m, swap_m } from './atom.js';
 export { equiv } from './equiv.js';
 export { seq, first, rest, next, toArray, into } from './seq.js';
 export { defprotocol, protocolFn } from './protocols.js';
@@ -18,9 +18,9 @@ export {
   inc, dec,
   lt, gt, lte, gte,
   eq, not_eq, not_eq as notEq,
-  nil_QMARK_, some_QMARK_, not,
-  zero_QMARK_, pos_QMARK_, neg_QMARK_,
-  number_QMARK_, string_QMARK_, boolean_QMARK_,
+  nil_p, some_p, not,
+  zero_p, pos_p, neg_p,
+  number_p, string_p, boolean_p,
   str, count, conj, get, assoc, dissoc,
   map, filter, reduce, apply,
   identity, constantly, comp, partial,

@@ -70,11 +70,11 @@ export function not_eq(a: unknown, b: unknown): boolean {
 
 // -- Predicates --
 
-export function nil_QMARK_(x: unknown): boolean {
+export function nil_p(x: unknown): boolean {
   return x === null || x === undefined;
 }
 
-export function some_QMARK_(x: unknown): boolean {
+export function some_p(x: unknown): boolean {
   return x !== null && x !== undefined;
 }
 
@@ -82,13 +82,13 @@ export function not(x: unknown): boolean {
   return !isTruthy(x);
 }
 
-export function zero_QMARK_(n: number): boolean { return n === 0; }
-export function pos_QMARK_(n: number): boolean { return n > 0; }
-export function neg_QMARK_(n: number): boolean { return n < 0; }
+export function zero_p(n: number): boolean { return n === 0; }
+export function pos_p(n: number): boolean { return n > 0; }
+export function neg_p(n: number): boolean { return n < 0; }
 
-export function number_QMARK_(x: unknown): boolean { return typeof x === 'number'; }
-export function string_QMARK_(x: unknown): boolean { return typeof x === 'string'; }
-export function boolean_QMARK_(x: unknown): boolean { return typeof x === 'boolean'; }
+export function number_p(x: unknown): boolean { return typeof x === 'number'; }
+export function string_p(x: unknown): boolean { return typeof x === 'string'; }
+export function boolean_p(x: unknown): boolean { return typeof x === 'boolean'; }
 
 // -- String --
 

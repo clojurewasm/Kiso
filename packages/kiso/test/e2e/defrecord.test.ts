@@ -31,13 +31,13 @@ describe('defrecord*', () => {
 
   it('generates ->Name factory', () => {
     const js = compile(`(defrecord* Point [x y])`);
-    expect(js).toContain('__GT_Point');
+    expect(js).toContain('_to_Point');
     expect(js).toContain('return new Point(x, y)');
   });
 
   it('generates map->Name factory', () => {
     const js = compile(`(defrecord* Point [x y])`);
-    expect(js).toContain('map__GT_Point');
+    expect(js).toContain('map_to_Point');
   });
 
   it('includes protocol methods', () => {
@@ -53,7 +53,7 @@ describe('defrecord macro', () => {
     const js = compile(`(defrecord Point [x y])`);
     expect(js).toContain('class Point');
     expect(js).toContain('__kiso_type');
-    expect(js).toContain('__GT_Point');
-    expect(js).toContain('map__GT_Point');
+    expect(js).toContain('_to_Point');
+    expect(js).toContain('map_to_Point');
   });
 });

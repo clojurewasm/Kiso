@@ -70,16 +70,16 @@ describe('comparison', () => {
 // -- Predicates --
 
 describe('predicates', () => {
-  it('nil_QMARK_', () => {
-    expect(core.nil_QMARK_(null)).toBe(true);
-    expect(core.nil_QMARK_(undefined)).toBe(true);
-    expect(core.nil_QMARK_(false)).toBe(false);
-    expect(core.nil_QMARK_(0)).toBe(false);
+  it('nil_p', () => {
+    expect(core.nil_p(null)).toBe(true);
+    expect(core.nil_p(undefined)).toBe(true);
+    expect(core.nil_p(false)).toBe(false);
+    expect(core.nil_p(0)).toBe(false);
   });
 
-  it('some_QMARK_', () => {
-    expect(core.some_QMARK_(1)).toBe(true);
-    expect(core.some_QMARK_(null)).toBe(false);
+  it('some_p', () => {
+    expect(core.some_p(1)).toBe(true);
+    expect(core.some_p(null)).toBe(false);
   });
 
   it('not', () => {
@@ -89,16 +89,16 @@ describe('predicates', () => {
     expect(core.not(0)).toBe(false); // Clojure: 0 is truthy
   });
 
-  it('zero_QMARK_ / pos_QMARK_ / neg_QMARK_', () => {
-    expect(core.zero_QMARK_(0)).toBe(true);
-    expect(core.pos_QMARK_(1)).toBe(true);
-    expect(core.neg_QMARK_(-1)).toBe(true);
+  it('zero_p / pos_p / neg_p', () => {
+    expect(core.zero_p(0)).toBe(true);
+    expect(core.pos_p(1)).toBe(true);
+    expect(core.neg_p(-1)).toBe(true);
   });
 
-  it('number_QMARK_ / string_QMARK_ / boolean_QMARK_', () => {
-    expect(core.number_QMARK_(42)).toBe(true);
-    expect(core.string_QMARK_('hi')).toBe(true);
-    expect(core.boolean_QMARK_(true)).toBe(true);
+  it('number_p / string_p / boolean_p', () => {
+    expect(core.number_p(42)).toBe(true);
+    expect(core.string_p('hi')).toBe(true);
+    expect(core.boolean_p(true)).toBe(true);
   });
 });
 

@@ -251,9 +251,11 @@ describe('name munging', () => {
   });
 
   it('munges special chars', () => {
-    expect(munge('nil?')).toBe('nil_QMARK_');
-    expect(munge('swap!')).toBe('swap_BANG_');
-    expect(munge('*foo*')).toBe('_STAR_foo_STAR_');
+    expect(munge('nil?')).toBe('nil_p');
+    expect(munge('swap!')).toBe('swap_m');
+    expect(munge('*foo*')).toBe('_foo_');
+    expect(munge('->Person')).toBe('_to_Person');
+    expect(munge('foo->bar')).toBe('foo_to_bar');
   });
 
   it('munges standalone operators to readable names', () => {

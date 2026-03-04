@@ -83,10 +83,10 @@ export function deref(ref: Atom): unknown {
   return ref.deref();
 }
 
-export function reset_BANG_(ref: Atom, newVal: unknown): unknown {
+export function reset_m(ref: Atom, newVal: unknown): unknown {
   return ref.reset(newVal);
 }
 
-export function swap_BANG_(ref: Atom, fn: (...args: unknown[]) => unknown, ...args: unknown[]): unknown {
+export function swap_m(ref: Atom, fn: (...args: unknown[]) => unknown, ...args: unknown[]): unknown {
   return ref.swap(fn, ...args);
 }
