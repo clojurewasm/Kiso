@@ -1,7 +1,7 @@
 # 07: su Framework Design
 
-**Package**: `@kiso/su` — Web Components framework with fine-grained reactivity, built on `@kiso/cljs`.
-**Dependency**: `@kiso/su` depends on `@kiso/cljs`. `@kiso/cljs` must NOT depend on `@kiso/su`.
+**Package**: `@clojurewasm/su` — Web Components framework with fine-grained reactivity, built on `@clojurewasm/kiso`.
+**Dependency**: `@clojurewasm/su` depends on `@clojurewasm/kiso`. `@clojurewasm/kiso` must NOT depend on `@clojurewasm/su`.
 
 ---
 
@@ -13,7 +13,7 @@
 4. **~3-5 KB gzipped** — VanJS (1KB) + Custom Element machinery.
 5. **Compile-time optimization** — defc macro separates hiccup into template + effects.
 6. **Clojure-idiomatic** — hiccup vectors, atom/deref, standard destructuring.
-7. **1st dogfooding target** — drives @kiso/cljs feature completion.
+7. **1st dogfooding target** — drives @clojurewasm/kiso feature completion.
 
 Research base: Reagent, UIx, Helix, Hoplon, Replicant, Zero, Squint, SCI,
 VanJS, Solid.js, Lit, TC39 Signals, solid-element.
@@ -24,7 +24,7 @@ See `private/001_su/01_su_design.md` (Japanese, gitignored).
 ## Architecture Overview
 
 ```
-@kiso/su/
+@clojurewasm/su/
 ├── clj/su/core.cljs              defc, defstyle macros (ClojureScript source)
 ├── runtime/
 │   ├── reactive.ts                track(), effect(), computed()      ~50 LOC
@@ -34,7 +34,7 @@ See `private/001_su/01_su_design.md` (Japanese, gitignored).
 │   ├── lifecycle.ts               on-mount, on-unmount hooks        ~20 LOC
 │   └── index.ts                   public API
 ├── vite-plugin.ts                 HMR support for .cljs components
-└── package.json                   peerDependencies: { "@kiso/cljs": "^0.1" }
+└── package.json                   peerDependencies: { "@clojurewasm/kiso": "^0.1" }
 ```
 
 Total runtime: ~260 LOC TypeScript, ~3-5 KB gzipped.
@@ -85,7 +85,7 @@ with Kiso's existing `atom` as the state primitive.
 ### Core Primitives
 
 ```
-atom         — mutable state container (already in @kiso/cljs runtime)
+atom         — mutable state container (already in @clojurewasm/kiso runtime)
 computed     — derived state, auto-tracks atom dependencies
 effect       — side-effect that re-runs when tracked atoms change
 bind         — DOM-level effect: re-creates a DOM node when dependencies change
@@ -106,7 +106,7 @@ function track<T>(fn: () => T): [T, Set<Atom>] {
   finally { currentTracking = prev; }
 }
 
-// Called from atom's deref path — integration point with @kiso/cljs
+// Called from atom's deref path — integration point with @clojurewasm/kiso
 function notifyTracking(atom: Atom): void {
   currentTracking?.add(atom);
 }
@@ -127,20 +127,20 @@ function effect(fn: () => void): () => void {
 }
 ```
 
-### @kiso/cljs Integration Point (CRITICAL)
+### @clojurewasm/kiso Integration Point (CRITICAL)
 
 su's reactive tracking requires a hook in atom's `deref` path. Two options:
 
 **Option A: Runtime hook (recommended for initial impl)**
 ```typescript
-// In @kiso/cljs atom.ts — add an optional notify callback
+// In @clojurewasm/kiso atom.ts — add an optional notify callback
 export function deref(atom: Atom): any {
   if (atom._onDeref) atom._onDeref(atom);
   return atom.value;
 }
 ```
 su-runtime sets `atom._onDeref = notifyTracking` at initialization.
-@kiso/cljs has no knowledge of su — the hook field exists but is unused without su.
+@clojurewasm/kiso has no knowledge of su — the hook field exists but is unused without su.
 
 **Option B: Protocol-based (after Batch B)**
 ```typescript
@@ -680,10 +680,10 @@ Phase 7.9 (dogfooding) to validate accessibility with screen reader testing.
 
 ---
 
-## @kiso/cljs Feedback: Required Considerations
+## @clojurewasm/kiso Feedback: Required Considerations
 
-These items affect @kiso/cljs design/implementation to ensure su compatibility.
-@kiso/cljs must NOT import or reference su, but must provide adequate hooks.
+These items affect @clojurewasm/kiso design/implementation to ensure su compatibility.
+@clojurewasm/kiso must NOT import or reference su, but must provide adequate hooks.
 
 ### F1: Atom Tracking Hook
 
@@ -736,7 +736,7 @@ Future optimization: compiler plugin/macro that transforms hiccup at compile tim
 
 su's `defc` and `defstyle` are regular ClojureScript macros defined in `.cljs` files.
 The mini evaluator must:
-1. Load macro definitions from `@kiso/su/clj/su/core.cljs`
+1. Load macro definitions from `@clojurewasm/su/clj/su/core.cljs`
 2. Expand them during compilation of user code that `(:require [su.core ...])`
 3. Handle the `ns` form's `:require-macros` or self-requiring pattern
 
@@ -806,7 +806,7 @@ in `defineComponent` internals without changing user-facing hiccup syntax.
 ### Phase 7 Sub-Tasks (Updated)
 
 ```
-7.0  [F1,F2] Atom tracking hook + watch unsubscribe in @kiso/cljs
+7.0  [F1,F2] Atom tracking hook + watch unsubscribe in @clojurewasm/kiso
              (small patch to existing atom.ts, do during Batch D)
 7.1  su-runtime/reactive.ts       — track(), effect(), computed()
 7.2  su-runtime/component.ts      — defineComponent(), Custom Element class
@@ -819,9 +819,9 @@ in `defineComponent` internals without changing user-facing hiccup syntax.
 7.9  dogfooding: todo-app         — validates full pipeline
 ```
 
-### Prerequisites from @kiso/cljs
+### Prerequisites from @clojurewasm/kiso
 
-| su Task | Requires | @kiso/cljs Batch |
+| su Task | Requires | @clojurewasm/kiso Batch |
 |---------|----------|-----------------|
 | 7.0 | atom.ts modifications | D (or earlier) |
 | 7.1-7.5 | — | runtime only (TypeScript) |
@@ -832,7 +832,7 @@ in `defineComponent` internals without changing user-facing hiccup syntax.
 
 ### Early Validation Path
 
-su-runtime (7.1-7.5) can be developed **in parallel with @kiso/cljs Batch B-E**
+su-runtime (7.1-7.5) can be developed **in parallel with @clojurewasm/kiso Batch B-E**
 because it is pure TypeScript with no dependency on the compiler.
 Manual testing with hand-written JS validates the runtime before macros are ready.
 

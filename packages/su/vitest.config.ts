@@ -7,7 +7,7 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      '@kiso/cljs/runtime': path.resolve(__dirname, '../cljs/src/runtime/index.ts'),
+      '@clojurewasm/kiso/runtime': path.resolve(__dirname, '../kiso/src/runtime/index.ts'),
     },
   },
 });

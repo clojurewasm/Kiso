@@ -81,7 +81,7 @@ When in doubt, **continue**. When a phase completes, start the next phase immedi
 npm test                    # Run all tests (vitest, all workspaces)
 npm run build               # Build (tsc, all workspaces)
 npm run typecheck            # Type check only (all workspaces)
-npx tsc --noEmit -p packages/cljs   # Type check cljs only
+npx tsc --noEmit -p packages/kiso   # Type check kiso only
 npx tsc --build --noEmit packages/su # Type check su (with refs)
 ```
 
@@ -94,11 +94,11 @@ npx tsc --build --noEmit packages/su # Type check su (with refs)
 
 ## Project Structure
 
-Monorepo with two packages (`@kiso/cljs` and `@kiso/su`).
+Monorepo with two packages (`@clojurewasm/kiso` and `@clojurewasm/su`).
 
 ```
 packages/
-├── cljs/                    @kiso/cljs — compiler + runtime
+├── kiso/                    @clojurewasm/kiso — compiler + runtime
 │   ├── src/
 │   │   ├── reader/          Clojure Reader (tokenizer, reader, form)
 │   │   ├── analyzer/        Analysis + macro expansion
@@ -106,7 +106,7 @@ packages/
 │   │   ├── runtime/         Persistent data structures (tree-shakeable)
 │   │   └── api/             Public API (compiler, vite plugin)
 │   └── test/
-└── su/                      @kiso/su — component framework (depends on @kiso/cljs)
+└── su/                      @clojurewasm/su — component framework (depends on @clojurewasm/kiso)
     ├── src/                 Component, reactive, hiccup, CSS, HMR
     └── test/
 examples/hello-counter/      Example app

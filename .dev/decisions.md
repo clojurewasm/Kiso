@@ -22,18 +22,18 @@ Use a self-implemented mini evaluator for defmacro expansion instead of SCI depe
 **Rationale**: Zero dependencies, full control, CW TreeWalk knowledge directly applicable.
 99% of macros need only ~30 functions. SCI can be added later as optional fallback.
 
-**Affected**: `packages/cljs/src/analyzer/macros.ts`, `packages/cljs/src/analyzer/evaluator.ts`.
+**Affected**: `packages/kiso/src/analyzer/macros.ts`, `packages/kiso/src/analyzer/evaluator.ts`.
 
 ## D3: Package Structure
 
 **Date**: 2026-03-03 (updated 2026-03-04)
 
 npm workspaces monorepo with two packages:
-- `packages/cljs/` → `@kiso/cljs` — compiler + runtime
-- `packages/su/` → `@kiso/su` — Web Components framework (depends on @kiso/cljs)
+- `packages/kiso/` → `@clojurewasm/kiso` — compiler + runtime
+- `packages/su/` → `@clojurewasm/su` — Web Components framework (depends on @clojurewasm/kiso)
 
-TypeScript project references: `@kiso/su` references `@kiso/cljs` (composite).
-Scoped packages (`@kiso/*`) to avoid npm name conflicts.
+TypeScript project references: `@clojurewasm/su` references `@clojurewasm/kiso` (composite).
+Scoped packages (`@clojurewasm/*`) to avoid npm name conflicts.
 
 **Affected**: root `package.json` (workspaces), `tsconfig.base.json`, per-package configs.
 
@@ -65,7 +65,7 @@ analyzer will provide. Current `backtick` token emits `(syntax-quote x)` wrapper
 **Deferred**: Seq abstraction (ISeq/LazySeq), Protocol system (Symbol-based dispatch),
 Transient collections. These will be added when needed by the compiler pipeline.
 
-**Affected**: `packages/cljs/src/runtime/`.
+**Affected**: `packages/kiso/src/runtime/`.
 
 ## D6: Language Scope — Full ClojureScript (minus Google Closure)
 
@@ -124,7 +124,7 @@ to their prototypes safely. These use a fallback path in `protocolFn`.
 
 **Design**: See `.dev/design/06-protocol-lazyseq.md` for full specification.
 
-**Affected**: `packages/cljs/src/runtime/protocols.ts`, `packages/cljs/src/analyzer/`, `packages/cljs/src/codegen/emitter.ts`.
+**Affected**: `packages/kiso/src/runtime/protocols.ts`, `packages/kiso/src/analyzer/`, `packages/kiso/src/codegen/emitter.ts`.
 
 ## D8: su Architecture — Web Components + Fine-Grained Signals (No VDOM)
 
@@ -166,6 +166,6 @@ Custom Element re-registration is not possible — HMR uses render function repl
 
 **Design**: See `.dev/design/07-su-framework.md` for full specification.
 
-**Affected**: `@kiso/su` package (separate from `@kiso/cljs`).
-`@kiso/cljs` impact: atom tracking hook (F1), watch unsubscribe (F2),
+**Affected**: `@clojurewasm/su` package (separate from `@clojurewasm/kiso`).
+`@clojurewasm/kiso` impact: atom tracking hook (F1), watch unsubscribe (F2),
 CE tag validation and hiccup ns-keyword resolution (F8) — see design doc.

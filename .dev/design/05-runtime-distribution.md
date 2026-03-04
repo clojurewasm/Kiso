@@ -94,10 +94,10 @@ Symbol-based dispatch avoids name collisions.
 ### npm Package Structure
 
 ```
-@kiso/cljs/
+@clojurewasm/kiso/
 ├── package.json
 │   {
-│     "name": "@kiso/cljs",
+│     "name": "@clojurewasm/kiso",
 │     "version": "0.1.0",
 │     "type": "module",
 │     "exports": {
@@ -136,14 +136,14 @@ export function cljs(options = {}): Plugin {
 ### su Package (Separate)
 
 ```
-@kiso/su/
-├── package.json    { peerDependencies: { "@kiso/cljs": "^0.1.0" } }
+@clojurewasm/su/
+├── package.json    { peerDependencies: { "@clojurewasm/kiso": "^0.1.0" } }
 ├── clj/su/core.cljs    defc, defstyle macros
 ├── runtime/            component, reactive, hiccup, css (~3KB)
 └── vite-plugin.ts      su-specific Vite config
 ```
 
-su is a regular consumer of `@kiso/cljs`.
+su is a regular consumer of `@clojurewasm/kiso`.
 
 ---
 
@@ -160,7 +160,7 @@ Total:                ~118 KB minified, ~40-50 KB gzipped
 ### Browser Bundle (after tree-shaking)
 ```
 Typical su app:    ~35 KB minified → ~12 KB gzipped
-@kiso/su:          +3 KB gzipped
+@clojurewasm/su:          +3 KB gzipped
 Total:             ~15 KB gzipped
 
 Comparison: React ~42KB, Vue ~33KB, Svelte ~2KB, CLJS ~100+KB

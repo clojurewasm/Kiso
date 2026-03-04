@@ -1,7 +1,7 @@
 # Kiso Roadmap
 
 ClojureScript-to-JavaScript compiler in TypeScript. Zero dependencies.
-Monorepo: `@kiso/cljs` (compiler + runtime), `@kiso/su` (component framework).
+Monorepo: `@clojurewasm/kiso` (compiler + runtime), `@clojurewasm/su` (component framework).
 
 ## Phase Tracker
 
@@ -98,4 +98,4 @@ All 7 phases complete. 834 tests passing. Types clean.
 - `for`, `doseq` macros — require seq/first/next runtime wiring
 - `defmulti`/`defmethod` — dispatch infrastructure
 - `registerComponent` shadow DOM attachment — TODO in component.ts:109
-- Monorepo structured as npm workspaces (`packages/cljs`, `packages/su`)
+- Monorepo structured as npm workspaces (`packages/kiso`, `packages/su`)

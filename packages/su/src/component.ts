@@ -4,7 +4,7 @@
 // In Node.js (tests), provides a testable abstraction.
 // In browser, registers with customElements.define().
 
-import { Atom, atom } from '@kiso/cljs/runtime';
+import { Atom, atom } from '@clojurewasm/kiso/runtime';
 import { renderHiccup } from './hiccup.js';
 import { collectLifecycleHooks, type LifecycleHooks } from './lifecycle.js';
 

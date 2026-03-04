@@ -7,8 +7,8 @@
     "build": "vite build"
   },
   "dependencies": {
-    "@kiso/cljs": "file:../../packages/cljs",
-    "@kiso/su": "file:../../packages/su"
+    "@clojurewasm/kiso": "file:../../packages/kiso",
+    "@clojurewasm/su": "file:../../packages/su"
   },
   "devDependencies": {
     "vite": "^6.0.0"

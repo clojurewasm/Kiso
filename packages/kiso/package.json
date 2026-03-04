@@ -1,6 +1,6 @@
 {
-  "name": "@kiso/cljs",
-  "version": "0.0.1",
+  "name": "@clojurewasm/kiso",
+  "version": "0.1.0",
   "description": "ClojureScript-to-JavaScript compiler in TypeScript",
   "type": "module",
   "main": "./dist/index.js",
@@ -19,5 +19,9 @@
   "files": [
     "dist/"
   ],
+  "publishConfig": { "access": "public" },
+  "repository": { "type": "git", "url": "https://github.com/clojurewasm/Kiso.git", "directory": "packages/kiso" },
+  "homepage": "https://github.com/clojurewasm/Kiso",
+  "author": "chaploud",
   "license": "MIT"
 }

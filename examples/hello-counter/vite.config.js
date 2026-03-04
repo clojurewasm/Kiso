@@ -1,4 +1,4 @@
-import { cljs } from '@kiso/cljs/vite';
+import { cljs } from '@clojurewasm/kiso/vite';
 
 export default {
   plugins: [cljs()],

@@ -208,12 +208,12 @@ function f(...args) {
 ```
 →
 ```javascript
-import * as c from '@kiso/cljs/core';
+import * as c from '@clojurewasm/kiso/core';
 import { helper } from './util.js';
 ```
 
 **Mapping rules**:
-- `cljs.core` → `@kiso/cljs/core` (npm package)
+- `cljs.core` → `@clojurewasm/kiso/core` (npm package)
 - Same project → relative path with `.js` extension
 - `:refer [x]` → named import
 - `:as alias` → namespace import

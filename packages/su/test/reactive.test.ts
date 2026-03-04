@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { atom } from '@kiso/cljs/runtime';
+import { atom } from '@clojurewasm/kiso/runtime';
 import { track, effect, computed, initReactiveTracking } from '../src/reactive.js';
 
 // Initialize tracking hook on atom

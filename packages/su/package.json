@@ -1,6 +1,6 @@
 {
-  "name": "@kiso/su",
-  "version": "0.0.1",
+  "name": "@clojurewasm/su",
+  "version": "0.1.0",
   "description": "Su component framework runtime",
   "type": "module",
   "main": "./dist/index.js",
@@ -9,7 +9,10 @@
     ".": "./dist/index.js"
   },
   "dependencies": {
-    "@kiso/cljs": "*"
+    "@clojurewasm/kiso": "*"
+  },
+  "peerDependencies": {
+    "@clojurewasm/kiso": "^0.1.0"
   },
   "scripts": {
     "build": "tsc --build",
@@ -19,5 +22,9 @@
   "files": [
     "dist/"
   ],
+  "publishConfig": { "access": "public" },
+  "repository": { "type": "git", "url": "https://github.com/clojurewasm/Kiso.git", "directory": "packages/su" },
+  "homepage": "https://github.com/clojurewasm/Kiso",
+  "author": "chaploud",
   "license": "MIT"
 }

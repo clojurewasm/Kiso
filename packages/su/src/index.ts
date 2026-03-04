@@ -1,4 +1,4 @@
-// @kiso/su barrel export — maps to su.core namespace in ClojureScript.
+// @clojurewasm/su barrel export — maps to su.core namespace in ClojureScript.
 
 export { defineComponent as define_component } from './component.js';
 export { createSheet as create_stylesheet } from './css.js';

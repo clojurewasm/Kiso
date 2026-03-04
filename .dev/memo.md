@@ -4,12 +4,12 @@ Session handover document. Read at session start.
 
 ## Current State
 
-- **Monorepo**: npm workspaces with `packages/cljs` (@kiso/cljs) and `packages/su` (@kiso/su).
+- **Monorepo**: npm workspaces with `packages/kiso` (@clojurewasm/kiso) and `packages/su` (@clojurewasm/su).
 - Reader complete: form, tokenizer, reader, syntax-quote, namespaced maps, nesting depth limit.
 - Macros: ~24 core macros (incl. syntax-quote, defc, defstyle).
 - Analyzer + Codegen: 16 special forms, ns-alias resolution, runtime auto-imports.
 - Runtime: full data structures + atom (deref/reset!/swap! standalone fns) + barrel export.
-- @kiso/su: reactive, component (formAssociated, delegatesFocus), hiccup, css, lifecycle, hmr.
+- @clojurewasm/su: reactive, component (formAssociated, delegatesFocus), hiccup, css, lifecycle, hmr.
 - Vite plugin: .cljs transform + HMR + alias resolution.
 - Demo: examples/hello-counter (working counter app in browser).
 - Total: 834 tests passing (781 cljs + 53 su), types clean.

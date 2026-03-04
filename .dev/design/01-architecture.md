@@ -27,7 +27,7 @@ kiso/                             (monorepo root)
 ├── tsconfig.base.json            Shared TS settings
 ├── vitest.config.ts              Root test runner
 │
-├── packages/cljs/                @kiso/cljs (compiler + runtime)
+├── packages/kiso/                @clojurewasm/kiso (compiler + runtime)
 │   ├── package.json              type: "module"
 │   ├── tsconfig.json             extends ../../tsconfig.base.json, composite
 │   ├── src/
@@ -66,9 +66,9 @@ kiso/                             (monorepo root)
 │   │       └── vite-plugin.ts    Vite plugin
 │   └── test/
 │
-├── packages/su/                  @kiso/su (component framework)
-│   ├── package.json              depends on @kiso/cljs
-│   ├── tsconfig.json             references ../cljs
+├── packages/su/                  @clojurewasm/su (component framework)
+│   ├── package.json              depends on @clojurewasm/kiso
+│   ├── tsconfig.json             references ../kiso
 │   ├── src/
 │   │   ├── reactive.ts           track(), effect(), computed()
 │   │   ├── component.ts          defineComponent(), Custom Element, Shadow DOM
@@ -163,15 +163,15 @@ Vite / esbuild / Rollup processes output
 ## su Positioning
 
 ```
-@kiso/cljs (packages/cljs)
+@clojurewasm/kiso (packages/cljs)
   ↑ dependency (workspace link)
-@kiso/su (packages/su)
+@clojurewasm/su (packages/su)
   ├── src/                reactive, component, hiccup, css, lifecycle, hmr (~3KB)
-  └── defc/defstyle macros defined in @kiso/cljs analyzer (macros.ts)
+  └── defc/defstyle macros defined in @clojurewasm/kiso analyzer (macros.ts)
 ```
 
-su is a regular library consumer of `@kiso/cljs`.
-defc/defstyle macros are implemented in `@kiso/cljs` analyzer and expand to `su.core/*` calls.
+su is a regular library consumer of `@clojurewasm/kiso`.
+defc/defstyle macros are implemented in `@clojurewasm/kiso` analyzer and expand to `su.core/*` calls.
 
 ---
 
@@ -180,7 +180,7 @@ defc/defstyle macros are implemented in `@kiso/cljs` analyzer and expand to `su.
 ### npm Package
 
 ```
-@kiso/cljs (compiler + runtime)
+@clojurewasm/kiso (compiler + runtime)
   compiler/ (TS → JS minified):     ~80-120 KB
   runtime/ (tree-shakeable):         ~50-80 KB
   ────────────────────────────────
@@ -197,7 +197,7 @@ Comparison:
 
 ```
 runtime (used modules only, tree-shaken):  ~15-30 KB gzipped
-@kiso/su:                                   ~3 KB gzipped
+@clojurewasm/su:                                   ~3 KB gzipped
 ```
 
 ### Compile Speed Targets

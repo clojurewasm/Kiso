@@ -82,7 +82,7 @@ export function emitModule(nodes: Node[]): string {
   // Auto-import runtime functions used by collection literals
   const runtimeImports = collectRuntimeImports(nodes);
   if (runtimeImports.length > 0) {
-    const importLine = `import { ${runtimeImports.join(', ')} } from '@kiso/cljs/runtime';`;
+    const importLine = `import { ${runtimeImports.join(', ')} } from '@clojurewasm/kiso/runtime';`;
     lines.unshift(importLine);
   }
   return lines.join('\n');
