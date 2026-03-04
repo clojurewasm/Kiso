@@ -161,7 +161,7 @@ export function emitModuleWithMappings(nodes: Node[], hooks?: Map<string, Codege
 function emitTopLevelCtx(node: Node, ctx: EmitCtx): string {
   if (node.type === 'def') {
     const init = node.init ? emitNode(node.init, ctx) : 'null';
-    const prefix = node.doc ? `/** ${node.doc} */\n` : '';
+    const prefix = node.doc ? formatJSDoc(node.doc, '') : '';
     return `${prefix}export let ${munge(node.name)} = ${init};`;
   }
   if (node.type === 'deftype') {
@@ -444,9 +444,17 @@ function emitThrow(node: { expr: Node }, ctx: EmitCtx): string {
   return `(() => {\n${i}throw ${emitNode(node.expr, inner)};\n${ind(ctx)}})()`;
 }
 
+function formatJSDoc(doc: string, indent: string): string {
+  // Escape */ to prevent premature comment close
+  const safe = doc.replace(/\*\//g, '*\\/');
+  const lines = safe.split('\n');
+  if (lines.length === 1) return `/** ${safe} */\n${indent}`;
+  return `/**\n${lines.map(l => `${indent} * ${l}`).join('\n')}\n${indent} */\n${indent}`;
+}
+
 function emitDef(node: { name: string; init: Node | null; doc: string | null }, ctx: EmitCtx): string {
   const init = node.init ? emitNode(node.init, ctx) : 'null';
-  const prefix = node.doc ? `/** ${node.doc} */\n${ind(ctx)}` : '';
+  const prefix = node.doc ? formatJSDoc(node.doc, ind(ctx)) : '';
   return `${prefix}let ${munge(node.name)} = ${init}`;
 }
 

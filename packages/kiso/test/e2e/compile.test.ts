@@ -797,4 +797,28 @@ describe('docstring', () => {
     const js = compile('(defn greet [name] name)');
     expect(js).not.toContain('/**');
   });
+
+  it('multi-line docstring emits multi-line JSDoc', () => {
+    const js = compile('(def x "line1\nline2" 42)');
+    expect(js).toContain('/**\n * line1\n * line2\n */');
+  });
+
+  it('docstring containing */ is escaped in JSDoc', () => {
+    const js = compile('(def x "has */ inside" 42)');
+    expect(js).not.toContain('/** has */');
+    expect(js).toContain('has *');
+    expect(js).toContain('inside');
+    // Must not prematurely close the JSDoc comment
+    const openCount = (js.match(/\/\*\*/g) || []).length;
+    const closeCount = (js.match(/\*\//g) || []).length;
+    expect(openCount).toBe(1);
+    expect(closeCount).toBe(1);
+  });
+
+  it('docstring with * does not break JSDoc', () => {
+    const js = compile('(def x "bold *text*" 42)');
+    expect(js).toContain('bold *text*');
+    const closeCount = (js.match(/\*\//g) || []).length;
+    expect(closeCount).toBe(1);
+  });
 });
