@@ -11,10 +11,18 @@ export type Protocol = {
   satisfies: symbol;
 };
 
-export function defprotocol(name: string, methodNames: string[]): Protocol {
+export function defprotocol(name: string, methodNames: string[] | { nth(i: number): unknown; count: number }): Protocol {
   const methods: Record<string, symbol> = {};
-  for (const m of methodNames) {
-    methods[m] = Symbol(`${name}.${m}`);
+  // Accept either JS array or PersistentVector
+  if (Array.isArray(methodNames)) {
+    for (const m of methodNames) {
+      methods[m] = Symbol(`${name}.${m}`);
+    }
+  } else {
+    for (let i = 0; i < methodNames.count; i++) {
+      const m = methodNames.nth(i) as string;
+      methods[m] = Symbol(`${name}.${m}`);
+    }
   }
   return { name, methods, satisfies: Symbol(`${name}?`) };
 }
