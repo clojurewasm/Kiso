@@ -1,6 +1,7 @@
 // Vite Plugin — Transform .cljs/.cljc files to JavaScript.
 
 import { compile } from './compiler.js';
+import { CompileError } from './errors.js';
 import type { CodegenHook } from '../codegen/emitter.js';
 import { existsSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
@@ -68,12 +69,31 @@ export function cljs(options?: CljsPluginOptions): VitePlugin {
     },
     transform(code: string, id: string) {
       if (!isCljsFile(id)) return null;
-      const result = compile(code, {
-        filename: id,
-        sourceMap: true,
-        codegenHooks: options?.codegenHooks,
-      });
-      return { code: result.code, map: result.map };
+      try {
+        const result = compile(code, {
+          filename: id,
+          sourceMap: true,
+          codegenHooks: options?.codegenHooks,
+        });
+        return { code: result.code, map: result.map };
+      } catch (err) {
+        if (err instanceof CompileError) {
+          // Construct a Vite-compatible error with location info
+          const viteErr = new Error(err.format()) as Error & {
+            id?: string;
+            loc?: { file?: string; line: number; column: number };
+          };
+          viteErr.id = id;
+          if (err.line != null) {
+            viteErr.loc = { file: id, line: err.line, column: err.col ?? 0 };
+          }
+          throw viteErr;
+        }
+        // Unknown error — still surface it with file context
+        const msg = err instanceof Error ? err.message : String(err);
+        const wrapped = new Error(`[kiso] ${id}: ${msg}`);
+        throw wrapped;
+      }
     },
     handleHotUpdate(ctx: HotUpdateCtx) {
       if (!isCljsFile(ctx.file)) return undefined;

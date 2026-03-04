@@ -8,6 +8,7 @@ import { emit, emitModuleWithMappings, type CodegenHook } from '../codegen/emitt
 import { SourceMapBuilder, type SourceMapV3 } from '../codegen/sourcemap.js';
 import type { Form } from '../reader/form.js';
 import type { Node } from '../analyzer/node.js';
+import { CompileError, wrapError } from './errors.js';
 
 export type CompileOptions = {
   filename?: string;
@@ -77,20 +78,54 @@ function resolveAutoKeywords(forms: Form[], nsName: string): Form[] {
 
 /** Compile ClojureScript source to JavaScript. */
 export function compile(source: string, options?: CompileOptions): CompileResult {
-  let forms = readAllStr(source);
+  const filename = options?.filename;
+
+  let forms: Form[];
+  try {
+    forms = readAllStr(source);
+  } catch (err) {
+    throw wrapError(err, 'read', filename);
+  }
+
   const nsName = extractNsName(forms);
   if (nsName) {
     forms = resolveAutoKeywords(forms, nsName);
   }
-  const nodes = forms.map((f) => analyzer.analyze(f));
-  const hooks = options?.codegenHooks ? new Map(Object.entries(options.codegenHooks)) : undefined;
-  const { code, mappings } = emitModuleWithMappings(nodes, hooks);
+
+  let nodes: Node[];
+  try {
+    nodes = forms.map((f) => {
+      try {
+        return analyzer.analyze(f);
+      } catch (err) {
+        // Attach source location from the form being analyzed
+        throw new CompileError(
+          err instanceof Error ? err.message : String(err),
+          'analyze',
+          filename,
+          f.line,
+          f.col,
+        );
+      }
+    });
+  } catch (err) {
+    if (err instanceof CompileError) throw err;
+    throw wrapError(err, 'analyze', filename);
+  }
+
+  let code: string;
+  let mappings: { nodeIndex: number; genLine: number }[];
+  try {
+    const hooks = options?.codegenHooks ? new Map(Object.entries(options.codegenHooks)) : undefined;
+    ({ code, mappings } = emitModuleWithMappings(nodes, hooks));
+  } catch (err) {
+    throw wrapError(err, 'codegen', filename);
+  }
 
   let map: SourceMapV3 | undefined;
   if (options?.sourceMap) {
-    const filename = options.filename ?? 'input.cljs';
-    const builder = new SourceMapBuilder(filename.replace(/\.cljs$/, '.js'), filename, source);
-    // Map each top-level form to its generated line
+    const fname = filename ?? 'input.cljs';
+    const builder = new SourceMapBuilder(fname.replace(/\.cljs$/, '.js'), fname, source);
     for (const m of mappings) {
       const form = forms[m.nodeIndex];
       if (form) {
