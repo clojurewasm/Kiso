@@ -89,10 +89,10 @@ vars:
     "assert":         {type: macro, status: done}
     "time":           {type: macro, status: done}
     "syntax-quote":   {type: macro, status: done}
-    "for":            {type: macro, status: todo, note: "needs list comprehension codegen"}
-    "doseq":          {type: macro, status: todo, note: "needs seq/first/next wiring"}
-    "defmulti":       {type: macro, status: todo, note: "dispatch infrastructure needed"}
-    "defmethod":      {type: macro, status: todo, note: "depends on defmulti"}
+    "for":            {type: macro, status: done}
+    "doseq":          {type: macro, status: done}
+    "defmulti":       {type: macro, status: done}
+    "defmethod":      {type: macro, status: done}
     "defmacro":       {type: macro, status: done, note: "via mini evaluator"}
     "binding":        {type: macro, status: todo}
     "with-redefs":    {type: macro, status: todo}

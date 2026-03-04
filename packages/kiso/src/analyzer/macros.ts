@@ -859,6 +859,31 @@ defmacro('for', (items, form) => {
   ], ...loc(form));
 });
 
+// ── Multimethods ──
+
+defmacro('defmulti', (items, form) => {
+  // (defmulti name dispatch-fn) → (def name (defmultiFn dispatch-fn))
+  const name = nth(items, 1);
+  const dispatchFn = nth(items, 2);
+  return makeList([sym('def'), name,
+    makeList([sym('defmultiFn'), dispatchFn])], ...loc(form));
+});
+
+defmacro('defmethod', (items, form) => {
+  // (defmethod name dispatch-val [params] body...)
+  // → (.addMethod name dispatch-val (fn [params] body...))
+  const name = nth(items, 1);
+  const dispatchVal = nth(items, 2);
+  const params = nth(items, 3);
+  const body = items.slice(4);
+  const fnForm = body.length === 1
+    ? makeList([sym('fn'), params, body[0]!], ...loc(form))
+    : makeList([sym('fn'), params, makeList([sym('do'), ...body], ...loc(form))], ...loc(form));
+  return makeList([
+    sym('.'), name, sym('addMethod'), dispatchVal, fnForm,
+  ], ...loc(form));
+});
+
 defmacro('dotimes', (items, form) => {
   // (dotimes [i n] body...) → (let* [dt__limit n] (loop* [dt__i 0] (if (js* "dt__i < dt__limit") (let* [i dt__i] (do body... (recur (js* "dt__i + 1")))) nil)))
   const bindings = nth(items, 1);

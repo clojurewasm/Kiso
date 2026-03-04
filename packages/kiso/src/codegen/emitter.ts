@@ -613,6 +613,7 @@ const RUNTIME_FUNCTIONS = new Set([
   '=', 'not=', '-', '+', '*', '/', 'mod',
   '>', '<', '>=', '<=',
   'defprotocol', 'protocolFn',
+  'defmultiFn',
   'cljToJs', 'jsToClj',
 ]);
 

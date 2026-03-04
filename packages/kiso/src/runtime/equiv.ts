@@ -40,5 +40,24 @@ export function equiv(a: unknown, b: unknown): boolean {
     return true;
   }
 
+  // Indexed collections with .count and .nth (PersistentVector, etc.)
+  const ao = a as Record<string, any>;
+  const bo = b as Record<string, any>;
+  if (typeof ao.nth === 'function' && typeof ao.count === 'number'
+      && typeof bo.nth === 'function' && typeof bo.count === 'number') {
+    if (ao.count !== bo.count) return false;
+    for (let i = 0; i < ao.count; i++) {
+      if (!equiv(ao.nth(i), bo.nth(i))) return false;
+    }
+    return true;
+  }
+
+  // Keywords (interned by name+ns, but different instances may exist in test contexts)
+  if (typeof ao._tag === 'symbol' && typeof bo._tag === 'symbol'
+      && ao._tag === bo._tag
+      && 'name' in ao && 'name' in bo) {
+    return ao.name === bo.name && ao.ns === bo.ns;
+  }
+
   return false;
 }
