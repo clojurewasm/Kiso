@@ -8,25 +8,25 @@ Session handover document. Read at session start.
 - Phases 1-11 complete (reader, macros, analyzer, codegen, runtime, evaluator, vite, su, CLI, state mgmt).
 - Vite plugin: .cljs transform + HMR + cross-file resolveId (`.js` → `.cljs`).
 - Examples: `examples/task-manager/` (single-file) + `examples/multi-ns-app/` (multi-file, nested dirs).
-- Total: 940 tests passing (848 kiso + 92 su), types clean.
+- Total: 1149 tests passing (1057 kiso + 92 su), types clean.
 - CI: `.github/workflows/ci.yml` (Node 20/22, typecheck + test).
-- Var coverage: `.dev/status/vars.yaml` — 144 done / 298 tracked in cljs.core (~48%).
-- **All checklist items (K01-K12) resolved.**
+- Var coverage: `.dev/status/vars.yaml` — 169 done / 337 tracked (~50%).
+- **Checklist: K01-K12 resolved. K13-K14 open** (nested destructuring, :or nil semantics).
 
 ## Current Task
 
-**Phase 13: Conformance Tests** — next up, not started.
+**Phase 15: Browser E2E** — Playwright-based browser integration tests.
 
-See roadmap Phase 13 items and `.dev/design/08-quality-and-ecosystem.md` Q4 for details.
+See roadmap Phase 15 items.
 
 ## Task Queue
 
 Phases 12-16 in roadmap. Work in phase order.
 
-1. ~~Phase 12: CI + Multi-File~~ DONE (CI, multi-ns-app, nsToPath fix, resolveId hook)
-2. **Phase 13: Conformance Tests** — language spec edge cases
-3. Phase 14: Standard Library — clojure.string, for/doseq, defmulti, var tracking
-4. Phase 15: Browser E2E — Playwright (free, Apache 2.0)
+1. ~~Phase 12: CI + Multi-File~~ DONE
+2. ~~Phase 13: Conformance Tests~~ DONE (137 tests, 3 bug fixes)
+3. ~~Phase 14: Standard Library~~ DONE (clojure.string 20 fns, for/doseq macros, defmulti/defmethod, equiv extended)
+4. **Phase 15: Browser E2E** — Playwright (free, Apache 2.0)
 5. Phase 16: JS Interop Layer — bean, js-obj, library ergonomics
 
 ## Key Design References
