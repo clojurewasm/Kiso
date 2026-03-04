@@ -49,7 +49,7 @@ function emitNode(node: Node, ctx: EmitCtx): string {
     case 'def': return emitDef(node, ctx);
     case 'recur': return emitRecur(node, ctx);
     case 'loop': return emitLoop(node, ctx);
-    case 'throw': return `(() => { throw ${emitNode(node.expr, ctx)}; })()`;
+    case 'throw': return emitThrow(node, ctx);
     case 'try': return emitTry(node, ctx);
     case 'new': return `new ${emitNode(node.ctor, ctx)}(${node.args.map((n) => emitNode(n, ctx)).join(', ')})`;
     case 'interop-call': return `${emitNode(node.target, ctx)}.${node.method}(${node.args.map((n) => emitNode(n, ctx)).join(', ')})`;
@@ -177,25 +177,28 @@ function emitInvoke(node: { fn: Node; args: Node[] }, ctx: EmitCtx): string {
 function emitIf(node: { test: Node; then: Node; else: Node }, ctx: EmitCtx): string {
   // Clojure truthiness: only nil and false are falsy
   const test = emitNode(node.test, ctx);
-  const then = emitNode(node.then, ctx);
-  const els = emitNode(node.else, ctx);
-  return `(truthy(${test}) ? ${then} : ${els})`;
+  const inner = deeper(ctx);
+  const then = emitNode(node.then, inner);
+  const els = emitNode(node.else, inner);
+  const i = ind(inner);
+  return `(truthy(${test})\n${i}? ${then}\n${i}: ${els})`;
 }
 
 function emitCase(node: CaseNode, ctx: EmitCtx): string {
-  // case* test is already in a let binding, so safe to emit multiple times.
-  // Generate chained ternaries: (t === c1 ? v1 : t === c2 ? v2 : default)
+  // case* → multi-line chained ternaries for readability
+  const inner = deeper(ctx);
+  const i = ind(inner);
   const test = emitNode(node.test, ctx);
-  const defaultVal = emitNode(node.default, ctx);
+  const defaultVal = emitNode(node.default, inner);
   if (node.clauses.length === 0) return defaultVal;
-  let result = defaultVal;
-  for (let i = node.clauses.length - 1; i >= 0; i--) {
-    const c = node.clauses[i]!;
-    const testVal = emitNode(c.test, ctx);
-    const thenVal = emitNode(c.then, ctx);
-    result = `(${test} === ${testVal} ? ${thenVal} : ${result})`;
+  const lines: string[] = [];
+  for (const c of node.clauses) {
+    const testVal = emitNode(c.test, inner);
+    const thenVal = emitNode(c.then, inner);
+    lines.push(`${test} === ${testVal} ? ${thenVal}`);
   }
-  return result;
+  lines.push(defaultVal);
+  return `(\n${i}${lines.join(`\n${i}: `)}\n${ind(ctx)})`;
 }
 
 function emitDo(node: { statements: Node[]; ret: Node }, ctx: EmitCtx): string {
@@ -268,54 +271,57 @@ function emitSingleArity(name: string, arity: FnArity, outerCtx: EmitCtx): strin
 }
 
 function emitDeftype(node: DeftypeNode, ctx: EmitCtx): string {
+  const inner = deeper(ctx);
+  const ii = deeper(inner);
+  const i = ind(inner);
+  const i2 = ind(ii);
   const name = node.name;
   const fields = node.fields.map(munge);
   const ctorParams = fields.join(', ');
-  const ctorBody = fields.map((f) => `this.${f} = ${f};`).join(' ');
-  // Protocol methods → [Proto.methods.name]() { ... }
-  const methods: string[] = [];
-  for (const impl of node.protocols) {
-    const protoVar = emitNode(impl.protocol, ctx);
-    for (const m of impl.methods) {
-      const mParams = m.params.slice(1).map(munge); // skip 'this' param
-      const body = emitNode(m.body, ctx);
-      methods.push(`[${protoVar}.methods.${m.name}](${mParams.join(', ')}) { return ${body}; }`);
-    }
-  }
-  const methodStr = methods.length > 0 ? ' ' + methods.join(' ') : '';
-  const factoryName = `__GT_${name}`;
-  // Emit as class declaration + factory (used inside emitTopLevel for export)
-  return `class ${name} { constructor(${ctorParams}) { ${ctorBody} }${methodStr} }\nfunction ${factoryName}(${ctorParams}) { return new ${name}(${ctorParams}); }`;
-}
-
-function emitDefrecord(node: DefrecordNode, ctx: EmitCtx): string {
-  const name = node.name;
-  const fields = node.fields.map(munge);
-  const ctorParams = fields.join(', ');
-  const ctorBody = fields.map((f) => `this.${f} = ${f};`).join(' ');
-  // Add __kiso_type for type discrimination
-  const typeAssign = `this.__kiso_type = "${name}";`;
-  // Protocol methods
-  const methods: string[] = [];
+  const ctorBody = fields.map((f) => `${i2}this.${f} = ${f};`).join('\n');
+  const members: string[] = [];
+  members.push(`${i}constructor(${ctorParams}) {\n${ctorBody}\n${i}}`);
   for (const impl of node.protocols) {
     const protoVar = emitNode(impl.protocol, ctx);
     for (const m of impl.methods) {
       const mParams = m.params.slice(1).map(munge);
-      const body = emitNode(m.body, ctx);
-      methods.push(`[${protoVar}.methods.${m.name}](${mParams.join(', ')}) { return ${body}; }`);
+      const body = emitNode(m.body, ii);
+      members.push(`${i}[${protoVar}.methods.${m.name}](${mParams.join(', ')}) {\n${i2}return ${body};\n${i}}`);
     }
   }
-  const methodStr = methods.length > 0 ? ' ' + methods.join(' ') : '';
   const factoryName = `__GT_${name}`;
-  // map->Name factory: creates from a map (keyword lookup)
+  return `class ${name} {\n${members.join('\n\n')}\n}\nfunction ${factoryName}(${ctorParams}) {\n${i}return new ${name}(${ctorParams});\n}`;
+}
+
+function emitDefrecord(node: DefrecordNode, ctx: EmitCtx): string {
+  const inner = deeper(ctx);
+  const ii = deeper(inner);
+  const i = ind(inner);
+  const i2 = ind(ii);
+  const name = node.name;
+  const fields = node.fields.map(munge);
+  const ctorParams = fields.join(', ');
+  const ctorBody = fields.map((f) => `${i2}this.${f} = ${f};`).join('\n');
+  const typeAssign = `${i2}this.__kiso_type = "${name}";`;
+  const members: string[] = [];
+  members.push(`${i}constructor(${ctorParams}) {\n${ctorBody}\n${typeAssign}\n${i}}`);
+  for (const impl of node.protocols) {
+    const protoVar = emitNode(impl.protocol, ctx);
+    for (const m of impl.methods) {
+      const mParams = m.params.slice(1).map(munge);
+      const body = emitNode(m.body, ii);
+      members.push(`${i}[${protoVar}.methods.${m.name}](${mParams.join(', ')}) {\n${i2}return ${body};\n${i}}`);
+    }
+  }
+  const factoryName = `__GT_${name}`;
   const mapFactoryName = `map__GT_${name}`;
   const mapFactoryParams = fields.map((f) => `keyword("${f}")`);
-  const mapFactoryBody = fields.map((_f, i) => `m.get(${mapFactoryParams[i]})`).join(', ');
+  const mapFactoryBody = fields.map((_f, idx) => `m.get(${mapFactoryParams[idx]})`).join(', ');
 
   return [
-    `class ${name} { constructor(${ctorParams}) { ${ctorBody} ${typeAssign}}${methodStr} }`,
-    `function ${factoryName}(${ctorParams}) { return new ${name}(${ctorParams}); }`,
-    `function ${mapFactoryName}(m) { return new ${name}(${mapFactoryBody}); }`,
+    `class ${name} {\n${members.join('\n\n')}\n}`,
+    `function ${factoryName}(${ctorParams}) {\n${i}return new ${name}(${ctorParams});\n}`,
+    `function ${mapFactoryName}(m) {\n${i}return new ${name}(${mapFactoryBody});\n}`,
   ].join('\n');
 }
 
@@ -347,53 +353,63 @@ function emitExtendType(node: ExtendTypeNode, ctx: EmitCtx): string {
   return `(${stmts.join(', ')})`;
 }
 
+function emitThrow(node: { expr: Node }, ctx: EmitCtx): string {
+  const inner = deeper(ctx);
+  const i = ind(inner);
+  return `(() => {\n${i}throw ${emitNode(node.expr, inner)};\n${ind(ctx)}})()`;
+}
+
 function emitDef(node: { name: string; init: Node | null }, ctx: EmitCtx): string {
   const init = node.init ? emitNode(node.init, ctx) : 'null';
   return `const ${munge(node.name)} = ${init}`;
 }
 
 function emitLoop(node: { bindings: LetBinding[]; body: Node }, ctx: EmitCtx): string {
-  // (loop [x 1 y 2] body) →
-  // (() => { let x = 1; let y = 2; while (true) { const _r = body; return _r; } })()
-  // where recur inside body emits: x_tmp = ...; y_tmp = ...; x = x_tmp; y = y_tmp; continue;
+  const inner = deeper(ctx);
+  const ii = deeper(inner);
+  const i = ind(inner);
+  const i2 = ind(ii);
   const names = node.bindings.map((b) => b.name);
   const decls = node.bindings.map(
-    (b) => `let ${munge(b.name)} = ${emitNode(b.init, ctx)};`,
-  ).join(' ');
-  const loopCtx: EmitCtx = { ...ctx, loopBindings: names };
+    (b) => `${i}let ${munge(b.name)} = ${emitNode(b.init, inner)};`,
+  ).join('\n');
+  const loopCtx: EmitCtx = { ...ii, loopBindings: names };
   const body = emitStmt(node.body, loopCtx);
-  return `(() => { ${decls} while (true) { ${body} } })()`;
+  return `(() => {\n${decls}\n${i}while (true) {\n${i2}${body}\n${i}}\n${ind(ctx)}})()`;
 }
 
 /** Emit a node as a statement that may contain recur. */
 function emitStmt(node: Node, ctx: EmitCtx): string {
+  const i = ind(ctx);
+  const inner = deeper(ctx);
+  const ii = ind(inner);
   // For if nodes in statement position, emit as if/else blocks
   if (node.type === 'if') {
     const test = emitNode(node.test, ctx);
-    const thenStmt = emitStmt(node.then, ctx);
-    const elseStmt = emitStmt(node.else, ctx);
-    return `if (truthy(${test})) { ${thenStmt} } else { ${elseStmt} }`;
+    const thenStmt = emitStmt(node.then, inner);
+    const elseStmt = emitStmt(node.else, inner);
+    return `if (truthy(${test})) {\n${ii}${thenStmt}\n${i}} else {\n${ii}${elseStmt}\n${i}}`;
   }
   if (node.type === 'recur') {
     return emitRecurStmt(node, ctx);
   }
   if (node.type === 'do') {
-    const stmts = node.statements.map((n) => `${emitNode(n, ctx)};`).join(' ');
+    const stmts = node.statements.map((n) => `${emitNode(n, ctx)};`).join('\n' + i);
     const ret = emitStmt(node.ret, ctx);
-    return `${stmts} ${ret}`;
+    return `${stmts}\n${i}${ret}`;
   }
   if (node.type === 'let') {
     const bindings = node.bindings.map(
       (b) => `const ${munge(b.name)} = ${emitNode(b.init, ctx)};`,
-    ).join(' ');
-    return `${bindings} ${emitStmt(node.body, ctx)}`;
+    ).join('\n' + i);
+    return `${bindings}\n${i}${emitStmt(node.body, ctx)}`;
   }
   if (node.type === 'letfn') {
     const decls = node.bindings.map((b) => munge(b.name)).join(', ');
     const assigns = node.bindings.map(
       (b) => `${munge(b.name)} = ${emitNode(b.init, ctx)};`,
-    ).join(' ');
-    return `let ${decls}; ${assigns} ${emitStmt(node.body, ctx)}`;
+    ).join('\n' + i);
+    return `let ${decls};\n${i}${assigns}\n${i}${emitStmt(node.body, ctx)}`;
   }
   // Default: return the expression
   return `return ${emitNode(node, ctx)};`;
@@ -410,47 +426,49 @@ function emitRecurStmt(node: { args: Node[] }, ctx: EmitCtx): string {
   const names = ctx.loopBindings;
   if (!names) return `/* recur without loop */ continue;`;
 
+  const i = ind(ctx);
   const args = node.args.map((a) => emitNode(a, ctx));
 
   // Use temp variables for simultaneous assignment
-  const temps = names.map((n, i) => `const ${munge(n)}__tmp = ${args[i]};`);
+  const temps = names.map((n, idx) => `const ${munge(n)}__tmp = ${args[idx]};`);
   const assigns = names.map((n) => `${munge(n)} = ${munge(n)}__tmp;`);
-  return `${temps.join(' ')} ${assigns.join(' ')} continue;`;
+  return [...temps, ...assigns, 'continue;'].join('\n' + i);
 }
 
 function emitTry(
   node: { body: Node; catches: CatchClause[]; finally: Node | null },
   ctx: EmitCtx,
 ): string {
-  const body = emitNode(node.body, ctx);
+  const inner = deeper(ctx);
+  const ii = deeper(inner);
+  const i = ind(inner);
+  const i2 = ind(ii);
+  const body = emitNode(node.body, inner);
   let catchBlock = '';
   if (node.catches.length > 0) {
     if (node.catches.length === 1 && node.catches[0]!.exType === ':default') {
-      // Single :default catch — no type check needed
       const c = node.catches[0]!;
-      catchBlock = ` catch (${munge(c.binding)}) { return ${emitNode(c.body, ctx)}; }`;
+      catchBlock = ` catch (${munge(c.binding)}) {\n${i2}return ${emitNode(c.body, ii)};\n${i}}`;
     } else {
-      // Multiple catches or typed catch — instanceof chain
       const catchVar = 'catch__auto';
       const branches = node.catches.map((c) => {
         const bindingName = munge(c.binding);
-        const bodyExpr = emitNode(c.body, ctx);
+        const bodyExpr = emitNode(c.body, ii);
         if (c.exType === ':default') {
-          return `{ let ${bindingName} = ${catchVar}; return ${bodyExpr}; }`;
+          return `{\n${i2}let ${bindingName} = ${catchVar};\n${i2}return ${bodyExpr};\n${i}}`;
         }
         const typeName = c.exType.startsWith('js/') ? c.exType.slice(3) : munge(c.exType);
-        return `if (${catchVar} instanceof ${typeName}) { let ${bindingName} = ${catchVar}; return ${bodyExpr}; }`;
+        return `if (${catchVar} instanceof ${typeName}) {\n${i2}let ${bindingName} = ${catchVar};\n${i2}return ${bodyExpr};\n${i}}`;
       });
-      // Join with else
       const chain = branches.join(' else ');
-      catchBlock = ` catch (${catchVar}) { ${chain} throw ${catchVar}; }`;
+      catchBlock = ` catch (${catchVar}) {\n${i}${chain}\n${i}throw ${catchVar};\n${i}}`;
     }
   }
   let finallyBlock = '';
   if (node.finally) {
-    finallyBlock = ` finally { ${emitNode(node.finally, ctx)}; }`;
+    finallyBlock = ` finally {\n${i2}${emitNode(node.finally, ii)};\n${i}}`;
   }
-  return `(() => { try { return ${body}; }${catchBlock}${finallyBlock} })()`;
+  return `(() => {\n${i}try {\n${i2}return ${body};\n${i}}${catchBlock}${finallyBlock}\n${ind(ctx)}})()`;
 }
 
 function emitNs(node: { name: string; requires: { ns: string; alias: string | null; refers: string[] }[] }): string {
