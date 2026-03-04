@@ -1,5 +1,10 @@
 # Kiso
 
+[![CI](https://github.com/clojurewasm/Kiso/actions/workflows/ci.yml/badge.svg)](https://github.com/clojurewasm/Kiso/actions/workflows/ci.yml)
+[![npm kiso](https://img.shields.io/npm/v/@clojurewasm/kiso.svg?label=@clojurewasm/kiso)](https://www.npmjs.com/package/@clojurewasm/kiso)
+[![npm su](https://img.shields.io/npm/v/@clojurewasm/su.svg?label=@clojurewasm/su)](https://www.npmjs.com/package/@clojurewasm/su)
+[![license](https://img.shields.io/github/license/clojurewasm/Kiso)](https://github.com/clojurewasm/Kiso/blob/main/LICENSE)
+
 A ClojureScript-to-JavaScript compiler written in TypeScript. Zero dependencies.
 
 **Kiso** (基礎) — *foundation* in Japanese.
