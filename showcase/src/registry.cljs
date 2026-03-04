@@ -10,7 +10,16 @@
    {:id "higher-order"     :label "Higher-Order Fns" :category :code}
    {:id "destructuring"    :label "Destructuring"    :category :code}
    {:id "threading"        :label "Threading"        :category :code}
-   {:id "protocols"        :label "Protocols"        :category :code}])
+   {:id "protocols"        :label "Protocols"        :category :code}
+   {:id "interop"          :label "JS Interop"       :category :code}
+   {:id "atoms-and-state"  :label "Atoms & State"    :category :code}
+   {:id "loop-recur"       :label "Loop & Recur"     :category :code}
+   {:id "regex"            :label "Regular Expressions" :category :code}
+   {:id "string-operations" :label "String Operations" :category :code}
+   {:id "set-operations"   :label "Set Operations"   :category :code}
+   {:id "sequences"        :label "Sequences & Lazy" :category :code}
+   {:id "multimethods"     :label "Multimethods"     :category :code}
+   {:id "error-handling"   :label "Error Handling"   :category :code}])
 
 (def categories
   [{:key :components :label "Components"}
