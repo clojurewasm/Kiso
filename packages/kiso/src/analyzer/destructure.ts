@@ -77,41 +77,35 @@ function expandSequential(
     }
   } else {
     // Has rest — use seq/first/next chain
-    const seqName = tempName('ss');
-    bindings.push({ name: seqName, init: makeSeqCall(collRef) });
-    scope.locals.add(seqName);
+    let currentSeqName = tempName('ss');
+    bindings.push({ name: currentSeqName, init: makeSeqCall(collRef) });
+    scope.locals.add(currentSeqName);
 
     // Elements before &
     for (let i = 0; i < ampIdx; i++) {
       const pat = items[i]!;
-      const seqRef: Node = { type: 'var-ref', name: seqName, local: true };
+      const seqRef: Node = { type: 'var-ref', name: currentSeqName, local: true };
       const firstCall = makeFirstCall(seqRef);
       const expanded = expandBinding(pat, firstCall, analyzeForm, scope);
       for (const b of expanded) {
         bindings.push(b);
         scope.locals.add(b.name);
       }
-      // Advance: seqName = next(seqName)
+      // Advance to next element
       const nextSeqName = tempName('ss');
       bindings.push({
         name: nextSeqName,
         init: makeNextCall(seqRef),
       });
-      // Update seqName for next iteration — we use a new temp each time
-      // but we need the last one for rest binding
       scope.locals.add(nextSeqName);
-      // For the next iteration and rest, we need to reference the new name
-      // We'll use the last seqName below
-      Object.assign(items, { _lastSeqName: nextSeqName });
+      currentSeqName = nextSeqName;
     }
 
     // Rest binding (element after &)
     if (ampIdx + 1 < items.length) {
       const restPat = items[ampIdx + 1]!;
       if (restPat.data.type !== 'keyword' || restPat.data.name !== 'as') {
-        // Get the last seq name
-        const lastSeqName = (items as unknown as { _lastSeqName: string })._lastSeqName || seqName;
-        const restRef: Node = { type: 'var-ref', name: lastSeqName, local: true };
+        const restRef: Node = { type: 'var-ref', name: currentSeqName, local: true };
         const expanded = expandBinding(restPat, restRef, analyzeForm, scope);
         for (const b of expanded) {
           bindings.push(b);
@@ -129,9 +123,6 @@ function expandSequential(
       scope.locals.add(asPat.data.name);
     }
   }
-
-  // Clean up internal property
-  delete (items as unknown as Record<string, unknown>)._lastSeqName;
 
   return bindings;
 }

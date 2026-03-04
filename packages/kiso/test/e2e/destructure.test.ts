@@ -56,6 +56,14 @@ describe('sequential destructuring', () => {
     expect(first(seqNext(rest))).toBe(3);
   });
 
+  it('multiple elements before & [a b & rest]', () => {
+    expect(run('(let [[a b & rest] [1 2 3 4]] a)')).toBe(1);
+    expect(run('(let [[a b & rest] [1 2 3 4]] b)')).toBe(2);
+    const rest = run('(let [[a b & rest] [1 2 3 4]] rest)');
+    expect(first(rest)).toBe(3);
+    expect(first(seqNext(rest))).toBe(4);
+  });
+
   it(':as binding', () => {
     const v = run('(let [[a b :as all] [10 20]] all)');
     expect(count(v)).toBe(2);
