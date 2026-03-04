@@ -247,6 +247,18 @@ describe('name munging', () => {
     expect(munge('swap!')).toBe('swap_BANG_');
     expect(munge('*foo*')).toBe('_STAR_foo_STAR_');
   });
+
+  it('munges standalone - to subtract', () => {
+    expect(munge('-')).toBe('subtract');
+  });
+
+  it('munges standalone / to divide', () => {
+    expect(munge('/')).toBe('divide');
+  });
+
+  it('still munges - within names to _', () => {
+    expect(munge('my-fn')).toBe('my_fn');
+  });
 });
 
 // -- module compilation --

@@ -25,7 +25,6 @@ export {
   identity, constantly, comp, partial,
   name,
   // Munged aliases — compiled code references these names
-  subtract as _,
   add as _PLUS_,
   multiply as _STAR_,
   eq as _EQ_,

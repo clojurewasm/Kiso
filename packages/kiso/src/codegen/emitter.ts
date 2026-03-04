@@ -598,6 +598,9 @@ function scanNodeForRuntime(node: Node, used: Set<string>): void {
 // -- Name Munging --
 
 export function munge(name: string): string {
+  // Standalone arithmetic operators → readable names
+  if (name === '-') return 'subtract';
+  if (name === '/') return 'divide';
   return name
     .replace(/\//g, '.')
     .replace(/-/g, '_')
