@@ -270,7 +270,7 @@ export class Analyzer {
         if (rest.data.type === 'symbol') {
           restParam = rest.data.name;
         } else {
-          const syntheticName = `__rest__`;
+          const syntheticName = `_rest`;
           restParam = syntheticName;
           destructured.push({ idx: i + 1, synthetic: syntheticName, pattern: rest });
         }
@@ -279,7 +279,7 @@ export class Analyzer {
       if (p.data.type === 'symbol') {
         params.push(p.data.name);
       } else {
-        const syntheticName = `__p${i}__`;
+        const syntheticName = `_p${i}`;
         params.push(syntheticName);
         destructured.push({ idx: i, synthetic: syntheticName, pattern: p });
       }
