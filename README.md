@@ -4,6 +4,7 @@
 [![npm kiso](https://img.shields.io/npm/v/@clojurewasm/kiso.svg?label=@clojurewasm/kiso)](https://www.npmjs.com/package/@clojurewasm/kiso)
 [![npm su](https://img.shields.io/npm/v/@clojurewasm/su.svg?label=@clojurewasm/su)](https://www.npmjs.com/package/@clojurewasm/su)
 [![license](https://img.shields.io/github/license/clojurewasm/Kiso)](https://github.com/clojurewasm/Kiso/blob/main/LICENSE)
+[![GitHub Sponsors](https://img.shields.io/github/sponsors/chaploud?logo=githubsponsors&logoColor=white&color=ea4aaa)](https://github.com/sponsors/chaploud)
 
 A ClojureScript-to-JavaScript compiler written in TypeScript. Zero dependencies.
 
@@ -11,8 +12,8 @@ A ClojureScript-to-JavaScript compiler written in TypeScript. Zero dependencies.
 
 | Package             | Description              | Size    |
 |---------------------|--------------------------|---------|
-| `@clojurewasm/kiso` | Compiler + runtime       | ~134 KB |
-| `@clojurewasm/su`   | Component framework      | ~17 KB  |
+| `@clojurewasm/kiso` | Compiler + runtime       | ~146 KB |
+| `@clojurewasm/su`   | Component framework      | ~21 KB  |
 
 **[Live Showcase](https://clojurewasm.github.io/Kiso/)** — interactive demos with source code and compiled JS output.
 
@@ -95,7 +96,7 @@ See [docs/](docs/README.md) for the full guide, API reference, and cookbook.
 
 ```bash
 npm install && npm run build
-npm test                     # 1400+ vitest + Playwright E2E
+npm test                     # 1500+ vitest + Playwright E2E
 npm run typecheck
 ```
 
