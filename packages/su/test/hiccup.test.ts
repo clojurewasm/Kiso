@@ -1,5 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { parseTag, renderHiccup } from '../src/hiccup.js';
+import { Atom } from '../../kiso/src/runtime/atom.js';
+import { initReactiveTracking } from '../src/reactive.js';
 
 describe('parseTag', () => {
   it('parses plain tag', () => {
@@ -281,6 +283,28 @@ describe('renderHiccup', () => {
   it('still uses setAttribute for objects on standard elements', () => {
     const node = renderHiccup(['div', { data: { x: 1 } }]) as unknown as MockNode;
     expect(node.attrs['data']).toBe('[object Object]');
+  });
+
+  it('reactive :class fn sets class and updates on atom change', () => {
+    initReactiveTracking();
+    const active = new Atom(false);
+    const classFn = () => active.deref() ? 'on' : 'off';
+    const node = renderHiccup(['div', { class: classFn }]) as unknown as MockNode;
+    expect(node.className).toBe('off');
+
+    active.reset(true);
+    expect(node.className).toBe('on');
+  });
+
+  it('reactive :style fn sets style and updates on atom change', () => {
+    initReactiveTracking();
+    const color = new Atom('red');
+    const styleFn = () => ({ color: color.deref() as string });
+    const node = renderHiccup(['div', { style: styleFn }]) as unknown as MockNode;
+    expect(node.style['color']).toBe('red');
+
+    color.reset('blue');
+    expect(node.style['color']).toBe('blue');
   });
 
   it('handles kebab-case style properties via setProperty', () => {

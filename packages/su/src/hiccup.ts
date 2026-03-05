@@ -129,12 +129,29 @@ export function renderHiccup(hiccup: HiccupNode): Node {
 function applyAttrs(el: HTMLElement, attrs: Record<string, unknown>, tag: string): void {
   for (const [key, val] of Object.entries(attrs)) {
     if (key === 'class') {
-      if (typeof val === 'string') {
+      if (typeof val === 'function') {
+        const baseClass = el.className || '';
+        effect(() => {
+          const v = (val as () => unknown)();
+          el.className = baseClass ? baseClass + ' ' + String(v) : String(v);
+        });
+      } else if (typeof val === 'string') {
         el.className = el.className ? el.className + ' ' + val : val;
       }
-    } else if (key === 'style' && typeof val === 'object' && val !== null) {
-      for (const [prop, sval] of Object.entries(val as Record<string, string>)) {
-        el.style.setProperty(prop, sval);
+    } else if (key === 'style') {
+      if (typeof val === 'function') {
+        effect(() => {
+          const styleMap = (val as () => unknown)() as Record<string, string>;
+          if (styleMap && typeof styleMap === 'object') {
+            for (const [prop, sval] of Object.entries(styleMap)) {
+              el.style.setProperty(prop, sval);
+            }
+          }
+        });
+      } else if (typeof val === 'object' && val !== null) {
+        for (const [prop, sval] of Object.entries(val as Record<string, string>)) {
+          el.style.setProperty(prop, sval);
+        }
       }
     } else if (key.startsWith('on-')) {
       if (tag.includes('-') && key in el) {
