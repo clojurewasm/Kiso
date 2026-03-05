@@ -186,12 +186,33 @@ describe('defc auto-wrap', () => {
     expect(body).not.toContain('(fn* [] (fn ');
   });
 
-  it('wraps with props destructuring', () => {
-    const result = expandStr(`
+  it('puts props destructuring inside auto-wrapped fn* for reactivity', () => {
+    const body = getRenderBody(`
       (defc my-comp [{:keys [title]}] [:div title])
     `);
-    const s = formToString(result);
-    // The render body should have let* with wrapped final expr
-    expect(s).toContain('(fn* [] [:div title])');
+    // Props destructuring must be INSIDE the auto-wrapped fn*
+    // so that bind's effect tracks propsAtom via deref
+    expect(body).toContain('(fn* [] (let* [{:keys [title]} (deref props-atom__auto)] [:div title]))');
+  });
+
+  it('puts props destructuring inside fn* with user let (preserves side effects in outer fn)', () => {
+    const body = getRenderBody(`
+      (defc my-comp [{:keys [x y]}]
+        (let [ctx (use-context :data)]
+          [:div x y ctx]))
+    `);
+    // User's let stays in outer fn, props destructuring goes inside fn*
+    expect(body).toContain('(let [ctx (use-context :data)] (fn* [] (let* [{:keys [x y]} (deref props-atom__auto)] [:div x y ctx])))');
+  });
+
+  it('keeps props destructuring outside for Form-2 (user returns fn)', () => {
+    const body = getRenderBody(`
+      (defc my-comp [{:keys [id]}]
+        (let [state (atom 0)]
+          (fn [] [:div id])))
+    `);
+    // Form-2: user returns fn explicitly. Props destructuring stays outside.
+    expect(body).toContain('(let* [{:keys [id]} (deref props-atom__auto)]');
+    expect(body).not.toContain('(fn [] (let* [');
   });
 });

@@ -5,7 +5,7 @@
 // In browser, registers with customElements.define().
 
 import { Atom, atom, cljToJs, jsToClj, keyword as kw, assoc, isHashMap } from '@clojurewasm/kiso/runtime';
-import { renderHiccup } from './hiccup.js';
+import { renderHiccup, patchNode, type HiccupNode } from './hiccup.js';
 import { collectLifecycleHooks, setHost, type LifecycleHooks } from './lifecycle.js';
 import { initReactiveTracking } from './reactive.js';
 
@@ -86,6 +86,7 @@ export function defineComponent(
       const propsAtom = atom(initialProps);
       let mounted = false;
       let hooks: LifecycleHooks | null = null;
+      let disposeRender: (() => void) | null = null;
 
       return {
         propsAtom,
@@ -94,11 +95,27 @@ export function defineComponent(
           mounted = true;
 
           if (container) {
+            let dom: Node | null = null;
             // Browser path: render hiccup to DOM, collect lifecycle hooks
             hooks = collectLifecycleHooks(() => {
-              const hiccup = cljToJs(renderFn(propsAtom));
-              const dom = renderHiccup(hiccup as Parameters<typeof renderHiccup>[0]);
-              container.appendChild(dom);
+              const initialHiccup = cljToJs(renderFn(propsAtom));
+
+              if (typeof initialHiccup === 'function') {
+                // Auto-wrapped or Form-2: bind() inside renderHiccup handles
+                // reactivity (inner fn derefs propsAtom inside bind's effect).
+                dom = renderHiccup(initialHiccup as unknown as Parameters<typeof renderHiccup>[0]);
+                container.appendChild(dom);
+              } else {
+                // Plain hiccup: render once, then watch propsAtom for re-renders
+                dom = renderHiccup(initialHiccup as Parameters<typeof renderHiccup>[0]);
+                container.appendChild(dom);
+                disposeRender = propsAtom.addWatch(Symbol('mount'), () => {
+                  const hiccup = cljToJs(renderFn(propsAtom)) as HiccupNode;
+                  if (dom && dom.parentNode) {
+                    dom = patchNode(dom, hiccup);
+                  }
+                });
+              }
             });
             for (const fn of hooks.mounts) fn();
           } else {
@@ -107,6 +124,8 @@ export function defineComponent(
           }
         },
         unmount() {
+          disposeRender?.();
+          disposeRender = null;
           if (hooks) {
             for (const fn of hooks.unmounts) fn();
             hooks = null;
@@ -116,6 +135,10 @@ export function defineComponent(
         setAttr(name: string, value: string | null) {
           const typed = deserializeAttr(value, config.propTypes[name] ?? 'string');
           const current = propsAtom.deref();
+          const prev = isHashMap(current)
+            ? (current as { get(k: unknown): unknown }).get(kw(name))
+            : (current as Record<string, unknown>)[name];
+          if (prev === typed) return;
           if (isHashMap(current)) {
             propsAtom.reset(assoc(current, kw(name), typed));
           } else {
@@ -124,6 +147,10 @@ export function defineComponent(
         },
         setProp(name: string, value: unknown) {
           const current = propsAtom.deref();
+          const prev = isHashMap(current)
+            ? (current as { get(k: unknown): unknown }).get(kw(name))
+            : (current as Record<string, unknown>)[name];
+          if (prev === value) return;
           if (isHashMap(current)) {
             propsAtom.reset(assoc(current, kw(name), value));
           } else {

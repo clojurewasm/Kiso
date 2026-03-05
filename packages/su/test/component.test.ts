@@ -292,6 +292,43 @@ describe('K12: mount with container', () => {
   });
 });
 
+describe('reactive prop re-rendering', () => {
+  beforeEach(() => {
+    vi.stubGlobal('document', {
+      createElement: (tag: string) => createMockElement(tag),
+      createTextNode: (text: string) => createMockTextNode(text),
+      createComment: (text: string) => createMockTextNode(text),
+    });
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('re-renders Shadow DOM when attribute props change', () => {
+    let callCount = 0;
+    const renderFn = (propsAtom: any) => {
+      callCount++;
+      const props = propsAtom.deref();
+      return ['div', String(props.count ?? props.get?.(keyword('count')) ?? 0)];
+    };
+    const def = defineComponent('rerender-test', {
+      observedAttrs: ['count'],
+      propTypes: { count: 'number' },
+    }, renderFn);
+
+    const container = createMockElement('shadow-root');
+    const instance = def.createInstance({ count: 0 });
+    instance.mount(container as unknown as Node);
+
+    expect(callCount).toBe(1); // initial render
+
+    instance.setAttr('count', '5');
+
+    expect(callCount).toBe(2); // re-rendered after prop change
+  });
+});
+
 describe('richProps / setProp', () => {
   it('setProp updates propsAtom with keyword key (HashMap)', () => {
     const renderFn = vi.fn((propsAtom) => ['div', propsAtom.deref()]);

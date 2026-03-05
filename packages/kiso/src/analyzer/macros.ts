@@ -1089,6 +1089,39 @@ function wrapInFn(form: Form): Form {
   return makeList([sym('fn*'), makeVector([]), form]);
 }
 
+// Inject a let* binding inside the auto-wrapped (fn* [] ...) for reactive props.
+// Recurses through let, let*, do to find the fn* that wrapFinalExpr inserted.
+function injectPropsIntoAutoWrap(form: Form, bindingPat: Form, derefForm: Form): Form {
+  const d = form.data;
+  if (d.type === 'list') {
+    const items = d.items as Form[];
+    const head = items[0];
+    if (head?.data.type === 'symbol') {
+      const name = (head.data as { name: string }).name;
+      // Found fn* with empty params — this is the auto-wrapped fn
+      if (name === 'fn*' && items.length === 3) {
+        const params = items[1]!;
+        if (params.data.type === 'vector' && (params.data as { items: Form[] }).items.length === 0) {
+          const body = items[2]!;
+          const letExpr = makeList([sym('let*'), makeVector([bindingPat, derefForm]), body]);
+          return makeList([sym('fn*'), params, letExpr]);
+        }
+      }
+      // Recurse into let/let*/do body
+      if (name === 'let' || name === 'let*' || name === 'do') {
+        if (items.length >= (name === 'do' ? 2 : 3)) {
+          const last = items[items.length - 1]!;
+          const injected = injectPropsIntoAutoWrap(last, bindingPat, derefForm);
+          if (injected !== last) {
+            return makeList([...items.slice(0, -1), injected]);
+          }
+        }
+      }
+    }
+  }
+  return form;
+}
+
 defmacro('defc', (items, form) => {
   // (defc my-counter "doc" {:props {...}} [{:keys [a b]}] body...)
   // (defc my-counter [{:keys [a b]}] body...)
@@ -1206,7 +1239,9 @@ defmacro('defc', (items, form) => {
     configItems.push(makeStr(docstring));
   }
 
-  // Build render fn: (fn* [props-atom] (let* [{:keys [...]} @props-atom] body...))
+  // Build render fn: (fn* [props-atom] ...)
+  // For auto-wrapped components, props destructuring goes INSIDE the fn*
+  // so bind's effect tracks propsAtom via deref (prevents stale closures).
   const propsAtomSym = sym('props-atom__auto');
   const rawLetBody = body.length === 1 ? body[0]! : makeList([sym('do'), ...body]);
   const letBody = wrapFinalExpr(rawLetBody);
@@ -1217,11 +1252,24 @@ defmacro('defc', (items, form) => {
     renderBody = letBody;
   } else {
     const derefForm = makeList([sym('deref'), propsAtomSym]);
-    renderBody = makeList([
-      sym('let*'),
-      makeVector([paramsForm.data.items[0]!, derefForm]),
-      letBody,
-    ]);
+    const autoWrapped = letBody !== rawLetBody;
+    if (autoWrapped) {
+      // Auto-wrap occurred: inject props destructuring inside the fn*
+      // so that @props-atom runs inside bind's effect for reactive updates.
+      const injected = injectPropsIntoAutoWrap(letBody, paramsForm.data.items[0]!, derefForm);
+      renderBody = injected !== letBody ? injected : makeList([
+        sym('let*'),
+        makeVector([paramsForm.data.items[0]!, derefForm]),
+        letBody,
+      ]);
+    } else {
+      // Form-2: user returns fn explicitly — put destructuring outside
+      renderBody = makeList([
+        sym('let*'),
+        makeVector([paramsForm.data.items[0]!, derefForm]),
+        letBody,
+      ]);
+    }
   }
   const renderFn = makeList([sym('fn*'), makeVector([propsAtomSym]), renderBody]);
 

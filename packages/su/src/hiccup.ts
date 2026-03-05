@@ -68,7 +68,7 @@ const listenersStore = new WeakMap<HTMLElement, Map<string, EventListener>>();
 // -- Hiccup types --
 
 type HiccupVector = [string | unknown, ...unknown[]];
-type HiccupNode = HiccupVector | string | number | null | undefined;
+export type HiccupNode = HiccupVector | string | number | null | undefined;
 
 function isHiccupVector(x: unknown): x is HiccupVector {
   return Array.isArray(x) && x.length > 0 && typeof x[0] === 'string';
