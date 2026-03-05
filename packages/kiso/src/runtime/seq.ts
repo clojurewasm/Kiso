@@ -8,6 +8,7 @@ import { isVector, PersistentVector, vector } from './vector.js';
 import { isHashMap, PersistentHashMap } from './hash-map.js';
 import { isArrayMap } from './array-map.js';
 import { isHashSet } from './hash-set.js';
+import { transduce, conj } from './core.js';
 import { isSortedMap } from './sorted-map.js';
 import { isSortedSet } from './sorted-set.js';
 import { LazySeq } from './lazy-seq.js';
@@ -154,10 +155,13 @@ export function toArray(coll: Seqable): unknown[] {
   return result;
 }
 
-/** Reduce a seqable into a vector (conj each element). */
-export function into(to: PersistentVector, from: Seqable): PersistentVector {
-  let result = to;
-  let s = seq(from);
+/** Reduce a seqable into a collection, optionally with a transducer. */
+export function into(to: unknown, xformOrFrom: unknown, from?: unknown): unknown {
+  if (from !== undefined) {
+    return transduce(xformOrFrom as Function, conj, to, from);
+  }
+  let result = to as PersistentVector;
+  let s = seq(xformOrFrom);
   while (s !== null) {
     result = result.conj(first(s));
     s = next(s);

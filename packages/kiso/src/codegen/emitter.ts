@@ -747,6 +747,8 @@ const RUNTIME_FUNCTIONS = new Set([
   'contains?', 'subs',
   // I3: IFn invoke for sets/maps/vectors in fn position
   'invoke',
+  // Transducer support
+  'transduce', 'completing', 'reduced', 'reduced?', 'unreduced', 'ensure-reduced',
 ]);
 
 /** Scan AST for runtime function usage and return needed import names. */

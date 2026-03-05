@@ -4,6 +4,7 @@ import {
   reduce, list, vector, add,
   completing, transduce,
   map, filter, take, conj,
+  into, comp,
 } from '../../src/runtime/index.js';
 
 describe('Reduced', () => {
@@ -168,5 +169,52 @@ describe('take transducer (1-arity)', () => {
   it('still works as eager 2-arity', () => {
     const result = take(2, list(1, 2, 3, 4));
     expect(result).toEqual(list(1, 2));
+  });
+});
+
+describe('into 3-arity (transducer)', () => {
+  it('applies xform when collecting into vector', () => {
+    const result = into(vector(), map((x: number) => x * 10), list(1, 2, 3));
+    expect(result).toEqual(vector(10, 20, 30));
+  });
+
+  it('filters into vector', () => {
+    const result = into(vector(), filter((x: number) => x > 2), list(1, 2, 3, 4));
+    expect(result).toEqual(vector(3, 4));
+  });
+
+  it('I7 regression: (into [:div] (map f) coll) returns non-empty', () => {
+    const result = into(
+      vector(':div' as unknown),
+      map((x: number) => x + 1),
+      list(1, 2, 3),
+    );
+    expect(result).toEqual(vector(':div' as unknown, 2, 3, 4));
+  });
+
+  it('still works as 2-arity', () => {
+    const result = into(vector(1), list(2, 3));
+    expect(result).toEqual(vector(1, 2, 3));
+  });
+});
+
+describe('transducer composition with comp', () => {
+  it('comp composes transducers (left-to-right data flow)', () => {
+    const xf = comp(
+      map((x: number) => x * 2) as (...args: unknown[]) => unknown,
+      filter((x: number) => x > 2) as (...args: unknown[]) => unknown,
+    );
+    const result = transduce(xf, add, 0, list(1, 2, 3, 4));
+    // map *2 first: [2,4,6,8], then filter >2: [4,6,8], sum=18
+    expect(result).toBe(18);
+  });
+
+  it('comp with take limits output', () => {
+    const xf = comp(
+      take(2) as (...args: unknown[]) => unknown,
+      map((x: number) => x * 10) as (...args: unknown[]) => unknown,
+    );
+    const result = into(vector(), xf, list(1, 2, 3, 4));
+    expect(result).toEqual(vector(10, 20));
   });
 });
