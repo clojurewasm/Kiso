@@ -4,7 +4,7 @@ Session handover document. Read at session start.
 
 ## Current State
 
-- **All 25 phases complete**. ~1480 vitest + 14 Playwright E2E, types clean.
+- **All 25 phases + I7 complete**. ~1500 vitest + 14 Playwright E2E, types clean.
 - Var coverage: 330/330 (100%). Build: kiso ~141KB, su ~17KB. npm publish dry-run verified.
 - Showcase: `showcase/`. Docs: numbered guide (001-011), unified API ref.
 
