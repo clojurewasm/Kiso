@@ -24,10 +24,9 @@ Create atoms in the component's setup phase:
 ```clojure
 (defc search-input []
   (let [query (atom "" "query")]
-    (fn []
-      [:input {:value @query
-               :on-input (fn [e]
-                           (reset! query (.-value (.-target e))))}])))
+    [:input {:value @query
+             :on-input (fn [e]
+                         (reset! query (.-value (.-target e))))}]))
 ```
 
 The atom is private to this component. No other component can access it.
@@ -62,9 +61,8 @@ Call `su/use-context` during component setup:
 (defc nav-bar []
   (let [theme (su/use-context :theme)
         user  (su/use-context :user)]
-    (fn []
-      [:nav {:style {:background (if (= @theme :dark) "#1e293b" "#fff")}}
-        [:span (str "Hello, " (or (:name @user) "Guest"))]])))
+    [:nav {:style {:background (if (= @theme :dark) "#1e293b" "#fff")}}
+      [:span (str "Hello, " (or (:name @user) "Guest"))]]))
 ```
 
 ### How It Works
@@ -105,9 +103,8 @@ Declare the prop type as `:atom`:
 (defc task-list
   {:props {:tasks :atom}}
   [{:keys [tasks]}]
-  (fn []
-    [:ul
-      (map (fn [t] [:li (:text t)]) @tasks)]))
+  [:ul
+    (map (fn [t] [:li (:text t)]) @tasks)])
 ```
 
 ### Passing Atom Props

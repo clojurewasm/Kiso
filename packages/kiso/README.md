@@ -9,6 +9,15 @@ ClojureScript-to-JavaScript compiler written in TypeScript. Zero dependencies.
 
 **[Live Showcase](https://clojurewasm.github.io/Kiso/)** | **[Documentation](https://github.com/clojurewasm/Kiso/tree/main/docs)**
 
+## Features
+
+- **Full ClojureScript** — reader, analyzer, codegen for the complete language
+- **Zero dependencies** — pure TypeScript, nothing to install beyond this package
+- **Vite plugin** — compile `.cljs` files with HMR and source maps
+- **Tree-shakeable runtime** — persistent data structures, only import what you use
+- **~146 KB** package size
+- **330 vars** in `cljs.core` (100% of target coverage)
+
 ## Install
 
 ```bash

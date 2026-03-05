@@ -51,12 +51,13 @@ npx vite
 ## Features
 
 - **Custom Elements** with Shadow DOM isolation via `defc`
+- **Auto-wrap reactivity** — `defc` auto-wraps hiccup for reactive updates
 - **Fine-grained reactivity** — atoms, effects, computed values
 - **Scoped CSS** via `defstyle` (Garden-like syntax)
 - **Context API** — `provide` / `use-context` across Shadow DOM
 - **Props Channeling** — pass atoms directly to child components
 - **HMR** — hot module replacement via Kiso's Vite plugin
-- **~17 KB** package size
+- **~21 KB** package size
 
 ## API Overview
 

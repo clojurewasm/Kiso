@@ -136,17 +136,17 @@ Access the value with `.deref`:
 
 ## Common Pitfalls
 
-### 1. Reactive Children in Hiccup
+### 1. Partial Reactivity vs Full Re-Render
 
-Inside `defc`, the body is auto-wrapped. But when embedding reactive
-expressions as **hiccup children**, you still need `(fn [] ...)`:
+Inside `defc`, the auto-wrapped body re-renders entirely when any atom changes.
+For large component trees, use `(fn [] ...)` children to limit re-renders:
 
 ```clojure
-;; Won't update (evaluated once when parent renders):
-[:span (str @count)]
+;; Full re-render — entire div rebuilds when count changes:
+[:div [:h1 "Title"] [:span (str @count)]]
 
-;; Will update (reactive child):
-(fn [] [:span (str @count)])
+;; Partial re-render — only the span function child re-renders:
+[:div [:h1 "Title"] (fn [] [:span (str @count)])]
 ```
 
 ### 2. Creating Atoms Inside the Render Body

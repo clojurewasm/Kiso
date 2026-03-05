@@ -46,6 +46,7 @@ The `:style` vector can include multiple stylesheets:
   {:style [base-styles theme-styles widget-styles]}
   []
   [:div "Styled widget"])
+```
 
 ## Selector Syntax
 

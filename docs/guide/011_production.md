@@ -46,8 +46,8 @@ end up in the final bundle.
 
 | Package             | Full Size | Typical (tree-shaken) |
 |---------------------|-----------|-----------------------|
-| `@clojurewasm/kiso` | ~134 KB   | ~20-40 KB             |
-| `@clojurewasm/su`   | ~17 KB    | ~8-12 KB              |
+| `@clojurewasm/kiso` | ~146 KB   | ~20-40 KB             |
+| `@clojurewasm/su`   | ~21 KB    | ~8-12 KB              |
 
 ## Preview Locally
 

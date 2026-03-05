@@ -80,16 +80,30 @@ This is the Solid.js model:
   ;; This code runs ONCE when the component mounts
   (let [seconds (atom 0)]
     (js/console.log "Component initialized!")
+    ;; The hiccup is automatically reactive — @seconds triggers re-renders
+    [:div (str "Seconds: " @seconds)]))
+```
 
-    ;; Return a render function that re-runs on atom changes
+`defc` **auto-wraps** the final hiccup expression in a reactive render function.
+Dereferencing atoms (`@seconds`) inside the hiccup body automatically subscribes
+to changes — no explicit `fn` return needed.
+
+### Form-2 Components (Advanced)
+
+For setup code that must run once (timers, event listeners, etc.), explicitly
+return a `fn`:
+
+```clojure
+(defc my-timer []
+  (let [seconds (atom 0)
+        id (js/setInterval #(swap! seconds inc) 1000)]
+    (on-unmount #(js/clearInterval id))
+    ;; Explicit fn: setup code above runs once, render fn re-runs on changes
     (fn []
       [:div (str "Seconds: " @seconds)])))
 ```
 
-The returned function (if any) is the render function. It re-executes whenever
-atoms it dereferences change.
-
-If no function is returned, the hiccup vector itself is the static output.
+When `defc` detects an explicit `fn` return, it skips auto-wrap.
 
 ## Props Channeling
 
@@ -100,10 +114,9 @@ rich values like atoms, objects, or collections, use **Props Channeling**:
 (defc task-list
   {:props {:tasks :atom}}
   [{:keys [tasks]}]
-  (fn []
-    [:ul
-     (map (fn [t] [:li (:text t)])
-          @tasks)]))
+  [:ul
+   (map (fn [t] [:li (:text t)])
+        @tasks)])
 ```
 
 The `:atom` prop type tells su to pass the value as a JavaScript property
@@ -197,6 +210,7 @@ When a component has no props, the empty vector `[]` is still required:
 | Props              | Declared in `{:props {...}}`, destructured        |
 | Prop types         | `"string"`, `"number"`, `"boolean"`, `:atom`      |
 | Component function | Runs once (setup phase)                           |
-| Render function    | Returned `fn` that re-runs on atom changes        |
+| Auto-wrap          | Final hiccup is auto-wrapped for reactive updates  |
+| Form-2             | Explicit `fn` return for advanced setup patterns   |
 | `::name`           | Reference component in same namespace             |
 | `mount`            | Render component tree into a DOM container        |

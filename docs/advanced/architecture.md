@@ -41,11 +41,14 @@ When `defc` is compiled and executed:
    └── mount(container)
        │
        ├── setHost(shadowRoot host element)
-       ├── collectLifecycleHooks(() => renderFn(propsAtom))
-       │   ├── Execute component function (setup phase)
-       │   ├── Collect onMount / onUnmount callbacks
-       │   └── Return hiccup result
-       ├── renderHiccup(result) → DOM nodes
+       ├── collectLifecycleHooks(() => {
+       │   ├── renderFn(propsAtom) → result
+       │   ├── If result is function (auto-wrapped or Form-2):
+       │   │   └── renderHiccup(fn) → bind() handles reactivity
+       │   └── If result is plain hiccup:
+       │       ├── renderHiccup(hiccup) → DOM nodes
+       │       └── propsAtom.addWatch() for re-renders via patchNode
+       │   })
        ├── Append to Shadow DOM
        ├── Apply adoptedStyleSheets
        ├── Execute mount callbacks

@@ -143,17 +143,15 @@ Display data via props, mutation via Context.
   {:style [filter-bar-styles]}
   []
   (let [filter-mode (su/use-context :filter-mode)]
-    (fn []
-      (let [mode @filter-mode]
-        [:div {:class "filters"}
-          (map (fn [m]
-                 [:button {:style {:background (if (= mode m) "#6366f1" "#fff")}
-                           :on-click (fn [_] (reset! filter-mode m))}
-                  (name m)])
-               [:all :active :done])]))))
+    [:div {:class "filters"}
+      (map (fn [m]
+             [:button {:style {:background (if (= @filter-mode m) "#6366f1" "#fff")}
+                       :on-click (fn [_] (reset! filter-mode m))}
+              (name m)])
+           [:all :active :done])]))
 ```
 
-Returns `(fn [] ...)` — `@filter-mode` inside triggers re-render on change.
+`@filter-mode` inside the auto-wrapped body triggers re-render on change.
 
 ---
 
@@ -212,11 +210,10 @@ Returns `(fn [] ...)` — `@filter-mode` inside triggers re-render on change.
                    1000)]
           (su/on-unmount
             (fn [] (js/clearInterval id))))))
-    (fn []
-      [:div
-        [:span (str @seconds " seconds remaining")]
-        (when (= 0 @seconds)
-          [:p "Time's up!"])])))
+    [:div
+      [:span (str @seconds " seconds remaining")]
+      (when (= 0 @seconds)
+        [:p "Time's up!"])]))
 ```
 
 ### Fetch Data on Mount
@@ -233,11 +230,10 @@ Returns `(fn [] ...)` — `@filter-mode` inside triggers re-render on change.
                      (reset! users (js->clj data :keywordize-keys true))))
             (.catch (fn [err]
                       (reset! error (.-message err)))))))
-    (fn []
-      (cond
-        @error [:p {:style {:color "red"}} (str "Error: " @error)]
-        (nil? @users) [:p "Loading..."]
-        :else [:ul (map (fn [u] [:li (:name u)]) @users)]))))
+    (cond
+      @error [:p {:style {:color "red"}} (str "Error: " @error)]
+      (nil? @users) [:p "Loading..."]
+      :else [:ul (map (fn [u] [:li (:name u)]) @users)])))
 ```
 
 ### Context for Theming
@@ -257,11 +253,10 @@ Returns `(fn [] ...)` — `@filter-mode` inside triggers re-render on change.
 ;; Descendant consumes it
 (defc themed-content []
   (let [theme (su/use-context :theme)]
-    (fn []
-      [:div {:style {:background (if (= @theme :dark) "#1e293b" "#fff")
-                     :color (if (= @theme :dark) "#f1f5f9" "#1e293b")
-                     :padding "20px"}}
-        "Themed content"])))
+    [:div {:style {:background (if (= @theme :dark) "#1e293b" "#fff")
+                   :color (if (= @theme :dark) "#f1f5f9" "#1e293b")
+                   :padding "20px"}}
+      "Themed content"]))
 ```
 
 ### Computed Values
@@ -277,14 +272,13 @@ Returns `(fn [] ...)` — `@filter-mode` inside triggers re-render on change.
                             (+ sum (* (:price item) (:qty item))))
                           0
                           @items)))]
-    (fn []
-      [:div
-        [:ul
-          (map (fn [item]
-                 [:li (str (:name item) " x" (:qty item))])
-               @items)]
-        [:p {:style {:font-weight "bold"}}
-          (str "Total: $" (.toFixed (.deref total) 2))]])))
+    [:div
+      [:ul
+        (map (fn [item]
+               [:li (str (:name item) " x" (:qty item))])
+             @items)]
+      [:p {:style {:font-weight "bold"}}
+        (str "Total: $" (.toFixed (.deref total) 2))]]))
 ```
 
 ### Component Composition with Slots

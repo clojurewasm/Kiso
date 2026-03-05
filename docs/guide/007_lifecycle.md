@@ -48,23 +48,23 @@ A common pattern — set up an interval on mount, clean it up on unmount:
 ```clojure
 (defc live-clock []
   (let [time (atom (js/Date.) "time")]
-    ;; Start interval on mount
+    ;; Start interval on mount, clean up on unmount
     (su/on-mount
       (fn []
         (let [id (js/setInterval
                    (fn [] (reset! time (js/Date.)))
                    1000)]
-          ;; Clean up on unmount
           (su/on-unmount
             (fn [] (js/clearInterval id))))))
 
-    (fn []
-      [:div (.toLocaleTimeString @time)])))
+    ;; Auto-wrapped: re-renders every second
+    [:div (.toLocaleTimeString @time)]))
 ```
 
 ## Fetch on Mount
 
 ```clojure
+;; Form-2: explicit fn needed because on-mount uses props (user-id)
 (defc user-profile
   {:props {:user-id "number"}}
   [{:keys [user-id]}]

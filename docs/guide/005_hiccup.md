@@ -182,17 +182,10 @@ The `fn` wrapper creates a reactive binding that re-renders only that child
 when the atom changes. This is useful for fine-grained updates within a larger
 static structure.
 
-```clojure
-;; Static child — evaluated once:
-[:span (str "Count: " @count)]
-
-;; Reactive child — re-renders on change:
-(fn [] [:span (str "Count: " @count)])
-```
-
-> **Note**: `defc` automatically wraps the component's final expression in a
-> reactive function, so you only need explicit `(fn [] ...)` for fine-grained
-> reactivity within hiccup children.
+> **Note**: Inside `defc`, the entire body is auto-wrapped and reactive, so
+> all children update automatically. Use explicit `(fn [] ...)` only when you
+> want **fine-grained** reactivity — re-rendering a single child without
+> rebuilding the entire component tree.
 
 See the [Reactivity guide](004_reactivity.md) for more details.
 

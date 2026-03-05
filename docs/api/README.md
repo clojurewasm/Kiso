@@ -44,8 +44,8 @@ Define a Custom Element with Shadow DOM.
 
 - Component name must contain a hyphen (Custom Element spec)
 - Component function runs **once** (setup phase)
-- If body returns a function, that is the reactive render function
-- If body returns a hiccup vector, it renders statically
+- `defc` auto-wraps the final hiccup expression as a reactive render function
+- If body explicitly returns a `fn`, auto-wrap is skipped (Form-2 pattern)
 - Auto-registered via `customElements.define()`
 
 ```clojure

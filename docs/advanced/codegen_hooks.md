@@ -99,12 +99,12 @@ compile(source, {
 ### Vite plugin
 
 ```typescript
-import { kisoPlugin } from '@clojurewasm/kiso';
+import { cljs } from '@clojurewasm/kiso/vite';
 import { suCodegenHooks } from '@clojurewasm/su';
 
 export default defineConfig({
   plugins: [
-    kisoPlugin({ codegenHooks: suCodegenHooks }),
+    cljs({ codegenHooks: suCodegenHooks }),
   ],
 });
 ```
