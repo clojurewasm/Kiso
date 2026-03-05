@@ -262,16 +262,14 @@ existing Form-2 components are detected and preserved.
 
 All previously tracked issues (I1–I6) have been resolved. See `archive/bugs-fixed.md` for details.
 
-### I7: `into` 3-arity (transducer) silently returns empty collection
+### ~~I7: `into` 3-arity (transducer) silently returns empty collection~~ (RESOLVED)
 
-`(into [:div] (map f) coll)` produces `[:div]` with no children. The 2-arity form
-`(into [:div] (map f coll))` works correctly. Root cause: transducer protocol path
-in `into` not fully implemented. Workaround: use 2-arity `into` or `(apply conj target (map f coll))`.
+Fixed: `into` now supports 3-arity `(into to xform from)` via `transduce`.
+Full transducer support: `Reduced`, `transduce`, `completing`, `map`/`filter`/`take` 1-arity.
 
 ## Workarounds (Platform Constraints)
 
 - **defc names require hyphen**: Custom Element names require a hyphen (web standard). `(defc counter ...)` fails — use `(defc sample-counter ...)`.
-- **Top-level await needs ES2022 target**: `(js/await ...)` compiles to top-level `await` which older esbuild targets reject. Set `build: { target: 'es2022' }` in `vite.config.js`.
 - **Shadow DOM isolates querySelector**: Elements inside `defc` components are invisible to `document.querySelector`. Use plain DOM for shell, su for demos.
 
 ## Future Work
