@@ -363,6 +363,10 @@ describe('renderHiccup', () => {
     expect(setPropertySpy).toHaveBeenCalledWith('font-size', '14px');
     expect(setPropertySpy).toHaveBeenCalledWith('background-color', '#fff');
   });
+  it('sets innerHTML via inner-html attr', () => {
+    const node = renderHiccup(['div', { 'inner-html': '<b>bold</b>' }]) as unknown as MockNode;
+    expect((node as any).innerHTML).toBe('<b>bold</b>');
+  });
 });
 
 describe('patchNode', () => {

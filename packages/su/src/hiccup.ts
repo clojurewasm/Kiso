@@ -172,6 +172,9 @@ function applyAttrs(el: HTMLElement, attrs: Record<string, unknown>, tag: string
       }
     } else if (tag.includes('-') && typeof val === 'object' && val !== null) {
       (el as unknown as Record<string, unknown>)[key] = val;
+    } else if (key === 'inner-html') {
+      // Note: Callers are responsible for sanitizing content to prevent XSS.
+      el.innerHTML = String(val);
     } else if (key === 'checked' || key === 'disabled' || key === 'selected' || key === 'readonly') {
       (el as unknown as Record<string, unknown>)[key] = !!val;
     } else {
@@ -340,6 +343,9 @@ function patchAttrs(el: HTMLElement, newAttrs: Record<string, unknown>, baseClas
           listeners.set(event, val as EventListener);
         }
       }
+    } else if (key === 'inner-html') {
+      // Note: Callers are responsible for sanitizing content to prevent XSS.
+      el.innerHTML = String(val);
     } else if (tag.includes('-') && typeof val === 'object' && val !== null) {
       (el as unknown as Record<string, unknown>)[key] = val;
     } else if (key === 'checked' || key === 'disabled' || key === 'selected' || key === 'readonly') {
