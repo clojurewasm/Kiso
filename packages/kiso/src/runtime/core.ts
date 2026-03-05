@@ -453,7 +453,23 @@ export function rand_int(n: number): number { return Math.floor(Math.random() * 
 
 // -- Seq operations --
 
-export function take(n: number, coll: unknown): unknown {
+export function take(n_: unknown, ...args: unknown[]): unknown {
+  const n = n_ as number;
+  if (args.length === 0) {
+    return (rf: Function) => {
+      let left = n;
+      return (...rfArgs: unknown[]) => {
+        if (rfArgs.length <= 1) return rf(...rfArgs);
+        if (left > 0) {
+          left--;
+          const r = rf(rfArgs[0], rfArgs[1]);
+          return left === 0 ? ensure_reduced(r) : r;
+        }
+        return rfArgs[0];
+      };
+    };
+  }
+  const coll = args[0];
   const result: unknown[] = [];
   let s = seq(coll);
   let i = 0;

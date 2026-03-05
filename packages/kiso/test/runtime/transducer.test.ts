@@ -3,7 +3,7 @@ import {
   reduced, reduced_p, unreduced, ensure_reduced, Reduced,
   reduce, list, vector, add,
   completing, transduce,
-  map, filter, conj,
+  map, filter, take, conj,
 } from '../../src/runtime/index.js';
 
 describe('Reduced', () => {
@@ -140,5 +140,33 @@ describe('filter transducer (1-arity)', () => {
   it('still works as eager 2-arity', () => {
     const result = filter((x: number) => x > 2, list(1, 2, 3, 4));
     expect(result).toEqual(list(3, 4));
+  });
+});
+
+describe('take transducer (1-arity)', () => {
+  it('returns a transducer when called with 1 arg', () => {
+    const xf = take(2);
+    expect(typeof xf).toBe('function');
+  });
+
+  it('works with transduce, stops via Reduced', () => {
+    const result = transduce(
+      take(2),
+      add, 0, list(10, 20, 30, 40),
+    );
+    expect(result).toBe(30); // 10+20=30
+  });
+
+  it('takes 0 elements', () => {
+    const result = transduce(
+      take(0),
+      add, 0, list(1, 2, 3),
+    );
+    expect(result).toBe(0);
+  });
+
+  it('still works as eager 2-arity', () => {
+    const result = take(2, list(1, 2, 3, 4));
+    expect(result).toEqual(list(1, 2));
   });
 });
