@@ -234,8 +234,15 @@ export function map(f_: unknown, ...args: unknown[]): unknown {
   return list(...result);
 }
 
-export function filter(pred_: unknown, coll: unknown): unknown {
+export function filter(pred_: unknown, ...args: unknown[]): unknown {
   const pred = toFn(pred_);
+  if (args.length === 0) {
+    return (rf: Function) => (...rfArgs: unknown[]) => {
+      if (rfArgs.length <= 1) return rf(...rfArgs);
+      return isTruthy(pred(rfArgs[1])) ? rf(rfArgs[0], rfArgs[1]) : rfArgs[0];
+    };
+  }
+  const coll = args[0];
   const result: unknown[] = [];
   let s = seq(coll);
   while (s !== null) {
