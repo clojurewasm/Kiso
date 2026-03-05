@@ -14,6 +14,14 @@ import { seq, first as seqFirst, next as seqNext } from './seq.js';
 import { isSortedMap, PersistentTreeMap, EMPTY_SORTED_MAP } from './sorted-map.js';
 import { isSortedSet, PersistentTreeSet, EMPTY_SORTED_SET } from './sorted-set.js';
 
+// -- Reduced (transducer early termination) --
+
+export class Reduced { constructor(public readonly value: unknown) {} }
+export function reduced(x: unknown): Reduced { return new Reduced(x); }
+export function reduced_p(x: unknown): boolean { return x instanceof Reduced; }
+export function unreduced(x: unknown): unknown { return x instanceof Reduced ? x.value : x; }
+export function ensure_reduced(x: unknown): Reduced { return x instanceof Reduced ? x : new Reduced(x); }
+
 // -- Truthiness --
 
 export function truthy(x: unknown): boolean {
@@ -250,6 +258,7 @@ export function reduce(f: (...args: unknown[]) => unknown, ...args: unknown[]): 
   let s = seq(coll);
   while (s !== null) {
     acc = f(acc, seqFirst(s));
+    if (acc instanceof Reduced) return acc.value;
     s = seqNext(s);
   }
   return acc;
