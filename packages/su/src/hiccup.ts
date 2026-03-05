@@ -60,6 +60,11 @@ export function parseTag(s: string): ParsedTag {
   return { tag, id, classes };
 }
 
+// -- Attr tracking for patchNode --
+
+const prevAttrsStore = new WeakMap<HTMLElement, Set<string>>();
+const listenersStore = new WeakMap<HTMLElement, Map<string, EventListener>>();
+
 // -- Hiccup types --
 
 type HiccupVector = [string | unknown, ...unknown[]];
@@ -127,7 +132,11 @@ export function renderHiccup(hiccup: HiccupNode): Node {
 }
 
 function applyAttrs(el: HTMLElement, attrs: Record<string, unknown>, tag: string): void {
+  const keys = new Set<string>();
+  const listeners = new Map<string, EventListener>();
+
   for (const [key, val] of Object.entries(attrs)) {
+    keys.add(key);
     if (key === 'class') {
       if (typeof val === 'function') {
         const baseClass = el.className || '';
@@ -155,19 +164,206 @@ function applyAttrs(el: HTMLElement, attrs: Record<string, unknown>, tag: string
       }
     } else if (key.startsWith('on-')) {
       if (tag.includes('-') && key in el) {
-        // Rich prop on Custom Element (e.g., on-delete callback)
         (el as unknown as Record<string, unknown>)[key] = val;
       } else {
         const event = key.slice(3);
         el.addEventListener(event, val as EventListener);
+        listeners.set(event, val as EventListener);
       }
     } else if (tag.includes('-') && typeof val === 'object' && val !== null) {
       (el as unknown as Record<string, unknown>)[key] = val;
     } else if (key === 'checked' || key === 'disabled' || key === 'selected' || key === 'readonly') {
-      // DOM boolean properties — set as property, not attribute
       (el as unknown as Record<string, unknown>)[key] = !!val;
     } else {
       el.setAttribute(key, String(val));
+    }
+  }
+
+  prevAttrsStore.set(el, keys);
+  listenersStore.set(el, listeners);
+}
+
+// -- patchNode --
+
+function flattenChildren(rest: unknown[]): HiccupNode[] {
+  const result: HiccupNode[] = [];
+  for (const child of rest) {
+    if (child === null || child === undefined) continue;
+    if (Array.isArray(child) && child.length > 0 && !isHiccupVector(child)) {
+      for (const item of child) result.push(item as HiccupNode);
+    } else {
+      result.push(child as HiccupNode);
+    }
+  }
+  return result;
+}
+
+/** Patch an existing DOM node to match new hiccup. Reuses same-tag elements. */
+export function patchNode(existing: Node, hiccup: HiccupNode): Node {
+  // String/number → patch text or replace
+  if (typeof hiccup === 'string' || typeof hiccup === 'number') {
+    const text = String(hiccup);
+    if (existing.nodeType === 3) {
+      if ((existing as Text).data !== text) {
+        (existing as Text).data = text;
+      }
+      return existing;
+    }
+    const newNode = document.createTextNode(text);
+    existing.parentNode!.replaceChild(newNode, existing);
+    return newNode;
+  }
+
+  // null/undefined → comment
+  if (hiccup === null || hiccup === undefined) {
+    if (existing.nodeType === 8) return existing;
+    const comment = document.createComment('');
+    existing.parentNode!.replaceChild(comment, existing);
+    return comment;
+  }
+
+  // function → new bind (reactive boundary, can't patch into)
+  if (typeof hiccup === 'function') {
+    const newNode = bind(hiccup as () => HiccupNode);
+    existing.parentNode!.replaceChild(newNode, existing);
+    return newNode;
+  }
+
+  // Not hiccup vector → text
+  if (!isHiccupVector(hiccup)) {
+    const newNode = document.createTextNode(String(hiccup));
+    existing.parentNode!.replaceChild(newNode, existing);
+    return newNode;
+  }
+
+  // Hiccup vector
+  const [rawTag, ...rest] = hiccup;
+  const { tag, id, classes } = parseTag(rawTag as string);
+
+  // Different tag or not an element → full replace
+  if (existing.nodeType !== 1 || (existing as HTMLElement).tagName.toLowerCase() !== tag) {
+    const newNode = renderHiccup(hiccup);
+    existing.parentNode!.replaceChild(newNode, existing);
+    return newNode;
+  }
+
+  // Same tag — reuse element
+  const el = existing as HTMLElement;
+
+  // Update id
+  if (id) el.id = id;
+  else if (el.id) el.removeAttribute('id');
+
+  // Extract attrs
+  let childStart = 0;
+  let attrs: Record<string, unknown> = {};
+  if (rest.length > 0 && isAttrsMap(rest[0])) {
+    attrs = rest[0];
+    childStart = 1;
+  }
+
+  // Patch attrs
+  patchAttrs(el, attrs, classes.join(' '), tag);
+
+  // Patch children
+  patchChildren(el, flattenChildren(rest.slice(childStart)));
+
+  return el;
+}
+
+function patchAttrs(el: HTMLElement, newAttrs: Record<string, unknown>, baseClass: string, tag: string): void {
+  const prevKeys = prevAttrsStore.get(el);
+  const prevListeners = listenersStore.get(el);
+
+  // Remove old attrs not in new
+  if (prevKeys) {
+    for (const key of prevKeys) {
+      if (key in newAttrs) continue;
+      if (key === 'class' || key === 'style') continue;
+      if (key.startsWith('on-')) {
+        const event = key.slice(3);
+        const handler = prevListeners?.get(event);
+        if (handler) {
+          el.removeEventListener(event, handler);
+          prevListeners!.delete(event);
+        }
+      } else if (key === 'checked' || key === 'disabled' || key === 'selected' || key === 'readonly') {
+        (el as unknown as Record<string, unknown>)[key] = false;
+      } else {
+        el.removeAttribute(key);
+      }
+    }
+  }
+
+  // Set className
+  const classAttr = newAttrs['class'];
+  if (typeof classAttr === 'function') {
+    const v = (classAttr as () => unknown)();
+    el.className = baseClass ? baseClass + ' ' + String(v) : String(v);
+  } else if (typeof classAttr === 'string') {
+    el.className = baseClass ? baseClass + ' ' + classAttr : classAttr;
+  } else {
+    el.className = baseClass;
+  }
+
+  // Set new attrs
+  const newKeys = new Set<string>();
+  const listeners = prevListeners || new Map<string, EventListener>();
+
+  for (const [key, val] of Object.entries(newAttrs)) {
+    newKeys.add(key);
+    if (key === 'class') continue; // handled above
+    if (key === 'style') {
+      if (typeof val === 'function') {
+        const styleMap = (val as () => unknown)() as Record<string, string>;
+        if (styleMap && typeof styleMap === 'object') {
+          for (const [prop, sval] of Object.entries(styleMap)) {
+            el.style.setProperty(prop, sval);
+          }
+        }
+      } else if (typeof val === 'object' && val !== null) {
+        for (const [prop, sval] of Object.entries(val as Record<string, string>)) {
+          el.style.setProperty(prop, sval);
+        }
+      }
+    } else if (key.startsWith('on-')) {
+      if (tag.includes('-') && key in el) {
+        (el as unknown as Record<string, unknown>)[key] = val;
+      } else {
+        const event = key.slice(3);
+        const oldHandler = listeners.get(event);
+        if (oldHandler && oldHandler !== val) {
+          el.removeEventListener(event, oldHandler);
+        }
+        if (!oldHandler || oldHandler !== val) {
+          el.addEventListener(event, val as EventListener);
+          listeners.set(event, val as EventListener);
+        }
+      }
+    } else if (tag.includes('-') && typeof val === 'object' && val !== null) {
+      (el as unknown as Record<string, unknown>)[key] = val;
+    } else if (key === 'checked' || key === 'disabled' || key === 'selected' || key === 'readonly') {
+      (el as unknown as Record<string, unknown>)[key] = !!val;
+    } else {
+      el.setAttribute(key, String(val));
+    }
+  }
+
+  prevAttrsStore.set(el, newKeys);
+  listenersStore.set(el, listeners);
+}
+
+function patchChildren(el: HTMLElement, newChildren: HiccupNode[]): void {
+  const existing = Array.from(el.childNodes);
+  const maxLen = Math.max(existing.length, newChildren.length);
+
+  for (let i = 0; i < maxLen; i++) {
+    if (i < existing.length && i < newChildren.length) {
+      patchNode(existing[i]!, newChildren[i]!);
+    } else if (i >= existing.length) {
+      el.appendChild(renderHiccup(newChildren[i]!));
+    } else {
+      el.removeChild(existing[i]!);
     }
   }
 }
@@ -185,14 +381,15 @@ export function bind(fn: () => HiccupNode): Node {
   queueMicrotask(() => {
     dispose = effect(() => {
       const hiccup = cljToJs(fn()) as HiccupNode;
-      const newNode = renderHiccup(hiccup);
 
       if (currentNode && anchor.parentNode) {
-        anchor.parentNode.replaceChild(newNode, currentNode);
+        // Patch existing DOM instead of full replace
+        currentNode = patchNode(currentNode, hiccup);
       } else if (anchor.parentNode) {
+        const newNode = renderHiccup(hiccup);
         anchor.parentNode.insertBefore(newNode, anchor.nextSibling);
+        currentNode = newNode;
       }
-      currentNode = newNode;
     });
   });
 

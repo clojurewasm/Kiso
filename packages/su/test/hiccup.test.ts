@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { parseTag, renderHiccup } from '../src/hiccup.js';
+import { parseTag, renderHiccup, patchNode } from '../src/hiccup.js';
 import { Atom } from '../../kiso/src/runtime/atom.js';
 import { initReactiveTracking } from '../src/reactive.js';
 
@@ -53,34 +53,45 @@ describe('parseTag', () => {
 
 type MockNode = {
   type: 'element' | 'text' | 'comment';
+  nodeType: number;
   tag?: string;
+  tagName?: string;
   text?: string;
+  data?: string;
   id?: string;
   className?: string;
   attrs: Record<string, string>;
-  style: Record<string, string> & { setProperty?(prop: string, val: string): void };
+  style: Record<string, string> & { setProperty?(prop: string, val: string): void; removeProperty?(prop: string): void };
   children: MockNode[];
+  childNodes: MockNode[];
   listeners: Record<string, unknown>;
   parentNode: MockNode | null;
   nextSibling: MockNode | null;
   appendChild(child: MockNode): void;
   insertBefore(newChild: MockNode, ref: MockNode | null): void;
   replaceChild(newChild: MockNode, oldChild: MockNode): void;
+  removeChild(child: MockNode): void;
   setAttribute(name: string, value: string): void;
+  removeAttribute(name: string): void;
   addEventListener(event: string, fn: unknown): void;
+  removeEventListener(event: string, fn: unknown): void;
 };
 
 function createMockElement(tag: string): MockNode {
-  const styleObj = {} as Record<string, string> & { setProperty(prop: string, val: string): void };
+  const styleObj = {} as Record<string, string> & { setProperty(prop: string, val: string): void; removeProperty(prop: string): void };
   styleObj.setProperty = function(prop: string, val: string) { styleObj[prop] = val; };
+  styleObj.removeProperty = function(prop: string) { delete styleObj[prop]; };
   const node: MockNode = {
     type: 'element',
+    nodeType: 1,
     tag,
+    tagName: tag.toUpperCase(),
     id: undefined,
     className: undefined,
     attrs: {},
     style: styleObj,
     children: [],
+    childNodes: [],
     listeners: {},
     parentNode: null,
     nextSibling: null,
@@ -90,6 +101,7 @@ function createMockElement(tag: string): MockNode {
         node.children[node.children.length - 1].nextSibling = child;
       }
       node.children.push(child);
+      node.childNodes = node.children;
     },
     insertBefore(newChild: MockNode, ref: MockNode | null) {
       newChild.parentNode = node;
@@ -99,6 +111,7 @@ function createMockElement(tag: string): MockNode {
         const idx = node.children.indexOf(ref);
         node.children.splice(idx, 0, newChild);
       }
+      node.childNodes = node.children;
     },
     replaceChild(newChild: MockNode, oldChild: MockNode) {
       const idx = node.children.indexOf(oldChild);
@@ -108,49 +121,76 @@ function createMockElement(tag: string): MockNode {
         oldChild.parentNode = null;
       }
     },
+    removeChild(child: MockNode) {
+      const idx = node.children.indexOf(child);
+      if (idx >= 0) {
+        node.children.splice(idx, 1);
+        child.parentNode = null;
+      }
+      node.childNodes = node.children;
+    },
     setAttribute(name: string, value: string) {
       node.attrs[name] = value;
+    },
+    removeAttribute(name: string) {
+      delete node.attrs[name];
     },
     addEventListener(event: string, fn: unknown) {
       node.listeners[event] = fn;
     },
+    removeEventListener(event: string, _fn: unknown) {
+      delete node.listeners[event];
+    },
   };
+  node.childNodes = node.children;
   return node;
 }
 
 function createMockTextNode(text: string): MockNode {
   return {
     type: 'text',
+    nodeType: 3,
     text,
+    data: text,
     attrs: {},
     style: {},
     children: [],
+    childNodes: [],
     listeners: {},
     parentNode: null,
     nextSibling: null,
     appendChild() { /* noop */ },
     insertBefore() { /* noop */ },
     replaceChild() { /* noop */ },
+    removeChild() { /* noop */ },
     setAttribute() { /* noop */ },
+    removeAttribute() { /* noop */ },
     addEventListener() { /* noop */ },
+    removeEventListener() { /* noop */ },
   };
 }
 
 function createMockComment(text: string): MockNode {
   return {
     type: 'comment',
+    nodeType: 8,
     text,
+    data: text,
     attrs: {},
     style: {},
     children: [],
+    childNodes: [],
     listeners: {},
     parentNode: null,
     nextSibling: null,
     appendChild() { /* noop */ },
     insertBefore() { /* noop */ },
     replaceChild() { /* noop */ },
+    removeChild() { /* noop */ },
     setAttribute() { /* noop */ },
+    removeAttribute() { /* noop */ },
     addEventListener() { /* noop */ },
+    removeEventListener() { /* noop */ },
   };
 }
 
@@ -322,5 +362,118 @@ describe('renderHiccup', () => {
     renderHiccup(['div', { style: { 'font-size': '14px', 'background-color': '#fff' } }]);
     expect(setPropertySpy).toHaveBeenCalledWith('font-size', '14px');
     expect(setPropertySpy).toHaveBeenCalledWith('background-color', '#fff');
+  });
+});
+
+describe('patchNode', () => {
+  beforeEach(() => {
+    vi.stubGlobal('document', {
+      createElement: (tag: string) => createMockElement(tag),
+      createTextNode: (text: string) => createMockTextNode(text),
+      createComment: (text: string) => createMockComment(text),
+    });
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('updates text node data in-place', () => {
+    const container = createMockElement('div');
+    const text = renderHiccup('hello') as unknown as MockNode;
+    container.appendChild(text);
+
+    const result = patchNode(text as unknown as Node, 'world') as unknown as MockNode;
+    expect(result).toBe(text); // same reference — reused
+    expect(result.data).toBe('world');
+  });
+
+  it('replaces text node with element when types differ', () => {
+    const container = createMockElement('div');
+    const text = renderHiccup('hello') as unknown as MockNode;
+    container.appendChild(text);
+
+    const result = patchNode(text as unknown as Node, ['span', 'new']) as unknown as MockNode;
+    expect(result).not.toBe(text);
+    expect(result.tag).toBe('span');
+    expect(container.children[0]).toBe(result);
+  });
+
+  it('reuses element with same tag and updates text child', () => {
+    const container = createMockElement('div');
+    const el = renderHiccup(['p', 'old']) as unknown as MockNode;
+    container.appendChild(el);
+    const originalEl = el;
+
+    const result = patchNode(el as unknown as Node, ['p', 'new']) as unknown as MockNode;
+    expect(result).toBe(originalEl); // same element reused
+    expect(result.children[0].data).toBe('new');
+  });
+
+  it('replaces element when tag differs', () => {
+    const container = createMockElement('div');
+    const el = renderHiccup(['p', 'text']) as unknown as MockNode;
+    container.appendChild(el);
+
+    const result = patchNode(el as unknown as Node, ['span', 'text']) as unknown as MockNode;
+    expect(result).not.toBe(el);
+    expect(result.tag).toBe('span');
+  });
+
+  it('updates attributes on same-tag element', () => {
+    const container = createMockElement('div');
+    const el = renderHiccup(['input', { type: 'text', placeholder: 'old' }]) as unknown as MockNode;
+    container.appendChild(el);
+
+    const result = patchNode(el as unknown as Node, ['input', { type: 'email', value: 'x' }]) as unknown as MockNode;
+    expect(result).toBe(el); // reused
+    expect(result.attrs['type']).toBe('email');
+    expect(result.attrs['value']).toBe('x');
+    expect(result.attrs['placeholder']).toBeUndefined(); // removed
+  });
+
+  it('preserves event handlers on reused element', () => {
+    const container = createMockElement('div');
+    const handler1 = vi.fn();
+    const el = renderHiccup(['button', { 'on-click': handler1 }, 'Click']) as unknown as MockNode;
+    container.appendChild(el);
+
+    const handler2 = vi.fn();
+    const result = patchNode(el as unknown as Node, ['button', { 'on-click': handler2 }, 'Click']) as unknown as MockNode;
+    expect(result).toBe(el); // same button element
+    expect(result.listeners['click']).toBe(handler2); // handler updated
+  });
+
+  it('removes excess children', () => {
+    const container = createMockElement('div');
+    const el = renderHiccup(['ul', ['li', 'a'], ['li', 'b'], ['li', 'c']]) as unknown as MockNode;
+    container.appendChild(el);
+
+    patchNode(el as unknown as Node, ['ul', ['li', 'x']]);
+    expect(el.children).toHaveLength(1);
+    expect(el.children[0].children[0].data).toBe('x');
+  });
+
+  it('adds new children', () => {
+    const container = createMockElement('div');
+    const el = renderHiccup(['ul', ['li', 'a']]) as unknown as MockNode;
+    container.appendChild(el);
+
+    patchNode(el as unknown as Node, ['ul', ['li', 'a'], ['li', 'b']]);
+    expect(el.children).toHaveLength(2);
+    expect(el.children[1].children[0].data).toBe('b');
+  });
+
+  it('patches nested elements recursively', () => {
+    const container = createMockElement('div');
+    const el = renderHiccup(['div', ['span', ['em', 'deep']]]) as unknown as MockNode;
+    container.appendChild(el);
+    const originalSpan = el.children[0];
+    const originalEm = originalSpan.children[0];
+
+    patchNode(el as unknown as Node, ['div', ['span', ['em', 'updated']]]);
+    expect(el.children[0]).toBe(originalSpan); // span reused
+    expect(el.children[0].children[0]).toBe(originalEm); // em reused
+    expect(originalEm.children[0].data).toBe('updated');
   });
 });
