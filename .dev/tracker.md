@@ -267,6 +267,13 @@ All previously tracked issues (I1–I6) have been resolved. See `archive/bugs-fi
 Fixed: `into` now supports 3-arity `(into to xform from)` via `transduce`.
 Full transducer support: `Reduced`, `transduce`, `completing`, `map`/`filter`/`take` 1-arity.
 
+### ~~I8: defc auto-wrap creates stale closures for prop values~~ (RESOLVED)
+
+Fixed: `injectPropsIntoAutoWrap` moves props destructuring `(let* [{:keys ...} @props-atom])`
+inside the auto-wrapped `(fn* [] ...)`, so `@props-atom` runs inside bind's effect. Form-2
+components (user returns fn explicitly) keep destructuring outside. Also branched mount()
+on renderFn return type: function → bind() handles reactivity, plain hiccup → addWatch.
+
 ## Workarounds (Platform Constraints)
 
 - **defc names require hyphen**: Custom Element names require a hyphen (web standard). `(defc counter ...)` fails — use `(defc sample-counter ...)`.
