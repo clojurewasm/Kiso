@@ -31,20 +31,10 @@ Monorepo: `@clojurewasm/kiso` (compiler + runtime), `@clojurewasm/su` (component
 | 22    | Performance Benchmarks | DONE   | Vitest bench suite, baseline measurements                 |
 | 23    | npm Publish Prep       | DONE   | Keywords, export map, build verification, dry-run         |
 | 24    | Release Polish         | DONE   | Codegen, CI, bundle, docs, showcase, quality              |
+| 25    | Known Issues (I1-I6)   | DONE   | Reactive attrs, IFn, #js, DOM patching, inner-html       |
 
-Phases 1-24 complete. 1435 vitest + 14 Playwright E2E tests. Types clean.
+Phases 1-25 complete. ~1480 vitest + 14 Playwright E2E tests. Types clean.
 Var coverage: 330/330 (100%). Phase details: `.dev/archive/phases.md`.
-
-## Phase 25: Known Issues Resolution — WIP
-
-Resolve all Known Issues (I1-I6) from `tracker.md`. Order: quick fixes first, then reactivity improvements.
-
-- 25.1 I4: Add `contains?`/`subs` to RUNTIME_FUNCTIONS
-- 25.2 I3: Sets callable as IFn (`(#{:a :b} :a)` → `:a`)
-- 25.3 I2: `#js` tagged literal support (`#js [1 2]` → JS array, `#js {:a 1}` → JS object)
-- 25.4 I1: Reactive `:class`/`:style` attrs (fn values → per-attr `effect()`)
-- 25.5 I6: Fine-grained DOM updates in `bind()` (text/attr patching, avoid full replaceChild)
-- 25.6 I5: `:inner-html` attribute support in su hiccup
 
 ## Phase 26: Macro Plugin System (Future)
 

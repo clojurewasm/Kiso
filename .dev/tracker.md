@@ -260,52 +260,7 @@ existing Form-2 components are detected and preserved.
 
 ## Known Issues
 
-### I1: Reactive :class/:style as fn — workaround: (fn [] hiccup) wrapper
-
-`{:class (fn [] (str "active" (when @flag " on")))}` silently drops the class attr.
-`applyAttrs` only handles string `:class` and object `:style`.
-**Workaround**: Wrap the entire hiccup subtree in a reactive `(fn [] ...)`.
-**Affected components**: toggle_switch, accordion, tabs, progress_bar, dropdown_select.
-
-### I2: #js tagged literal not supported — workaround: (array ...)
-
-`#js [1 2 3]` silently produces PersistentVector, not JS array.
-Reader parses `#js` as tagged literal, but analyzer simply unwraps the tag.
-**Workaround**: Use `(array 1 2 3)` for JS arrays.
-
-### I3: Sets not callable as IFn — workaround: (get set val)
-
-Unlike Clojure, `(#{:a :b} :a)` doesn't work.
-**Workaround**: Use `(get my-set val)` or `(contains? my-set val)`.
-
-### I4: contains?/subs missing from RUNTIME_FUNCTIONS — workaround: JS interop
-
-These functions exist in runtime but aren't auto-imported by the compiler.
-**Workaround**: Use `.substring` for `subs`, `(get coll key)` for `contains?`.
-
-### I5: innerHTML not supported in su hiccup
-
-su's hiccup renderer doesn't handle innerHTML as a special attribute.
-**Workaround**: Use `set!` on the DOM element via interop after mount.
-
-### I6: bind() full-replaces DOM on every reactive update — click events lost during rapid updates
-
-`bind()` in `packages/su/src/hiccup.ts` calls `renderHiccup` to create an entirely new DOM
-tree on every reactive update, then uses `replaceChild` to swap the old tree. There is no
-DOM diffing/patching. When atoms change rapidly (e.g. setInterval at 100ms), the button
-elements are destroyed and recreated each cycle. A user's mousedown → DOM replace → mouseup
-sequence never completes on the same element, so `click` events are silently lost.
-
-**Impact**: Any component with high-frequency atom updates (timers, animations, drag, streaming)
-becomes unresponsive to user interaction if the interactive elements are inside the reactive boundary.
-
-**Workaround**: Keep interactive elements (buttons, inputs) as **static hiccup** outside
-`(fn [] ...)` wrappers. Only wrap the data-display portions in reactive children.
-See `showcase/src/samples/progress_bar.cljs` for the pattern.
-
-**Proper fix**: Implement DOM patching in `bind()` — diff the old and new hiccup trees and
-apply minimal mutations (similar to Snabbdom/morphdom) instead of full `replaceChild`.
-Alternatively, reuse the existing DOM and only update changed attributes/text nodes.
+All previously tracked issues (I1–I6) have been resolved. See `archive/bugs-fixed.md` for details.
 
 ## Workarounds (Platform Constraints)
 

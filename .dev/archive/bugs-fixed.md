@@ -41,3 +41,12 @@ Fix: Changed jsType to `'regex'`, added regex emitter case.
 - Q4: Conformance tests — DONE (Phase 13)
 - Q5: Browser E2E — DONE (Phase 15, Playwright)
 - Q6: CI — DONE (Phase 12, GitHub Actions)
+
+## Known Issues (I1-I6, Phase 25)
+
+- I1: Reactive :class/:style fn attrs — `applyAttrs` now wraps fn values in `effect()` for fine-grained reactive updates
+- I2: #js tagged literal — analyzer handles `#js` tag, emits native JS arrays/objects (`JsArrayNode`/`JsObjectNode`)
+- I3: Sets/Maps/Vectors as IFn — added `invoke()` dispatch + `toFn()` wrapper; 15 HOFs accept IFn predicates
+- I4: contains?/subs runtime — added to `core.ts`, `RUNTIME_FUNCTIONS`, and `index.ts` exports
+- I5: inner-html attribute — `applyAttrs` and `patchAttrs` set `el.innerHTML` for `:inner-html` key
+- I6: bind() DOM patching — `patchNode` reuses same-tag elements, tracks attrs/listeners via WeakMaps
