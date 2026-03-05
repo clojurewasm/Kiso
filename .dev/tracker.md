@@ -262,6 +262,12 @@ existing Form-2 components are detected and preserved.
 
 All previously tracked issues (I1–I6) have been resolved. See `archive/bugs-fixed.md` for details.
 
+### I7: `into` 3-arity (transducer) silently returns empty collection
+
+`(into [:div] (map f) coll)` produces `[:div]` with no children. The 2-arity form
+`(into [:div] (map f coll))` works correctly. Root cause: transducer protocol path
+in `into` not fully implemented. Workaround: use 2-arity `into` or `(apply conj target (map f coll))`.
+
 ## Workarounds (Platform Constraints)
 
 - **defc names require hyphen**: Custom Element names require a hyphen (web standard). `(defc counter ...)` fails — use `(defc sample-counter ...)`.
