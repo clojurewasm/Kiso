@@ -216,15 +216,21 @@ export function dissoc(coll: unknown, ...keys: unknown[]): unknown {
 
 // -- Higher-order --
 
-export function map(f_: unknown, coll: unknown): unknown {
+export function map(f_: unknown, ...args: unknown[]): unknown {
   const f = toFn(f_);
+  if (args.length === 0) {
+    return (rf: Function) => (...rfArgs: unknown[]) => {
+      if (rfArgs.length <= 1) return rf(...rfArgs);
+      return rf(rfArgs[0], f(rfArgs[1]));
+    };
+  }
+  const coll = args[0];
   const result: unknown[] = [];
   let s = seq(coll);
   while (s !== null) {
     result.push(f(seqFirst(s)));
     s = seqNext(s);
   }
-  // Return a list for now (lazy seqs later)
   return list(...result);
 }
 
