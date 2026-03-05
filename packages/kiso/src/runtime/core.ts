@@ -264,6 +264,31 @@ export function reduce(f: (...args: unknown[]) => unknown, ...args: unknown[]): 
   return acc;
 }
 
+export function completing(f: Function, cf?: Function): Function {
+  const complete = cf ?? identity;
+  return (...args: unknown[]) => {
+    if (args.length === 0) return f();
+    if (args.length === 1) return complete(args[0]);
+    return f(args[0], args[1]);
+  };
+}
+
+export function transduce(xform: Function, f: Function, ...rest: unknown[]): unknown {
+  const rf = completing(f);
+  const xf = xform(rf);
+  let init: unknown, coll: unknown;
+  if (rest.length === 2) { init = rest[0]; coll = rest[1]; }
+  else { coll = rest[0]; init = (rf as Function)(); }
+  let acc = init;
+  let s = seq(coll);
+  while (s !== null) {
+    acc = xf(acc, seqFirst(s));
+    if (acc instanceof Reduced) { acc = acc.value; break; }
+    s = seqNext(s);
+  }
+  return xf(acc);
+}
+
 export function apply(f: (...args: unknown[]) => unknown, args: unknown): unknown {
   const arr: unknown[] = [];
   let s = seq(args);
