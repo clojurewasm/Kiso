@@ -15,7 +15,6 @@
   "Header component showing app title and note count."
   {:style [header-style]}
   [{:keys [note-count]} :atom]
-  (fn []
-    [:div {:class "header"}
-     [:h1 "Notes App"]
-     [:span {:class "count"} (format-count (count @note-count) "note")]]))
+  [:div {:class "header"}
+   [:h1 "Notes App"]
+   [:span {:class "count"} (format-count (count @note-count) "note")]])

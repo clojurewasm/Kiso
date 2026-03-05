@@ -47,22 +47,21 @@
   {:style [accordion-styles]}
   []
   (let [open-map (atom {})]
-    (fn []
-      [:div
-       (map-indexed
-        (fn [i item]
-          (let [is-open (get @open-map i)]
-            [:div {:class "item"}
-             [:div {:class "header"
-                    :on-click (fn [_]
-                                (swap! open-map
-                                       (fn [m] (assoc m i (not (get m i))))))}
-              (:title item)
-              [:span {:class (str "arrow" (when is-open " open"))}
-               "\u25B6"]]
-             [:div {:class (str "body" (when is-open " open"))}
-              (:content item)]]))
-        faq-items)])))
+    [:div
+     (map-indexed
+      (fn [i item]
+        (let [is-open (get @open-map i)]
+          [:div {:class "item"}
+           [:div {:class "header"
+                  :on-click (fn [_]
+                              (swap! open-map
+                                     (fn [m] (assoc m i (not (get m i))))))}
+            (:title item)
+            [:span {:class (str "arrow" (when is-open " open"))}
+             "\u25B6"]]
+           [:div {:class (str "body" (when is-open " open"))}
+            (:content item)]]))
+      faq-items)]))
 
 (defn mount! [container]
   (su/mount container [::sample-accordion]))

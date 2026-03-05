@@ -99,39 +99,38 @@
               (reset! score 0)
               (reset! answered nil)
               (reset! finished false))]
-      (fn []
-        (if @finished
+      (if @finished
+        [:div {:class "card"}
+         [:div {:class "result"}
+          [:div {:class "question"} "Quiz Complete!"]
+          [:div {:class "score"} (str @score "/" (count questions))]
+          [:div {:class "msg"}
+           (cond
+             (= @score (count questions)) "Perfect score!"
+             (>= @score 3) "Great job!"
+             :else "Keep learning!")]
+          [:button {:class "next-btn" :on-click (fn [_] (restart))} "Try Again"]]]
+        (let [q (nth questions @idx)
+              ans @answered]
           [:div {:class "card"}
-           [:div {:class "result"}
-            [:div {:class "question"} "Quiz Complete!"]
-            [:div {:class "score"} (str @score "/" (count questions))]
-            [:div {:class "msg"}
-             (cond
-               (= @score (count questions)) "Perfect score!"
-               (>= @score 3) "Great job!"
-               :else "Keep learning!")]
-            [:button {:class "next-btn" :on-click (fn [_] (restart))} "Try Again"]]]
-          (let [q (nth questions @idx)
-                ans @answered]
-            [:div {:class "card"}
-             [:div {:class "progress"}
-              (str "Question " (inc @idx) " of " (count questions))]
-             [:div {:class "question"} (:q q)]
-             [:div {:class "choices"}
-              (map-indexed
-               (fn [i choice]
-                 (let [cls (cond
-                             (nil? ans) "choice"
-                             (= i (:answer q)) "choice correct"
-                             (= i (:chosen ans)) "choice wrong"
-                             :else "choice disabled")]
-                   [:button {:class cls
-                             :on-click (fn [_] (select-answer i))}
-                    choice]))
-               (:choices q))]
-             (when ans
-               [:button {:class "next-btn"
-                         :on-click (fn [_] (next-question))}
-                (if (< (inc @idx) (count questions)) "Next" "See Results")])]))))))
+           [:div {:class "progress"}
+            (str "Question " (inc @idx) " of " (count questions))]
+           [:div {:class "question"} (:q q)]
+           [:div {:class "choices"}
+            (map-indexed
+             (fn [i choice]
+               (let [cls (cond
+                           (nil? ans) "choice"
+                           (= i (:answer q)) "choice correct"
+                           (= i (:chosen ans)) "choice wrong"
+                           :else "choice disabled")]
+                 [:button {:class cls
+                           :on-click (fn [_] (select-answer i))}
+                  choice]))
+             (:choices q))]
+           (when ans
+             [:button {:class "next-btn"
+                       :on-click (fn [_] (next-question))}
+              (if (< (inc @idx) (count questions)) "Next" "See Results")])])))))
 
 (su/mount (js/document.getElementById "app") [::quiz-app])

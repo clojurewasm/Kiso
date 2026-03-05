@@ -25,8 +25,7 @@
   "Displays a single note with delete button."
   {:style [note-item-style]}
   [{:keys [note-id note-text created]}]
-  (fn []
-    [:div {:class "note"}
-     [:span {:class "text"} (truncate note-text 80)]
-     [:span {:class "meta"} created]
-     [:button {:on-click (fn [_e] (remove-note! note-id))} "x"]]))
+  [:div {:class "note"}
+   [:span {:class "text"} (truncate note-text 80)]
+   [:span {:class "meta"} created]
+   [:button {:on-click (fn [_e] (remove-note! note-id))} "x"]])

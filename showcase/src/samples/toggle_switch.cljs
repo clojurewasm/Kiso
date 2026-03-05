@@ -33,13 +33,12 @@
   {:style [toggle-styles]}
   []
   (let [active (atom false)]
-    (fn []
-      [:div
-       [:div {:class (str "track" (when @active " on"))
-              :on-click (fn [_] (swap! active not))}
-        [:div {:class (str "thumb" (when @active " on"))}]]
-       [:div {:class "label"}
-        (if @active "ON" "OFF")]])))
+    [:div
+     [:div {:class (str "track" (when @active " on"))
+            :on-click (fn [_] (swap! active not))}
+      [:div {:class (str "thumb" (when @active " on"))}]]
+     [:div {:class "label"}
+      (if @active "ON" "OFF")]]))
 
 (defn mount! [container]
   (su/mount container [::sample-toggle]))

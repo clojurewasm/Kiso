@@ -15,16 +15,15 @@
   "Root component. Assembles header, input, and note list."
   {:style [app-style]}
   []
-  (fn []
-    [:div {:class "app"}
-     [::app-header {:note-count notes}]
-     [::note-input]
-     [:div {:class "note-list"}
-      (map (fn [note]
-             [::note-item {:note-id (:id note)
-                           :note-text (:text note)
-                           :created (:created note)}])
-           @notes)]]))
+  [:div {:class "app"}
+   [::app-header {:note-count notes}]
+   [::note-input]
+   [:div {:class "note-list"}
+    (map (fn [note]
+           [::note-item {:note-id (:id note)
+                         :note-text (:text note)
+                         :created (:created note)}])
+         @notes)]])
 
 (su/mount (js/document.getElementById "app")
           [::notes-app])

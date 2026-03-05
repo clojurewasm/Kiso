@@ -22,13 +22,12 @@
   {:style [note-input-style]}
   []
   (let [text (atom "" "input-text")]
-    (fn []
-      [:div {:class "input-row"}
-       [:input {:type "text"
-                :placeholder "Add a note..."
-                :value @text
-                :on-input (fn [e] (reset! text (.-value (.-target e))))}]
-       [:button {:on-click (fn [_e]
-                             (add-note! @text)
-                             (reset! text ""))}
-        "Add"]])))
+    [:div {:class "input-row"}
+     [:input {:type "text"
+              :placeholder "Add a note..."
+              :value @text
+              :on-input (fn [e] (reset! text (.-value (.-target e))))}]
+     [:button {:on-click (fn [_e]
+                           (add-note! @text)
+                           (reset! text ""))}
+      "Add"]]))

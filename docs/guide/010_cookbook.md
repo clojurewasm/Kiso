@@ -31,11 +31,10 @@ A minimal counter app — the "hello world" of su.
   {:style [counter-styles]}
   []
   (let [count (atom 0)]
-    (fn []
-      [:div {:class "counter"}
-       [:button {:on-click (fn [_] (swap! count dec))} "-"]
-       [:span (str @count)]
-       [:button {:on-click (fn [_] (swap! count inc))} "+"]])))
+    [:div {:class "counter"}
+     [:button {:on-click (fn [_] (swap! count dec))} "-"]
+     [:span (str @count)]
+     [:button {:on-click (fn [_] (swap! count inc))} "+"]]))
 
 (su/mount (js/document.getElementById "app")
           [::my-counter])
@@ -44,12 +43,12 @@ A minimal counter app — the "hello world" of su.
 ### How It Works
 
 1. **`defstyle`** creates a scoped stylesheet — styles stay inside the Shadow DOM
-2. **`defc`** defines a Custom Element. The outer `let` runs once (setup), the inner `fn` is the render function
-3. **`(atom 0)`** creates reactive state. Dereferencing `@count` inside the render fn auto-subscribes
+2. **`defc`** defines a Custom Element. The `let` runs once (setup); `defc` auto-wraps the final hiccup expression as the render function
+3. **`(atom 0)`** creates reactive state. Dereferencing `@count` inside the hiccup auto-subscribes
 4. **`(swap! count inc)`** triggers a re-render of the reactive part
 
-> su components follow the Solid.js model: the component function runs once,
-> only the returned render function re-runs.
+> su components follow the Solid.js model: setup code runs once,
+> the render function (auto-wrapped by `defc`) re-runs on atom changes.
 
 ### Exercises
 

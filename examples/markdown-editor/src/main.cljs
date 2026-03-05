@@ -6,19 +6,16 @@
 
 (defn md-line->hiccup [line]
   (cond
-    (string/starts-with? line "### ") (array "h3" (.substring line 4))
-    (string/starts-with? line "## ")  (array "h2" (.substring line 3))
-    (string/starts-with? line "# ")   (array "h1" (.substring line 2))
-    (string/starts-with? line "- ")   (array "li" (.substring line 2))
-    (string/starts-with? line "> ")   (array "blockquote" (.substring line 2))
-    (string/blank? line)              (array "br")
-    :else                             (array "p" line)))
+    (string/starts-with? line "### ") [:h3 (.substring line 4)]
+    (string/starts-with? line "## ")  [:h2 (.substring line 3)]
+    (string/starts-with? line "# ")   [:h1 (.substring line 2)]
+    (string/starts-with? line "- ")   [:li (.substring line 2)]
+    (string/starts-with? line "> ")   [:blockquote (.substring line 2)]
+    (string/blank? line)              [:br]
+    :else                             [:p line]))
 
 (defn markdown->hiccup [text]
-  (let [lines (string/split text #"\n")
-        children (.map lines md-line->hiccup)]
-    (.unshift children "div")
-    children))
+  (into [:div] (map md-line->hiccup (string/split text #"\n"))))
 
 ;; -- Styles --
 

@@ -43,17 +43,16 @@
   {:style [tab-styles]}
   []
   (let [active (atom :overview)]
-    (fn []
-      [:div
-       [:div {:class "tab-bar"}
-        (map (fn [t]
-               [:button {:class (str "tab" (when (= @active (:id t)) " active"))
-                         :on-click (fn [_] (reset! active (:id t)))}
-                (:label t)])
-             tab-data)]
-       [:div {:class "content"}
-        (let [tab (first (filter (fn [t] (= (:id t) @active)) tab-data))]
-          (:body tab))]])))
+    [:div
+     [:div {:class "tab-bar"}
+      (map (fn [t]
+             [:button {:class (str "tab" (when (= @active (:id t)) " active"))
+                       :on-click (fn [_] (reset! active (:id t)))}
+              (:label t)])
+           tab-data)]
+     [:div {:class "content"}
+      (let [tab (first (filter (fn [t] (= (:id t) @active)) tab-data))]
+        (:body tab))]]))
 
 (defn mount! [container]
   (su/mount container [::sample-tabs]))

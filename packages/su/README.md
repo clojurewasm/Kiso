@@ -36,11 +36,10 @@ export default { plugins: [cljs()] };
   {:style [counter-styles]}
   []
   (let [n (atom 0)]
-    (fn []
-      [:div.counter
-       [:button {:on-click #(swap! n dec)} "-"]
-       [:span (str @n)]
-       [:button {:on-click #(swap! n inc)} "+"]])))
+    [:div.counter
+     [:button {:on-click #(swap! n dec)} "-"]
+     [:span (str @n)]
+     [:button {:on-click #(swap! n inc)} "+"]]))
 
 (su/mount (js/document.getElementById "app") [::my-counter])
 ```
